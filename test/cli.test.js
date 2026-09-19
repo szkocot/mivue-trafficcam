@@ -98,3 +98,12 @@ test('failed edit or build leaves no output file', async t => {
   await writeFile(project, '{');
   assert.equal(run('build', project, '--output', out).status, 1); await assert.rejects(access(out));
 });
+
+test('partial-write failure removes only the newly created output', async t => {
+  const { path, bytes } = await fixture(t), output = path + '.partial.json';
+  const hook = new URL('./helpers/fail-write.mjs', import.meta.url).href;
+  const result = spawnSync(process.execPath, ['--import', hook, cli, 'project', path, '--output', output], { encoding: 'utf8' });
+  assert.equal(result.status, 1); assert.match(result.stderr, /partial-write failure/);
+  await assert.rejects(access(output));
+  assert.deepEqual(new Uint8Array(await readFile(path)), bytes);
+});
