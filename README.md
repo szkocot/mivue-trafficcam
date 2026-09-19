@@ -10,6 +10,8 @@ The parser, editable project model, encoder, and CLI support the 20×20 layout d
 
 Tasks 1–6 of the [implementation plan](docs/superpowers/plans/2026-09-20-map-editor.md) provide a bilingual map editor, cache/autosave, tentative forms, undo/redo, project recovery and validated downloads. Verification includes 83 Node tests, 23 deterministic browser tests and a separate successful live-source check. The full 52,935-record sample loads with bounded DOM rendering and rebuilds byte-identically; see [verification details and limitations](docs/browser-verification.md). Independent review found four blocking issues, now fixed with regression tests; one minor cache-warning display issue is deferred. The map editor is integrated into `main`, with both test suites passing on the merged tree; GitHub Pages deployment is not enabled. CANARD/other website imports and country-limited datasets follow this increment. This README is updated after every task.
 
+The next increment has a [proposed automatic-ingestion design](docs/superpowers/specs/2026-09-20-source-ingestion-design.md): imports merge supported additions/updates automatically while preserving manual edits and deletions, retaining attribution, and offering whole-import undo. The written spec awaits review; ingestion is not implemented yet. CANARD access/reuse verification and explicit binary-template safeguards are part of the proposal.
+
 ## Usage
 
 Use Node.js (verified with v26.8.2). The CLI needs no installed dependencies. Browser development uses the pinned dependencies in `package-lock.json`.
