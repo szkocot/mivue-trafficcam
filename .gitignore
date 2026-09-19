@@ -10,3 +10,6 @@
 node_modules/
 *.log
 /.superpowers/
+/dist/
+/test-results/
+/playwright-report/

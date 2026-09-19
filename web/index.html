@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MiVue TrafficCam</title>
+<link rel="stylesheet" href="./vendor/leaflet.css"><link rel="stylesheet" href="./web/styles.css"></head>
+<body><header><div><h1>MiVue <span>TrafficCam</span></h1><small id="filename">MiVue 955W · EU</small></div>
+<nav><button id="pl">PL</button><button id="en">EN</button><label class="file-button"><span data-i18n="open"></span><input id="file" type="file" accept=".bin,.json"></label>
+<button id="save" data-i18n="save" disabled></button><button id="exports" data-i18n="exports" disabled></button></nav></header>
+<section class="source-bar"><button id="check" data-i18n="check"></button><button id="source-cancel" data-i18n="cancel"></button><button id="use-source" data-i18n="useSource" disabled></button>
+<button id="force-source" data-i18n="downloadSource"></button><span id="source-status" data-testid="source-status" role="status"></span>
+<details><summary data-i18n="sourceInfo"></summary><pre id="source-info"></pre></details></section>
+<section class="stats"><span><span data-i18n="active"></span>: <b data-testid="record-count" id="record-count">0</b></span><span><span data-i18n="results"></span>: <b id="result-count">0</b></span>
+<span><span data-i18n="changes"></span>: <b id="changes">0</b></span><span><span data-i18n="warningCount"></span>: <b id="warnings-count">0</b></span>
+<span id="save-status" data-testid="save-status" role="status"></span><button id="undo" data-i18n="undo" disabled></button><button id="redo" data-i18n="redo" disabled></button><button id="discard" data-i18n="discard" disabled></button></section>
+<section class="messages"><p id="operation-status" role="status"></p><button id="operation-cancel" data-i18n="cancel" hidden></button><p id="tile-status" data-testid="tile-status" hidden></p><p id="recovery" hidden></p><button id="recover" data-i18n="recover" hidden></button></section>
+<section class="filters"><label><span data-i18n="search"></span><input id="search" type="search"></label>
+<label><input id="viewport" type="checkbox"><span data-i18n="viewport"></span></label><label><input id="warnings" type="checkbox"><span data-i18n="warnings"></span></label>
+<label><input id="changed" type="checkbox"><span data-i18n="changed"></span></label><label><input id="deleted" type="checkbox"><span data-i18n="deleted"></span></label>
+<details><summary data-i18n="advanced"></summary><label><span data-i18n="rawType"></span><input id="type" type="number" min="0"></label></details>
+<button id="fit" data-i18n="fit"></button><button id="map-tab" data-i18n="map"></button><button id="list-tab" data-i18n="list"></button></section>
+<main id="workspace"><section id="map-panel"><div id="map" aria-label="Map"></div><p class="legend" data-i18n="links"></p></section>
+<section id="list-panel"><p id="empty" data-i18n="empty"></p><p id="hidden-selection" data-i18n="hidden" hidden></p><div id="record-list"></div></section>
+<aside id="details"><p data-i18n="select"></p></aside></main>
+<footer><p data-i18n="notice"></p><p data-i18n="privacy"></p></footer>
+<script src="./vendor/leaflet.js"></script><script type="module" src="./web/app.js"></script></body></html>
