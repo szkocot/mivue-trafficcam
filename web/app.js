@@ -36,6 +36,7 @@ async function guardDraft(){
 }
 function saveProject(){if(state)downloadBlob({bytes:state.projectJson,mime:'application/json',filename:'mivue-project.json'});}
 async function guardReplace(){
+ if(busy && !state){intent++;client.cancel();busy=false;}
  if(busy)return false;if(!await guardDraft())return false;
  if(!state?.modified && !recovery)return true;
  const answer=await choice('replace',['backupReplace','replaceNow','cancel']);
@@ -125,10 +126,10 @@ window.addEventListener('beforeunload',event=>{if(details.hasDraft()||['saving',
 window.addEventListener('pagehide',releaseDownloads);
 translate();
 async function start(){
+ const ticket=intent;
  try{store=await openStorage();}catch{saveStatus='saveFailed';}
  autosave=createAutosave({store,onStatus:s=>{saveStatus=s.state==='failed'?'saveFailed':s.state;render();}});
  cache=createSourceCache({store,validateBytes:bytes=>client.validateSource(bytes),onStatus:s=>{sourceStatus=s.state;render();}});
- const ticket=intent;
  try{
   const saved=await store.getWorking();
   if(saved && ticket===intent){
@@ -136,7 +137,7 @@ async function start(){
    if(saved.version!==1 || typeof saved.projectJson!=='string')throw Error('INVALID_SAVED_PROJECT');
    await open('open-project',{text:saved.projectJson},{ticket,save:false,info:saved.sourceInfo});recovery=null;saveStatus='saved';
   }
- }catch{$('recovery').hidden=false;$('recover').hidden=false;}
+ }catch{if(ticket===intent){$('recovery').hidden=false;$('recover').hidden=false;}}
  source=await cache.loadCached();
  if(source && !state && !recovery && ticket===intent)await open('open-bin',{bytes:source.bytes,name:'Speedcam_Data_FEU.bin'},{ticket,info:source.source}).catch(()=>{});
  const newest=await check();

@@ -24,3 +24,13 @@ test('request success followed by transaction abort cannot report a persisted wr
  const indexedDB={open(){const r={};queueMicrotask(()=>{r.result=db;r.onsuccess();});return r;}};
  const store=await openStorage({indexedDB});await assert.rejects(store.putWorking({version:1}),/abort/i);
 });
+test('queued pre-reset revision is skipped and committed reset remains the latest',async()=>{
+ let release,stored;const statuses=[];
+ const store={putWorking:async entry=>{if(entry.revision===1)await new Promise(r=>{release=r;});stored=entry;}};
+ const a=createAutosave({store,onStatus:s=>statuses.push(s)});a.begin('a');
+ const first=a.save({sessionId:'a',revision:1,projectJson:'edit'});
+ while(!release)await new Promise(r=>setImmediate(r));
+ const next=a.save({sessionId:'a',revision:2,projectJson:'another edit'}),reset=a.save({sessionId:'a',revision:3,projectJson:'baseline'});
+ release();await Promise.all([first,next,reset]);assert.equal(stored.projectJson,'baseline');
+ assert.deepEqual(statuses.filter(s=>s.state==='saved').map(s=>s.revision),[3]);
+});

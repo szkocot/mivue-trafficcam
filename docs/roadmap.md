@@ -66,6 +66,6 @@ Prepare the website and deployment configuration without including the user's sa
 
 ## Current next increment
 
-Increment 1 is implemented and pushed. Increment 2's [approved design](superpowers/specs/2026-09-20-map-editor-design.md) and [implementation plan](superpowers/plans/2026-09-20-map-editor.md) are being executed: tasks 1–5 provide the browser editor, automatic official-source caching, local working-project autosave and validated downloads. Extended browser verification is next; the branch is not yet merged or published. CANARD/other website ingestion and country-limited datasets follow it.
+Increment 1 is implemented and pushed. Increment 2's [approved design](superpowers/specs/2026-09-20-map-editor-design.md) and [implementation plan](superpowers/plans/2026-09-20-map-editor.md) have implementation and browser-verification results in [the verification record](browser-verification.md). Final independent review precedes integration; the branch is not yet merged or published. CANARD/other website ingestion and country-limited datasets follow it.
 
 Update `README.md` after every task, recording actual progress and limitations without presenting planned features as implemented.
