@@ -40,6 +40,14 @@ test('misplaced valid coordinate is preserved and warned', () => {
   const db = parseDatabase(makeFixture([{ cellIndex: 22 }]).bytes);
   assert.equal(db.records[0].latitude, 37); assert.equal(db.diagnostics[0].code, 'CELL_MISMATCH');
 });
+test('fractional cell boundary belongs to the upper cell without rounding neighbors', () => {
+  for (const [latitudeRaw, cellIndex] of [[4248, 241], [4247.99999999994, 221], [4248.00000000006, 241]]) {
+    const db = parseDatabase(makeFixture([{ latitudeRaw, cellIndex }]).bytes);
+    assert.deepEqual(db.diagnostics, [], `raw latitude ${latitudeRaw}`);
+  }
+  const misplaced = parseDatabase(makeFixture([{ latitudeRaw: 4248, cellIndex: 221 }]).bytes);
+  assert.equal(misplaced.diagnostics[0].code, 'CELL_MISMATCH');
+});
 for (const [name, records, code] of [
   ['valid link', [{ typeRaw: 964, linkTo: 1 }, { typeRaw: 9128 }], null],
   ['missing target', [{ typeRaw: 964, linkRaw: 123 }], 'LINK_TARGET_MISSING'],

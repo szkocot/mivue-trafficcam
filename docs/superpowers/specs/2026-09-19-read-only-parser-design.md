@@ -1,6 +1,6 @@
 # Read-only MiVue binary parser
 
-Status: approved by the user on 2026-09-19; implementation has not started.
+Status: approved by the user on 2026-09-19; implemented and verified on 2026-09-20.
 
 ## Purpose and scope
 

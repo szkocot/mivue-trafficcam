@@ -63,7 +63,7 @@ Here `bounds` uses `{ longitudeMin, latitudeMin, longitudeMax, latitudeMax }`, a
 
 **Interfaces:** Produce `parseDatabase(Uint8Array)` and `ParseError`. The test helper exports `makeFixture(records = [])`, returning `{ bytes, recordOffsets, cellOffsets, regionOffsets }`. Input fixture records specify `regionIndex`, `cellIndex`, `latitudeRaw`, `longitudeRaw`, `rawBytes16To19`, `typeRaw`, and optional `linkTo` (input record index) or `linkRaw` (absolute raw word). Default coordinates are `3700, -700`, region 0, cell 21; default raw bytes are `[50, 0, 0, 1]`, type 1, link 0.
 
-- [ ] **Write fixture builder and parser tests.** Independently pack headers/tables/records with DataView setters, not production parser helpers. Use global bounds -8,36,31,70. Group records by region/cell, compute every span, assign record offsets, then resolve fixture `linkTo` values. Preserve input order for `recordOffsets`. Empty regions occupy 10 bytes; populated regions have 400 cells. Derive stored integer bounds by truncating fractional boundaries. Tests include:
+- [x] **Write fixture builder and parser tests.** Independently pack headers/tables/records with DataView setters, not production parser helpers. Use global bounds -8,36,31,70. Group records by region/cell, compute every span, assign record offsets, then resolve fixture `linkTo` values. Preserve input order for `recordOffsets`. Empty regions occupy 10 bytes; populated regions have 400 cells. Derive stored integer bounds by truncating fractional boundaries. Tests include:
 
 ```js
 import test from 'node:test';
@@ -104,9 +104,9 @@ test('reports inferred link target type without dropping records', () => {
 
 Add cases for header and final-record truncation; duplicate/decreasing offsets; pointers into cell tables and beyond EOF; count 65535 against a short span; regional count disagreement; extra trailing byte; grid dimensions 0 and 65535; non-increasing or impossible geographic bounds; negative fractional longitude `-730` decoding to `-7.5`; exact global maximum `7000,3100` in region 8/cell 399; an interior longitude boundary `500` in region 1/cell 20 at latitude 37; invalid minute value `3760`; NaN and Infinity; misplaced but valid coordinates; nondefault bytes 16–19 and unknown type/header values; valid, missing, unexpected-type, and self-target candidate links. Missing links must warn without dereferencing. Assert error class/code rather than engine-specific messages.
 
-- [ ] **Run tests and confirm failure before implementation.** Command: `node --test test/parser.test.js`. Expect module-not-found for src/parser.js.
+- [x] **Run tests and confirm failure before implementation.** Command: `node --test test/parser.test.js`. Expect module-not-found for src/parser.js.
 
-- [ ] **Implement the parser and package metadata.** Package uses `"private": true`, `"type": "module"`, no dependencies, and `"scripts": { "test": "node --test test/*.test.js" }`. Provide JSDoc for public interfaces. Construct the view using the supplied slice:
+- [x] **Implement the parser and package metadata.** Package uses `"private": true`, `"type": "module"`, no dependencies, and `"scripts": { "test": "node --test test/*.test.js" }`. Provide JSDoc for public interfaces. Construct the view using the supplied slice:
 
 ```js
 const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -128,7 +128,7 @@ Validate coordinate values before conversion; absolute remainder modulo 100 must
 
 Build `Map(record.offset -> record)` once. For each nonzero raw link on type 964, look up the target and emit the missing/type warning when applicable. Do not recursively traverse. Populate counts from parsed arrays and diagnostics. Return plain objects and arrays; retain no mutable input views.
 
-- [ ] **Run parser tests, resolve failures, and commit this deliverable.** Use `node --test test/parser.test.js` and `git diff --check`; stage only Task 1 files. Commit message: `feat: parse and validate MiVue speedcam databases`.
+- [x] **Run parser tests, resolve failures, and commit this deliverable.** Use `node --test test/parser.test.js` and `git diff --check`; stage only Task 1 files. Commit message: `feat: parse and validate MiVue speedcam databases`.
 
 ### Task 2: Loss-aware JSON and GeoJSON serializers
 
@@ -136,7 +136,7 @@ Build `Map(record.offset -> record)` once. For each nonzero raw link on type 964
 
 **Interfaces:** Consume the Task 1 result. Export `serializeJson(database): string`, `toGeoJson(database): object`, and `serializeGeoJson(database): string`.
 
-- [ ] **Write serializer tests.** Use synthetic parser results, including a fixture with NaN and unknown bytes. Verify:
+- [x] **Write serializer tests.** Use synthetic parser results, including a fixture with NaN and unknown bytes. Verify:
 
 ```js
 const db = parseDatabase(makeFixture([{}]).bytes);
@@ -153,9 +153,9 @@ assert.equal(JSON.parse(serializeJson(invalid)).records[0].latitudeRaw, 'NaN');
 
 Import helpers and functions explicitly in test/export.test.js. Also verify empty exports, intact diagnostics, preserved source offsets/link words, absent line geometries, and unchanged input objects after serializing. Use `structuredClone(db)` for the before/after assertion.
 
-- [ ] **Run the new test and confirm module-not-found.** Command: `node --test test/export.test.js`.
+- [x] **Run the new test and confirm module-not-found.** Command: `node --test test/export.test.js`.
 
-- [ ] **Implement serializers.** JSON uses `JSON.stringify(database, null, 2)` plus a newline. GeoJSON maps each record to a Feature with `id: record.offset`, properties copied from the full record, and a Point only when both decoded coordinates are finite. Carry header, summary, diagnostics, and schemaVersion as collection members. Do not infer lines or official type labels.
+- [x] **Implement serializers.** JSON uses `JSON.stringify(database, null, 2)` plus a newline. GeoJSON maps each record to a Feature with `id: record.offset`, properties copied from the full record, and a Point only when both decoded coordinates are finite. Carry header, summary, diagnostics, and schemaVersion as collection members. Do not infer lines or official type labels.
 
 ```js
 const geometry = Number.isFinite(record.latitude)
@@ -164,7 +164,7 @@ const geometry = Number.isFinite(record.latitude)
   : null;
 ```
 
-- [ ] **Run both test files and commit.** Command: `node --test test/parser.test.js test/export.test.js`; commit message: `feat: export parsed records as JSON and GeoJSON`.
+- [x] **Run both test files and commit.** Command: `node --test test/parser.test.js test/export.test.js`; commit message: `feat: export parsed records as JSON and GeoJSON`.
 
 ### Task 3: CLI, local-sample verification, and usage documentation
 
@@ -172,7 +172,7 @@ const geometry = Number.isFinite(record.latitude)
 
 **Interfaces:** CLI forms are `node bin/mivue-trafficcam.js inspect <file>` and `node bin/mivue-trafficcam.js export <file> --format json|geojson`. Accept `--help` alone with exit 0; reject unknown commands/options, extra arguments, missing path/format, and unsupported formats with exit 2 before reading input.
 
-- [ ] **Write CLI tests.** Use `mkdtemp` under the OS temp directory and synthetic fixtures, with cleanup registered through the test context. Invoke the CLI through `spawnSync(process.execPath, args, { encoding: 'utf8' })`:
+- [x] **Write CLI tests.** Use `mkdtemp` under the OS temp directory and synthetic fixtures, with cleanup registered through the test context. Invoke the CLI through `spawnSync(process.execPath, args, { encoding: 'utf8' })`:
 
 ```js
 const run = (...args) => spawnSync(process.execPath,
@@ -187,11 +187,11 @@ assert.equal(result.stderr, '');
 
 Cover inspect summary, GeoJSON export, warning-bearing success with parseable stdout and warnings on stderr, nonexistent path, malformed file, filename containing spaces, and preservation of fixture bytes. For output-error behavior, start export with stdout piped, destroy the parent's reading end, and assert a controlled nonzero exit without an unhandled-error stack; use a sufficiently large synthetic fixture to force more than one pipe buffer of output.
 
-- [ ] **Run CLI tests to demonstrate failure.** Command: `node --test test/cli.test.js`.
+- [x] **Run CLI tests to demonstrate failure.** Command: `node --test test/cli.test.js`.
 
-- [ ] **Implement CLI argument handling and stream behavior.** Read the input only after syntax validation, call parseDatabase once, print diagnostics to stderr, and emit the requested summary/export to stdout. Summary names type/link meanings as tentative. Use `process.exitCode` to avoid truncating buffered output. Handle stdout errors, including EPIPE, with exit 1 and a concise stderr message. Catch ParseError and filesystem errors without a stack trace. No writes to the input, no network operations, no implicit output files.
+- [x] **Implement CLI argument handling and stream behavior.** Read the input only after syntax validation, call parseDatabase once, print diagnostics to stderr, and emit the requested summary/export to stdout. Summary names type/link meanings as tentative. Use `process.exitCode` to avoid truncating buffered output. Handle stdout errors, including EPIPE, with exit 1 and a concise stderr message. Catch ParseError and filesystem errors without a stack trace. No writes to the input, no network operations, no implicit output files.
 
-- [ ] **Add optional sample integration checks.** Skip explicitly if the sample is absent. When present, require its documented SHA-256 so a replacement sample produces a clear mismatch rather than misleading counts. Hash the file again after parsing and exports. Assert nine regions, 2,800 cells, 898 populated cells, 52,935 records, zero coordinate warnings, 11 missing-link warnings, and two unexpected-type warnings. Assert the exact 13 source/target pairs from docs/binary-format.md. Verify JSON/GeoJSON contain 52,935 records/features. Keep the sample and derived exports out of version control.
+- [x] **Add optional sample integration checks.** Skip explicitly if the sample is absent. When present, require its documented SHA-256 so a replacement sample produces a clear mismatch rather than misleading counts. Hash the file again after parsing and exports. Assert nine regions, 2,800 cells, 898 populated cells, 52,935 records, zero coordinate warnings, 11 missing-link warnings, and two unexpected-type warnings. Assert the exact 13 source/target pairs from docs/binary-format.md. Verify JSON/GeoJSON contain 52,935 records/features. Keep the sample and derived exports out of version control.
 
 ```js
 assert.equal(db.summary.recordCount, 52935);
@@ -201,7 +201,7 @@ assert.equal(db.diagnostics.filter(d => d.code === 'LINK_TARGET_TYPE').length, 2
 assert.equal(hashAfter, hashBefore);
 ```
 
-- [ ] **Update README and ignores.** Explain that only the observed format is supported; warn that guessed type/speed/direction meanings are not confirmed. Document Node execution, the three commands below, warnings versus structural errors, tests without the sample, and the local-only export convention. Ignore `/exports/`, `node_modules/`, and logs. Preserve the existing sample ignore and own-risk warning.
+- [x] **Update README and ignores.** Explain that only the observed format is supported; warn that guessed type/speed/direction meanings are not confirmed. Document Node execution, the three commands below, warnings versus structural errors, tests without the sample, and the local-only export convention. Ignore `/exports/`, `node_modules/`, and logs. Preserve the existing sample ignore and own-risk warning.
 
 ```sh
 node bin/mivue-trafficcam.js inspect Speedcam_Data_FEU.bin
@@ -209,10 +209,18 @@ node bin/mivue-trafficcam.js export Speedcam_Data_FEU.bin --format json
 node bin/mivue-trafficcam.js export Speedcam_Data_FEU.bin --format geojson
 ```
 
-- [ ] **Verify and review the delivered component.** Run `npm test`, then run the synthetic suite explicitly with `node --test test/parser.test.js test/export.test.js test/cli.test.js`. Run the inspect command against the sample; compare the hash before/after. Inspect parser/export imports for Node APIs and review all five Review Focus cases. Run `git diff --check` and ensure no binary or derived export is staged. Commit message: `feat: add read-only CLI and sample verification`. Do not push or publish automatically as part of this increment.
+- [x] **Verify and review the delivered component.** Run `npm test`, then run the synthetic suite explicitly with `node --test test/parser.test.js test/export.test.js test/cli.test.js`. Run the inspect command against the sample; compare the hash before/after. Inspect parser/export imports for Node APIs and review all five Review Focus cases. Run `git diff --check` and ensure no binary or derived export is staged. Commit message: `feat: add read-only CLI and sample verification`. Do not push or publish automatically as part of this increment.
 
 ## Plan self-review
 
-The three tasks cover the approved spec's parser, raw preservation, structural checks, coordinate warnings, candidate links, exports, CLI behavior, synthetic tests, optional sample checks, and README changes. Data property names and interfaces are shared above and used consistently. The five additional review concerns have explicit checks in their owning tasks. No implementation has been started.
+The three tasks cover the approved spec's parser, raw preservation, structural checks, coordinate warnings, candidate links, exports, CLI behavior, synthetic tests, optional sample checks, and README changes. Data property names and interfaces are shared above and used consistently. The five additional review concerns have explicit checks in their owning tasks.
 
 Recommended execution: native, in this session, because these three tasks depend on one shared parsed-data contract. Follow the executing-plans skill after the user reviews this plan and chooses the execution method.
+
+## Execution record — 2026-09-20
+
+All three tasks were implemented in-session on `feat/read-only-parser`. Parser, export, and CLI tests were each observed failing before implementation. The final suite passes 40 tests, including the full sample and its 13 expected link warnings. A separate sample-free checkout passed its synthetic tests and explicitly skipped the optional sample test. Core modules also ran in an isolated JavaScript VM without Node globals or imports.
+
+Independent review found one boundary-classification defect: normalized floating-point arithmetic could floor an exact boundary into the preceding cell. A failing regression test reproduced it; direct boundary comparisons fixed it, preserving nearby coordinates without rounding. The full suite passed after the fix. No other substantive findings or deferred minors were reported.
+
+Execution decisions: use a feature branch in the existing checkout, preserving the in-session research (no worktree isolation from simultaneous edits); use binary-search boundary comparisons instead of the planned normalization formula, which could generate false cell warnings. Source sample and derived exports were not committed. No push or merge was performed.

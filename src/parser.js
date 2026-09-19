@@ -73,7 +73,17 @@ export function parseDatabase(bytes) {
   const warn = (code, offset, message, targetOffset) => {
     diagnostics.push({ code, offset, message, ...(targetOffset === undefined ? {} : { targetOffset }) });
   };
-  const axisIndex = (n, min, max) => n === max ? 59 : Math.floor((n - min) / (max - min) * 60);
+  // Compare against boundaries directly: normalizing and flooring can turn an
+  // exact boundary (e.g. 42.8°) into 11.999999999999995 and select the prior cell.
+  const axisIndex = (n, min, max) => {
+    let low = 0, high = 60;
+    while (low + 1 < high) {
+      const middle = Math.floor((low + high) / 2);
+      if (n < min + (max - min) * middle / 60) high = middle;
+      else low = middle;
+    }
+    return low;
+  };
   const readRecord = (offset, regionIndex, cellIndex) => {
     span(offset, 28);
     const a = f64(offset), b = f64(offset + 8);
