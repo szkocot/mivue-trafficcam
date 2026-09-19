@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { makeFixture } from './helpers/fixture.js';
+import { createWorkerSession } from '../web/worker-session.js';
+import { createWorkerClient } from '../web/worker-client.js';
+test('worker opens, serializes edits, exports, resets and builds byte-identical source',async()=>{
+ const worker=createWorkerSession();let n=0;
+ const request=(kind,payload={})=>worker.handle({sessionId:'a',requestId:++n,kind,payload});
+ const bytes=makeFixture([{}]).bytes;
+ const opened=await request('open-bin',{bytes,name:'fixture.bin'});
+ assert.equal(opened.result.revision,0);const id=opened.result.view.records[0].id;
+ const [a,b]=await Promise.all([request('apply',{operation:{kind:'update',id,changes:{latitude:37.1}}}),request('apply',{operation:{kind:'delete',id}})]);
+ assert.equal(a.result.revision,1);assert.equal(b.result.revision,2);assert.equal(b.result.view.records[0].deleted,true);
+ await request('reset');const built=await request('build');assert.deepEqual(built.result.bytes,bytes);assert.equal(built.result.revision,3);
+ const saved=await request('export',{format:'project'});assert.equal(JSON.parse(saved.result.text).records.length,1);
+ const validated=await request('validate-source',{bytes});assert.equal(validated.result.length,64);
+ assert.equal((await request('snapshot')).result.revision,3);
+});
+test('blocked binary remains editable, malformed load is rejected',async()=>{
+ const worker=createWorkerSession();let n=0;
+ const req=(kind,payload={})=>worker.handle({sessionId:'b',requestId:++n,kind,payload});
+ const opened=await req('open-bin',{bytes:makeFixture([{typeRaw:964,linkTo:1},{typeRaw:9128}]).bytes});
+ await req('apply',{operation:{kind:'delete',id:opened.result.view.records[1].id}});
+ assert.equal((await req('build')).ok,false);
+ assert.equal((await req('export',{format:'project'})).ok,true);
+ assert.equal((await req('open-project',{text:'{}'})).ok,false);
+});
+test('client rejects abandoned work and ignores late replies from previous document',async()=>{
+ const workers=[];
+ const factory=()=>{const w={postMessage(m){this.sent=m;},terminate(){this.terminated=true;}};workers.push(w);return w;};
+ const client=createWorkerClient({workerFactory:factory});
+ const old=client.open('open-bin',{});const rejected=assert.rejects(old,/cancel/i);
+ const next=client.open('open-bin',{});await rejected;
+ const prior=workers[0],current=workers[1];
+ prior.onmessage({data:{...prior.sent,ok:true,result:{revision:9,projectJson:'old'}}});
+ current.onmessage({data:{...current.sent,ok:true,result:{revision:0,projectJson:'new'}}});
+ assert.equal((await next).projectJson,'new');assert.equal(client.snapshot.projectJson,'new');
+ const validation=client.validateSource(new Uint8Array());const validator=workers[2];
+ validator.onmessage({data:{...validator.sent,ok:true,result:'hash'}});assert.equal(await validation,'hash');
+ assert.equal(client.snapshot.projectJson,'new');client.close();
+});
