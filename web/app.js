@@ -9,6 +9,7 @@ import { createAutosave } from './autosave.js';
 import { createDetails } from './details.js';
 import { createExportDialog } from './export-dialog.js';
 import { downloadBlob,releaseDownloads } from './downloads.js';
+import { createLocation } from './location.js';
 const $=id=>document.getElementById(id);
 let preference;try{preference=localStorage;}catch{}
 const i18n=createI18n({storage:preference}),t=(key,params)=>i18n.t(key,params),client=createWorkerClient();
@@ -20,6 +21,22 @@ const storageReady=new Promise(resolve=>{resolveStorage=resolve;});
 const autosave=createAutosave({store:{async putWorking(entry){await storageReady;return store.putWorking(entry);}},
  onStatus:s=>{saveStatus=s.state==='failed'?'saveFailed':s.state;render();}});
 const map=createMap($('map'),{onSelect:select,onPick:(lat,lon)=>details.setPickedLocation(lat,lon),onViewport:b=>{bounds=b;if($('viewport').checked)render();},onTileError:()=>{$('tile-status').hidden=false;$('tile-status').textContent=t('tileFailure');}});
+let locationState='idle',locationFix=null;
+const locationController=createLocation({geolocation:navigator.geolocation,secureContext:window.isSecureContext,
+ onState:({code})=>{locationState=code;renderLocation();},
+ onPosition:position=>{locationFix=position;map.showLocation(position);},
+ onClear:()=>{locationFix=null;map.clearLocation();renderLocation();}});
+function renderLocation(){
+ const pending=locationState==='pending';$('locate').disabled=pending;
+ $('location-cancel').hidden=!pending;$('location-clear').hidden=!pending&&!locationFix;
+ let message=t(`location_${locationState}`);
+ if(locationFix){
+  const accuracy=new Intl.NumberFormat(i18n.language,{maximumFractionDigits:1}).format(locationFix.accuracy);
+  const time=new Date(locationFix.timestamp).toLocaleString(i18n.language);
+  message+=` ${t(locationState==='located'?'locationFix':'locationPrevious',{accuracy,time})}`;
+ }
+ $('location-status').textContent=message;
+}
 const details=createDetails($('details'),{onApply:operation=>mutate('apply',{operation}),onOperation:async operation=>{if(await guardDraft())await mutate('apply',{operation});},onPick:value=>map.setPickMode(value),t});
 const exportElement=document.createElement('dialog');document.body.append(exportElement);
 const exportsUI=createExportDialog(exportElement,{client,getIdentity:()=>({sessionId:client.sessionId,revision:state?.revision}),t,onSelect:select,onBusy:setBusy});
@@ -55,7 +72,7 @@ function translate(){
  for(const el of document.querySelectorAll('[data-i18n]'))el.textContent=t(el.dataset.i18n);
  $('file').setAttribute('aria-label',t('open'));$('map').setAttribute('aria-label',t('map'));
  $('pl').setAttribute('aria-pressed',i18n.language==='pl');$('en').setAttribute('aria-pressed',i18n.language==='en');
- $('tile-status').textContent=t('tileFailure');$('recovery').textContent=t(recoveryBlocked&&!recovery?'workingReadFailed':'recovery');details.setLanguage();render();
+ $('tile-status').textContent=t('tileFailure');$('recovery').textContent=t(recoveryBlocked&&!recovery?'workingReadFailed':'recovery');details.setLanguage();renderLocation();render();
 }
 function filtered(){return state?filterView(state.view,{query:$('search').value,viewport:$('viewport').checked?bounds:null,warningsOnly:$('warnings').checked,changedOnly:$('changed').checked,showDeleted:$('deleted').checked,typeRaw:$('type').value}):[];}
 function render(){
@@ -85,6 +102,7 @@ function accept(result,{save=true,preserveSelection=false}={}){
  render();
 }
 async function open(kind,payload,{ticket=++intent,save=true,info=null}={}){
+ locationController.clear();
  const previous=state;setBusy(true);autosave.begin(`opening:${ticket}`);
  try{
   const result=await client.open(kind,payload);if(ticket!==intent)return;
@@ -104,6 +122,7 @@ async function mutate(kind,payload={}){
 }
 async function importFile(file){
  if(!file||!await guardReplace())return;const ticket=++intent;
+ locationController.clear();
  try{
   const payload=file.name.toLowerCase().endsWith('.json')?{text:await file.text()}:{bytes:new Uint8Array(await file.arrayBuffer()),name:file.name};
   if(ticket!==intent)return;await open('text'in payload?'open-project':'open-bin',payload,{ticket});
@@ -114,6 +133,9 @@ document.ondragover=e=>e.preventDefault();document.ondrop=e=>{e.preventDefault()
 for(const id of ['search','viewport','warnings','changed','deleted','type'])$(id).oninput=()=>{page=1;render();};
 for(const lang of ['pl','en'])$(lang).onclick=()=>{i18n.setLanguage(lang);translate();};
 $('fit').onclick=()=>map.fit(state?.view.records.filter(r=>!r.deleted)??[]);
+$('locate').onclick=()=>locationController.locate();
+$('location-cancel').onclick=()=>locationController.cancel();
+$('location-clear').onclick=()=>locationController.clear();
 $('list-tab').onclick=()=>{document.body.classList.add('show-list');document.body.classList.remove('list-collapsed');};
 $('map-tab').onclick=()=>{document.body.classList.remove('show-list');document.body.classList.toggle('list-collapsed');};
 $('operation-cancel').onclick=async()=>{
@@ -129,6 +151,7 @@ for(const kind of ['undo','redo'])$(kind).onclick=async()=>{if(await guardDraft(
 $('discard').onclick=async()=>{if(!busy&&confirm(t('discardConfirm')))await mutate('reset');};
 window.addEventListener('beforeunload',event=>{if(details.hasDraft()||['saving','saveFailed'].includes(saveStatus)){event.preventDefault();event.returnValue='';}});
 window.addEventListener('pagehide',releaseDownloads);
+window.addEventListener('pagehide',event=>{if(event.persisted)locationController.clear();else locationController.destroy();});
 translate();
 async function start(){
  const ticket=intent;

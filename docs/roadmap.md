@@ -79,7 +79,7 @@ Update `README.md` after every task, recording actual progress and limitations w
 | Automatic imports protecting manual edits/deletions | Approved design; [implementation plan](superpowers/plans/2026-09-20-source-ingestion.md) awaiting review |
 | CANARD and other websites | CANARD access/reuse gate included in ingestion plan; other live adapters remain follow-up work |
 | Speed limits and other metadata | Included in ingestion plan; source-reported values, not guessed BIN fields |
-| Browser location | Independent [implementation plan](superpowers/plans/2026-09-20-browser-location.md) awaiting review; can execute first |
+| Browser location | Implemented/tested on `feat/browser-location`; independent review and integration pending |
 | Restrict dataset to selected countries | Separate future design: versioned boundaries, unknown/border policy, paired OPP preservation and existing build blockers |
-| GitHub Pages website | Static build exists; deployment configuration/publication still pending explicit release |
+| GitHub Pages website | Static build exists; user authorized deployment after all work is complete and verified; configuration/publication still pending |
 | README, tests and own-risk warning | Required for every implementation task and release |

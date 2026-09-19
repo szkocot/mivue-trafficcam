@@ -16,7 +16,14 @@
 <label><input id="changed" type="checkbox"><span data-i18n="changed"></span></label><label><input id="deleted" type="checkbox"><span data-i18n="deleted"></span></label>
 <details><summary data-i18n="advanced"></summary><label><span data-i18n="rawType"></span><input id="type" type="number" min="0"></label></details>
 <button id="fit" data-i18n="fit"></button><button id="map-tab" data-i18n="map"></button><button id="list-tab" data-i18n="list"></button></section>
-<main id="workspace"><section id="map-panel"><div id="map" aria-label="Map"></div><p class="legend" data-i18n="links"></p></section>
+<main id="workspace"><section id="map-panel">
+<div class="location-controls"><div class="location-actions">
+<button id="locate" data-i18n="locate" aria-describedby="location-privacy"></button>
+<button id="location-cancel" data-i18n="locationCancel" hidden></button>
+<button id="location-clear" data-i18n="locationClear" hidden></button></div>
+<p id="location-privacy" data-testid="location-privacy" data-i18n="locationPrivacy"></p>
+<p id="location-status" data-testid="location-status" role="status" aria-live="polite"></p></div>
+<div id="map" aria-label="Map"></div><p class="legend" data-i18n="links"></p></section>
 <section id="list-panel"><p id="empty" data-i18n="empty"></p><p id="hidden-selection" data-i18n="hidden" hidden></p><div id="record-list"></div></section>
 <aside id="details"><p data-i18n="select"></p></aside></main>
 <footer><p data-i18n="notice"></p><p data-i18n="privacy"></p></footer>

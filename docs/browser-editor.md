@@ -27,3 +27,10 @@ Experimental and unofficial: use at your own risk. Device acceptance on MiVue 95
 `npm test` runs Node checks, including a localhost-only static-server test. `npm run test:browser` starts Chromium against the repository subpath with synthetic data and stubbed external requests. A separate optional local-sample browser test measures real-size behavior without publishing the sample.
 
 Implementation references: [Leaflet 1.9.4 API](https://leafletjs.com/reference.html), [Playwright installation](https://playwright.dev/docs/intro), [OSM tile policy](https://operations.osmfoundation.org/policies/tiles/).
+# Browser location
+
+Choose **Locate me / Moja lokalizacja** above the map to request a single browser position. Allow location in the browser prompt if desired. The map shows a blue marker, reported accuracy circle and fix time. Accuracy may come from GPS or another provider; it is not guaranteed. The feature works before opening a database and does not move camera records or alter project history.
+
+Use **Cancel location request** while waiting, or **Clear location** to remove the fix. Retry is always explicit. Failed retries retain the previous fix, labelled as such. Opening another file or reloading clears location. HTTPS or a trusted localhost preview is required; denied/unavailable location does not prevent manual map use.
+
+Location is held in memory only, not included in saved projects, autosave, exports, URLs or application logs. Browser/OS location providers may process the position, and centring the map requests tiles for that area. Clear does not revoke browser permission; use browser settings for that. No tracking, reverse geocoding or navigation is provided.

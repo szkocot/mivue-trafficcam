@@ -1,6 +1,6 @@
 # Browser Location Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Centre the map on an explicitly requested browser position without recording a location history or modifying camera data.
 
@@ -34,7 +34,7 @@
 
 **Interfaces:** `createLocation({geolocation,secureContext,onState,onPosition,onClear})` returns `{locate,cancel,clear,destroy}`. State callbacks receive `{code}` where code is idle/pending/located/denied/unavailable/timeout/unsupported/insecure. Position callbacks receive `{latitude,longitude,accuracy,timestamp}` only; ignore device speed/heading. Controller does not read storage, project state or DOM.
 
-- [ ] Write tests using an injected fake geolocation object; assert no request at construction, one request while pending, API options, validated fix, all error codes, unsupported/insecure guards, clear/cancel/destroy invalidation, retry and invalid/nonfinite results.
+- [x] Write tests using an injected fake geolocation object; assert no request at construction, one request while pending, API options, validated fix, all error codes, unsupported/insecure guards, clear/cancel/destroy invalidation, retry and invalid/nonfinite results.
 
 ```js
 let success,calls=0;const fixes=[];
@@ -48,8 +48,8 @@ success({coords:{latitude:52,longitude:19,accuracy:15},timestamp:1});
 assert.equal(fixes.length,0);
 ```
 
-- [ ] Run `node --test test/location.test.js`; confirm RED.
-- [ ] Implement a monotonically increasing token and pending flag. Validate finite coordinates in bounds, nonnegative finite accuracy and finite timestamp before callbacks. Cancel invalidates the token; clear additionally calls onClear. Destroy permanently disables new requests. Catch synchronous API errors as unavailable; map API error codes to state codes, never expose raw provider errors. Do not add watchPosition, timers recording location or automatic retries.
+- [x] Run `node --test test/location.test.js`; confirm RED.
+- [x] Implement a monotonically increasing token and pending flag. Validate finite coordinates in bounds, nonnegative finite accuracy and finite timestamp before callbacks. Cancel invalidates the token; clear additionally calls onClear. Destroy permanently disables new requests. Catch synchronous API errors as unavailable; map API error codes to state codes, never expose raw provider errors. Do not add watchPosition, timers recording location or automatic retries.
 
 ```js
 // Every completion checks its captured token before using the result.
@@ -58,7 +58,7 @@ const invalidate=()=>{token++;pending=false;};
 // locate checks pending/destroyed and captures ++token before requesting.
 ```
 
-- [ ] Run location tests and `npm test`; document controller-only status in README; commit `feat: add opt-in one-shot location controller`.
+- [x] Run location tests and `npm test`; document controller-only status in README; commit `feat: add opt-in one-shot location controller`.
 
 ## Task 2: Map controls, privacy and browser verification
 
@@ -66,7 +66,7 @@ const invalidate=()=>{token++;pending=false;};
 
 **Interfaces:** Add `map.showLocation({latitude,longitude,accuracy,timestamp})` and `map.clearLocation()`. A single separate Leaflet layer group owns marker/accuracy circle; neither enters map camera records nor export paths. App creates controller with navigator.geolocation and window.isSecureContext and routes onPosition to map.showLocation. Existing document replacement flow calls controller.clear; teardown calls destroy.
 
-- [ ] Write browser tests before controls exist. Use injected stubs for delayed callbacks/errors and browser-context mocked geolocation for integration. Assert no startup permission request, explicit locate success, accuracy/fix display, clear, cancel, retry, locale switching, project replacement and denied/unsupported/insecure states. Assert no changed project/revision/exports or storage writes caused by location.
+- [x] Write browser tests before controls exist. Use injected stubs for delayed callbacks/errors and browser-context mocked geolocation for integration. Assert no startup permission request, explicit locate success, accuracy/fix display, clear, cancel, retry, locale switching, project replacement and denied/unsupported/insecure states. Assert no changed project/revision/exports or storage writes caused by location.
 
 ```js
 await context.grantPermissions(['geolocation']);
@@ -77,8 +77,8 @@ await page.getByRole('button',{name:'Clear location',exact:true}).click();
 await expect(page.getByTestId('location-status')).not.toContainText('20');
 ```
 
-- [ ] Run `npm run test:browser -- test/browser/location.spec.js`; confirm RED.
-- [ ] Implement accessible locate/cancel/clear buttons, aria-live status and visible pre-request privacy copy explaining browser providers and map-tile area exposure. On success center at zoom 14 or the current closer zoom, label accuracy and fix time, and draw a noninteractive marker/circle that cannot trigger coordinate picking. Keep previous successful fix on failed retry, explicitly labelled as previous; Clear removes it. Controls work without a BIN open. Add location module to build allowlist; use existing PL/EN key-parity test.
+- [x] Run `npm run test:browser -- test/browser/location.spec.js`; confirm RED.
+- [x] Implement accessible locate/cancel/clear buttons, aria-live status and visible pre-request privacy copy explaining browser providers and map-tile area exposure. On success center at zoom 14 or the current closer zoom, label accuracy and fix time, and draw a noninteractive marker/circle that cannot trigger coordinate picking. Keep previous successful fix on failed retry, explicitly labelled as previous; Clear removes it. Controls work without a BIN open. Add location module to build allowlist; use existing PL/EN key-parity test.
 
 ```js
 // Location layers are separate from camera canvas state.
@@ -87,8 +87,8 @@ const positionLayer=L.layerGroup().addTo(map);
 // clearLocation calls positionLayer.clearLayers(), not map record mutation.
 ```
 
-- [ ] Run `npm test`, `npm run build:web`, `npm run test:browser`, `git diff --check`. Verify page reload has no marker and no automatic geolocation call. Inspect 390px and desktop controls. Record mocked-provider testing, not physical GPS acceptance.
-- [ ] Update README, editor guide and verification record; commit `feat: locate the map with explicit browser permission`. Follow the execution skill's final review/integration gate; no Pages publication.
+- [x] Run `npm test`, `npm run build:web`, `npm run test:browser`, `git diff --check`. Verify page reload has no marker and no automatic geolocation call. Inspect 390px and desktop controls. Record mocked-provider testing, not physical GPS acceptance.
+- [x] Update README, editor guide and verification record; commit `feat: locate the map with explicit browser permission`. Follow the execution skill's final review/integration gate; no Pages publication.
 
 ## Execution handoff
 

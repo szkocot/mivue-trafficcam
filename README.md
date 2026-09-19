@@ -14,7 +14,7 @@ The next increment has an [approved automatic-ingestion design](docs/superpowers
 
 ## Usage
 
-Browser-location task 1 adds a tested one-shot controller with explicit requests, cancellation, stale-callback protection and no persistence. Map controls are the next task; location is not yet available in the UI.
+The `feat/browser-location` branch adds **Locate me / Moja lokalizacja**: opt-in one-shot browser positioning, accuracy circle and fix time, cancel/clear, translated errors and no saved location history. It does not edit camera coordinates. The UI explains browser-provider and map-tile privacy implications. Verification: 103 Node tests and 33 deterministic browser tests pass (one opt-in live-source test skipped); physical GPS and non-Chromium browsers remain untested. The feature is not yet deployed. Ingestion/metadata display and country filtering remain separate unfinished work.
 
 Use Node.js (verified with v26.8.2). The CLI needs no installed dependencies. Browser development uses the pinned dependencies in `package-lock.json`.
 
