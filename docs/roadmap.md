@@ -69,3 +69,17 @@ Prepare the website and deployment configuration without including the user's sa
 Increment 1 is implemented and pushed. Increment 2's [approved design](superpowers/specs/2026-09-20-map-editor-design.md) and [implementation plan](superpowers/plans/2026-09-20-map-editor.md) have implementation, independent-review fixes and browser results in [the verification record](browser-verification.md). Increment 2 is merged into `main`; verification on the merged tree passed all 83 Node tests and 23 deterministic browser tests (the opt-in live-source test is skipped in the normal run). GitHub Pages deployment is not enabled. CANARD/other website ingestion and country-limited datasets follow it.
 
 Update `README.md` after every task, recording actual progress and limitations without presenting planned features as implemented.
+
+### Full-scope tracking, 2026-09-20
+
+| Work | Current state / next artifact |
+| --- | --- |
+| Decode, extract, edit and rebuild BIN | Implemented for the researched layout; physical 955W acceptance remains unverified |
+| PL/EN map, official dataset cache and working-project recovery | Implemented; preserve regression coverage |
+| Automatic imports protecting manual edits/deletions | Approved design; [implementation plan](superpowers/plans/2026-09-20-source-ingestion.md) awaiting review |
+| CANARD and other websites | CANARD access/reuse gate included in ingestion plan; other live adapters remain follow-up work |
+| Speed limits and other metadata | Included in ingestion plan; source-reported values, not guessed BIN fields |
+| Browser location | Independent [implementation plan](superpowers/plans/2026-09-20-browser-location.md) awaiting review; can execute first |
+| Restrict dataset to selected countries | Separate future design: versioned boundaries, unknown/border policy, paired OPP preservation and existing build blockers |
+| GitHub Pages website | Static build exists; deployment configuration/publication still pending explicit release |
+| README, tests and own-risk warning | Required for every implementation task and release |

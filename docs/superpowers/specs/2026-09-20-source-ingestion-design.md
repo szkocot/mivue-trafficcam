@@ -1,6 +1,6 @@
 # Automatic source ingestion with protected manual edits
 
-Status: proposed written design; awaiting user review. No ingestion implementation is included in this task.
+Status: approved for implementation planning on 2026-09-20, including metadata display and opt-in browser location. No ingestion implementation is included in this task. The source-ingestion and browser-location plans are separate, independently testable deliverables.
 
 ## Intent and agreed choices
 
@@ -9,6 +9,8 @@ Extend the existing Polish/English MiVue 955W editor with external camera and OP
 Approved behavior: match stable source IDs first; automatically apply supported additions and updates; preserve manual edits and deletions; flag ambiguous matches and unsupported OPP encoding; show a summary; undo an entire import in one step. Proximity alone must not identify two cameras as the same device.
 
 This is a new subsystem. The schema and interface details below are proposed for written review, not previously approved implementation decisions.
+
+User-requested additions: optional speed-limit/metadata display and opt-in browser location. The user approved these feature additions; their detailed behavior below is included in this revised spec for review.
 
 ## Scope and delivery boundaries
 
@@ -79,6 +81,24 @@ Map and table distinguish source observations from encoded records. Bound observ
 
 Imports obey the existing unfinished-form guard. Network/parse/validation failures and cancellation leave the working project untouched. Reject stale results if document session or revision has changed. Serialize import commit with existing worker edits. A persistence failure leaves the committed in-memory project available and displays the existing save-error state with project download recovery. Fetch failures never erase prior source observations or replace the working project.
 
+## Speed limits and metadata display
+
+Provide independent PL/EN display toggles for speed-limit labels and extra metadata, off by default to avoid crowding the map. Remember only these presentation preferences locally, not in the project or undo history. The selected-record details panel always exposes available metadata regardless of label toggles.
+
+Display source-reported speed limits in km/h with the source attribution; preserve the original value/unit in details. The import contract's `speed` field means the reported enforcement speed limit, not vehicle speed. Show name, kind, direction, operational status, source ID, retrieval date and encoding status when available. Unknown values are explicitly unknown in details and omitted from map labels, never displayed as zero. Conflicting source values remain separately attributed rather than becoming a fabricated single limit. For BIN-only records, do not derive a speed limit or direction from unverified raw bytes; retain those bytes in the advanced inspector.
+
+Render optional labels only for individual visible points, with collision suppression and a maximum of 200 labels per frame. Aggregates retain counts, not misleading shared limits. Source metadata remains read-only in this increment; labels and metadata controls do not change BIN output. All source strings use safe text rendering.
+
+## Locate me
+
+Add a keyboard-accessible PL/EN `Locate me` / `Moja lokalizacja` map button. Request a single position only after a click, using browser geolocation with high accuracy requested, maximumAge 0 and a 15-second acquisition timeout. Browser location may come from GPS or other location providers; do not claim GPS-level accuracy. A successful request centres the map and draws a distinct position marker plus an accuracy circle in metres, separate from camera records. Show the fix time and a Clear location action. Do not start continuous tracking, request vehicle speed, edit any camera coordinates, or mark the project modified.
+
+Handle denied permission, unavailable position, timeout, unavailable API and insecure context with localized guidance; leave manual map navigation functional. Offer retry only on another explicit click. While a request is pending, allow cancellation at the application level: invalidate its request token so any later callback is ignored. Repeated clicks must not create competing requests. Clear pending requests/markers on document replacement or page teardown; no location survives reload.
+
+Keep location in memory only: exclude it from project JSON, autosave, exports, URLs, analytics and logs. No application-level location upload or reverse-geocoding service is added. Explain before requesting location that browser/OS location services may process location and centring the existing online map fetches tiles for that area; do not promise that no third party can infer the viewed area. A clear action removes the marker and accuracy circle, but does not revoke browser permission.
+
+API and privacy reference checked 2026-09-20: [W3C Geolocation](https://www.w3.org/TR/geolocation/). This is a small map interaction within the current editor, not navigation or a background tracking subsystem.
+
 ## CANARD acceptance gate
 
 The public map at https://www.canard.gitd.gov.pl/cms/en/mapa-urzadzen is a research starting point, not a promised API or reuse license. Record the exact inspected endpoints, inspection date, response schema, stable identifiers, attribution/reuse evidence, geometry/status semantics and observed cross-origin behavior before enabling an adapter. Lack of usable access or unresolved reuse permission produces a documented deferred connector, not a bypass. Do not commit downloaded third-party datasets; use synthetic fixtures in tests.
@@ -91,5 +111,7 @@ The public map at https://www.canard.gitd.gov.pl/cms/en/mapa-urzadzen is a resea
 - Encoder tests: unchanged baseline identity, coordinates-only template clone, no metadata-to-byte guessing, unchanged build blockers and reparsed output checks.
 - Browser tests: PL/EN controls and results, import/save/reload, one-step undo, manual edit protection, draft guards, failed/cancelled/stale imports, storage failure and reference-only visibility. Existing full-sample tests remain green.
 - Live connector checks are opt-in and separate from deterministic CI; report access and reuse evidence honestly.
+- Metadata tests: known/unknown limits, mph conversion and original units, conflicting sources, BIN-only unknown fields, PL/EN toggles, persisted presentation preferences, escaped source text and bounded labels on the full sample.
+- Mocked browser-geolocation tests: no request on startup, success/accuracy circle, permission denial, timeout, unsupported/insecure environment, retry, cancelled/stale callbacks and marker cleanup. Assert location never enters project persistence, exports or application requests; distinguish expected map-tile requests. Physical GPS is not required for deterministic tests.
 
 Update README after each implementation task, distinguishing reference data from BIN-encoded data and implemented adapters from planned ones. Preserve the own-risk warning and unverified-device status. Completion requires passing existing and new tests plus documentation; it does not imply Pages publication or physical-device acceptance.
