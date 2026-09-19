@@ -6,7 +6,32 @@ The intended scope includes fixed speed cameras and section-based average-speed 
 
 ## Status
 
-Initial project setup. No decoder, encoder, editor, source importer, or website is implemented yet. The binary format and device compatibility still need to be investigated and verified.
+A read-only parser and CLI support the layout documented in [binary-format research notes](docs/binary-format.md). They inspect databases and export JSON or GeoJSON while preserving raw fields. The local sample contains 52,935 records; all parse successfully, with 13 candidate-link warnings matching the research notes. Encoding, editing, source ingestion, and the website are not implemented yet.
+
+## Usage
+
+Use Node.js (verified with v26.8.2). No dependencies or installation are required.
+
+```sh
+node bin/mivue-trafficcam.js inspect Speedcam_Data_FEU.bin
+node bin/mivue-trafficcam.js export Speedcam_Data_FEU.bin --format json
+node bin/mivue-trafficcam.js export Speedcam_Data_FEU.bin --format geojson
+npm test
+```
+
+Exports go to stdout; warnings go to stderr. To save an export, redirect stdout to a new file under a local `exports/` directory, which is ignored by Git. Never redirect output onto the source binary. The CLI itself only reads the input.
+
+Exit codes are 0 for successful parsing (including warnings), 1 for malformed/unsupported input or I/O failures, and 2 for invalid command syntax. Only the researched 3×3 regional / 20×20 cell layout is supported; this is not a device-compatibility guarantee.
+
+JSON includes metadata, offsets, complete record hex, decoded coordinates, raw fields, and diagnostics. GeoJSON contains points with longitude-first coordinates; invalid coordinates have null geometry. Speed units, heading encoding, camera types, and OPP endpoint roles remain unverified, so exports retain raw values and do not draw section lines. Nonfinite raw coordinate numbers are represented as strings, with exact bytes retained in hex.
+
+The core `parseDatabase(bytes)` in `src/parser.js` accepts a `Uint8Array` and has no Node-specific dependencies, for reuse in a future browser interface. Serializers are in `src/export.js`.
+
+Tests use synthetic fixtures. The local-sample test runs when `Speedcam_Data_FEU.bin` is present and checks its SHA-256 and documented anomalies; it explicitly skips when absent. To run only the synthetic suite:
+
+```sh
+node --test test/parser.test.js test/export.test.js test/cli.test.js
+```
 
 ## Planned capabilities
 

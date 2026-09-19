@@ -3,3 +3,9 @@
 
 # macOS metadata
 .DS_Store
+
+# Local exports and development artifacts
+/exports/
+node_modules/
+*.log
+/.superpowers/
