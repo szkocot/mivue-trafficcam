@@ -66,6 +66,6 @@ Prepare the website and deployment configuration without including the user's sa
 
 ## Current next increment
 
-Increment 1 is implemented and pushed. Increment 2's [approved design](superpowers/specs/2026-09-20-map-editor-design.md) and [implementation plan](superpowers/plans/2026-09-20-map-editor.md) have implementation, independent-review fixes and browser results in [the verification record](browser-verification.md). The feature branch awaits the user's integration choice; it is not yet merged or published. CANARD/other website ingestion and country-limited datasets follow it.
+Increment 1 is implemented and pushed. Increment 2's [approved design](superpowers/specs/2026-09-20-map-editor-design.md) and [implementation plan](superpowers/plans/2026-09-20-map-editor.md) have implementation, independent-review fixes and browser results in [the verification record](browser-verification.md). Increment 2 is merged into `main`; verification on the merged tree passed all 83 Node tests and 23 deterministic browser tests (the opt-in live-source test is skipped in the normal run). GitHub Pages deployment is not enabled. CANARD/other website ingestion and country-limited datasets follow it.
 
 Update `README.md` after every task, recording actual progress and limitations without presenting planned features as implemented.
