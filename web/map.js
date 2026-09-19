@@ -29,5 +29,7 @@ export function createMap(element,{onSelect,onPick,onViewport,onTileError}){
  });
  const resize=new ResizeObserver(()=>map.invalidateSize());resize.observe(element);
  return {render(next,id){records=next;selectedId=id;draw();},fit(next){const coords=next.filter(hasPosition).map(r=>[r.latitude,r.longitude]);if(coords.length)map.fitBounds(coords,{padding:[30,30],maxZoom:14});},
-  center(r){if(hasPosition(r))map.setView([r.latitude,r.longitude],Math.max(map.getZoom(),13));},setPickMode(v){pick=v;element.style.cursor=v?'crosshair':'';},destroy(){resize.disconnect();map.remove();}};
+  center(r){if(hasPosition(r))map.setView([r.latitude,r.longitude],Math.max(map.getZoom(),13));},setPickMode(v){pick=v;element.style.cursor=v?'crosshair':'';},
+  setLanguage(t){for(const [suffix,key] of [['in','zoomIn'],['out','zoomOut']]){const button=element.querySelector(`.leaflet-control-zoom-${suffix}`);button.title=t(key);button.setAttribute('aria-label',t(key));}},
+  destroy(){resize.disconnect();map.remove();}};
 }

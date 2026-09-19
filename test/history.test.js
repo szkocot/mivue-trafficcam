@@ -23,3 +23,10 @@ test('50 undo states retained; reset removes clones and all history using embedd
  h.apply({kind:'clone',templateId:id,latitude:38,longitude:-7});
  await h.reset(); assert.deepEqual(h.current,p); assert.equal(h.canUndo,false); assert.equal(h.canRedo,false);
 });
+test('compound form edits commit atomically as one undo state',async()=>{
+ const p=await createProject(makeFixture([{typeRaw:964,linkRaw:123},{typeRaw:9128}]).bytes),h=createHistory(p),id=p.records[0].id;
+ h.apply([{kind:'update',id,changes:{latitude:37.1}},{kind:'resolve-link',id,targetId:p.records[1].id,reason:'checked'}]);
+ assert.equal(h.current.records[0].edits.latitude,37.1);assert.equal(h.current.records[0].edits.linkResolution.reason,'checked');
+ h.undo();assert.deepEqual(h.current,p);assert.equal(h.canUndo,false);
+ assert.throws(()=>h.apply([{kind:'update',id,changes:{latitude:37.2}},{kind:'resolve-link',id,targetId:'missing',reason:'bad'}]));assert.deepEqual(h.current,p);
+});

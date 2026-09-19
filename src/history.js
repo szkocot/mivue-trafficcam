@@ -8,7 +8,10 @@ export function createHistory(project,{limit=50}={}) {
     get current(){return current;}, get revision(){return revision;},
     get canUndo(){return past.length>0;}, get canRedo(){return future.length>0;},
     apply(operation){
-      const next=applyEdit(current,operation);
+      // Build a candidate first: a failed compound form never commits a partial edit.
+      const operations=Array.isArray(operation)?operation:[operation];
+      if(!operations.length)return current;
+      const next=operations.reduce((candidate,op)=>applyEdit(candidate,op),current);
       past.push(current); if(past.length>limit) past.shift();
       current=next; future.length=0; revision++; return current;
     },

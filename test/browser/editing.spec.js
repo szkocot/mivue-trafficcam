@@ -68,3 +68,25 @@ test('explicit link resolution persists reason and downloaded Blob URLs are rele
  const data=JSON.parse(await readFile(await (await event).path(),'utf8'));expect(data.records[0].edits.linkResolution.reason).toBe('manual location check');
  await expect.poll(()=>page.evaluate(()=>window.urls.size)).toBe(0);
 });
+test('link resolution and coordinate drafts commit atomically and undo together',async({page})=>{
+ await openFixture(page,[{typeRaw:964,linkRaw:123},{typeRaw:9128}]);
+ const target=await page.getByTestId('record-row').nth(1).getByRole('button').textContent();await selectFirst(page);
+ await page.getByLabel('Latitude',{exact:true}).fill('37.1');await page.locator('#details summary').click();
+ await page.getByLabel('Target record ID (raw type 9128)',{exact:true}).fill(target);await page.getByLabel('Reason for resolving link',{exact:true}).fill('first reason');
+ await page.getByRole('button',{name:'Resolve candidate link',exact:true}).click();
+ await expect(page.locator('#operation-status')).toHaveText('Ready');
+ await expect(page.getByLabel('Latitude',{exact:true})).toHaveValue('37.1');
+ await page.getByRole('button',{name:'Undo',exact:true}).click();await expect(page.getByLabel('Latitude',{exact:true})).toHaveValue('37');
+ await page.locator('#details summary').click();await expect(page.getByLabel('Target record ID (raw type 9128)',{exact:true})).toHaveValue('');
+ await page.getByLabel('Target record ID (raw type 9128)',{exact:true}).fill(target);await page.getByLabel('Reason for resolving link',{exact:true}).fill('navigation reason');
+ await page.getByTestId('record-row').nth(1).getByRole('button').click();await page.getByRole('dialog').getByRole('button',{name:'Apply',exact:true}).click();
+ const event=page.waitForEvent('download');await page.getByRole('button',{name:'Save project',exact:true}).click();
+ expect(JSON.parse(await readFile(await (await event).path(),'utf8')).records[0].edits.linkResolution.reason).toBe('navigation reason');
+});
+test('blocked binary issue links select the affected record',async({page})=>{
+ await openFixture(page,[{typeRaw:964,linkTo:1},{typeRaw:9128}]);
+ const source=await page.getByTestId('record-row').first().getByRole('button').textContent();
+ await page.getByTestId('record-row').nth(1).getByRole('button').click();await page.getByRole('button',{name:'Delete record',exact:true}).click();
+ await page.getByRole('button',{name:'Export',exact:true}).click();await page.getByRole('button',{name:'Prepare binary',exact:true}).click();
+ await page.getByTestId('export-error').getByRole('button',{name:source,exact:true}).click();await expect(page.getByTestId('selected-id')).toHaveText(source);
+});

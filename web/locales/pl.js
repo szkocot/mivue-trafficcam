@@ -1,4 +1,7 @@
 export default {
+  "zoomIn": "Powiększ",
+  "zoomOut": "Pomniejsz",
+  "workingReadFailed": "Nie można odczytać zapisanego projektu. Odśwież stronę, aby ponowić próbę. Automatyczne zastąpienie jest zablokowane; zastąp go ręcznie tylko, jeśli akceptujesz utratę nieodczytanych danych.",
   "open": "Otwórz plik",
   "check": "Sprawdź aktualizacje",
   "useSource": "Otwórz zapisaną bazę producenta",

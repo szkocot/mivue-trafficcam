@@ -67,7 +67,7 @@ The tasks are layers of one integrated increment, not separately shipped subsyst
 - `filterView(view, filters)` → array; filters `{query, viewport, warningsOnly, changedOnly, showDeleted, typeRaw}`; viewport null disables filtering, otherwise `{south,west,north,east}`. `pageRecords(records,page,pageSize=100)` → `{records,page,pageCount,total}` with clamped page.
 - `aggregatePoints(points, cellSize=40)` → groups `{x,y,ids}`; points are valid viewport pixel coordinates `{id,x,y}`. Stable IDs are never deduplicated.
 
-- [ ] Write failing tests with an independently packed fixture. Pin effective values and unchanged source bytes:
+- [x] Write failing tests with an independently packed fixture. Pin effective values and unchanged source bytes:
 
 ```js
 const base = await createProject(makeFixture([{}]).bytes);
@@ -81,8 +81,8 @@ h.redo();
 assert.equal(h.revision, 3);
 ```
 
-- [ ] Run `node --test test/project-view.test.js test/history.test.js test/view-filter.test.js`; expect missing-module failures before implementation.
-- [ ] Implement projection using `validateProject(project)` and its originals map, never `buildProject`. Spread original values only into explicitly named projection fields; overlay supported edits. Resolve candidate links through original offsets or explicit resolutions, flag deleted/missing targets. Keep immutable history snapshots with shared source and unchanged records:
+- [x] Run `node --test test/project-view.test.js test/history.test.js test/view-filter.test.js`; expect missing-module failures before implementation.
+- [x] Implement projection using `validateProject(project)` and its originals map, never `buildProject`. Spread original values only into explicitly named projection fields; overlay supported edits. Resolve candidate links through original offsets or explicit resolutions, flag deleted/missing targets. Keep immutable history snapshots with shared source and unchanged records:
 
 ```js
 const before = current;
@@ -94,8 +94,8 @@ future.length = 0;
 revision += 1;
 ```
 
-- [ ] Add tests for clones/deletes/restores/links, invalid coordinates, stable IDs, 50-state cap, redo invalidation, failed edits, reset to original baseline, and changed-state comparisons. Test coincident points, viewport edge/wrapped longitude handling, hidden selections, empty results and 101-record pagination. For CSV quote every cell, double quotes, and prefix dangerous textual values (including whitespace/control-prefixed `= + - @`) with an apostrophe; numeric coordinate fields remain numeric. Assert a provenance value `=HYPERLINK("bad")` is neutralized and quoted/newline text survives round-trip CSV parsing.
-- [ ] Run the targeted tests and `npm test`; commit this independently tested core deliverable as `feat: add editor projection and bounded history`.
+- [x] Add tests for clones/deletes/restores/links, invalid coordinates, stable IDs, 50-state cap, redo invalidation, failed edits, reset to original baseline, and changed-state comparisons. Test coincident points, viewport edge/wrapped longitude handling, hidden selections, empty results and 101-record pagination. For CSV quote every cell, double quotes, and prefix dangerous textual values (including whitespace/control-prefixed `= + - @`) with an apostrophe; numeric coordinate fields remain numeric. Assert a provenance value `=HYPERLINK("bad")` is neutralized and quoted/newline text survives round-trip CSV parsing.
+- [x] Run the targeted tests and `npm test`; commit this independently tested core deliverable as `feat: add editor projection and bounded history`.
 
 ## Task 2: Official-source cache and durable working-document storage
 
@@ -108,7 +108,7 @@ revision += 1;
 - `createSourceCache({store,fetchImpl,validateBytes,now,onStatus})` → `{loadCached(),check(),cancel()}`. `validateBytes(bytes)` runs codec validation in worker and returns SHA-256; cache loads also validate untrusted stored bytes. Concurrent checks share one promise.
 - `createAutosave({store,onStatus})` → `{begin(sessionId),save({sessionId,revision,projectJson,sourceInfo}),flush()}`. `save` takes already validated serialized worker output; serial queue skips obsolete sessions/revisions before writing and suppresses obsolete completions. New document saves always follow in-flight old writes, so old data cannot overwrite them. `flush` reports failure, never swallows it into success.
 
-- [ ] Write failing stubbed transport/storage tests:
+- [x] Write failing stubbed transport/storage tests:
 
 ```js
 let gets = 0;
@@ -126,8 +126,8 @@ await cache.check();
 assert.equal(gets, 0);
 ```
 
-- [ ] Run `node --test test/source-cache.test.js test/autosave.test.js`; confirm red before adding modules.
-- [ ] Implement first-visit GET with `mode:'cors', credentials:'omit'`; validate fully before committing. With cache, HEAD using `cache:'no-cache'` checks usable metadata: prefer readable ETag, otherwise valid Last-Modified plus Content-Length. No explicit non-safelisted conditional headers/preflight dependency. Equal usable validators mean unchanged; changed validators trigger GET. Absent validators/failed HEAD mean `check-unavailable`, retaining cache and offering explicit retry/download. Derive replacement validators from GET, never the preceding HEAD. If GET validators are absent, retain bytes but do not claim future freshness. Abort checks before parse and cache commit. Use a shared in-flight promise:
+- [x] Run `node --test test/source-cache.test.js test/autosave.test.js`; confirm red before adding modules.
+- [x] Implement first-visit GET with `mode:'cors', credentials:'omit'`; validate fully before committing. With cache, HEAD using `cache:'no-cache'` checks usable metadata: prefer readable ETag, otherwise valid Last-Modified plus Content-Length. No explicit non-safelisted conditional headers/preflight dependency. Equal usable validators mean unchanged; changed validators trigger GET. Absent validators/failed HEAD mean `check-unavailable`, retaining cache and offering explicit retry/download. Derive replacement validators from GET, never the preceding HEAD. If GET validators are absent, retain bytes but do not claim future freshness. Abort checks before parse and cache commit. Use a shared in-flight promise:
 
 ```js
 function check() {
@@ -137,8 +137,8 @@ function check() {
 }
 ```
 
-- [ ] Implement IndexedDB wrappers with abort/error rejection and a serial autosave queue. Storage failure returns actionable status with memory retained, not a failed document open. Fence every completion by current session/revision. Add tests for first download, simultaneous checks, missing/nonexposed ETag, changed HEAD/GET validators, offline, cancellation, malformed update, quota failure, corrupt cache, deferred old save across reset/replacement, and transaction rejection. Pin commit semantics with a fake transaction whose request succeeds before transaction aborts; real IndexedDB coverage is Task 6.
-- [ ] Run targeted tests and `npm test`; commit as `feat: cache official data and autosave working projects`.
+- [x] Implement IndexedDB wrappers with abort/error rejection and a serial autosave queue. Storage failure returns actionable status with memory retained, not a failed document open. Fence every completion by current session/revision. Add tests for first download, simultaneous checks, missing/nonexposed ETag, changed HEAD/GET validators, offline, cancellation, malformed update, quota failure, corrupt cache, deferred old save across reset/replacement, and transaction rejection. Pin commit semantics with a fake transaction whose request succeeds before transaction aborts; real IndexedDB coverage is Task 6.
+- [x] Run targeted tests and `npm test`; commit as `feat: cache official data and autosave working projects`.
 
 ## Task 3: Worker-owned editing and revision-safe client
 
@@ -151,7 +151,7 @@ function check() {
 - Editing replies return `{revision,view,canUndo,canRedo,modified,projectJson}`; serialize validated project only once per committed revision for autosave. `export` returns `{revision,text,mime,filename}`; `build` returns `{revision,bytes,report}`. Project export uses authoritative `serializeProject`.
 - `createWorkerClient({workerFactory})` → `{open(kind,payload),request(kind,payload),validateSource(bytes),cancel(),close()}`. Open starts a new unique session and worker; validation uses an independent worker so cancelling source startup cannot cancel editing. Request IDs monotonically increase. Cancellation terminates relevant worker, rejects pending promises, preserves last accepted project snapshot for recovery/restart.
 
-- [ ] Write failing tests using real core modules and deferred fake worker replies:
+- [x] Write failing tests using real core modules and deferred fake worker replies:
 
 ```js
 const session = createWorkerSession();
@@ -162,8 +162,8 @@ const saved = await session.handle({sessionId:'a',requestId:2,kind:'snapshot',pa
 assert.equal(JSON.parse(saved.result.projectJson).records.length, 1);
 ```
 
-- [ ] Run `node --test test/worker-session.test.js` and observe missing-module failures.
-- [ ] Implement worker operations through Task 1/core APIs, preserving machine error codes. Never transfer buffers still used as baseline/cache; transfer copies for downloads if needed. Client acceptance requires matching session and pending request, with latest view revision monotonic:
+- [x] Run `node --test test/worker-session.test.js` and observe missing-module failures.
+- [x] Implement worker operations through Task 1/core APIs, preserving machine error codes. Never transfer buffers still used as baseline/cache; transfer copies for downloads if needed. Client acceptance requires matching session and pending request, with latest view revision monotonic:
 
 ```js
 if (message.sessionId !== activeSession) return;
@@ -173,8 +173,8 @@ requests.delete(message.requestId);
 message.ok ? pending.resolve(message.result) : pending.reject(message.error);
 ```
 
-- [ ] Add tests for malformed projects, blocked build remaining editable, concurrent edits ordered, old open/build/export reply after a new session, cancel/restart from accepted snapshot, reset revision fencing, independent source validation, and project JSON with no Node globals. Prepared build is invalidated whenever session or revision changes, even undo returning to identical data.
-- [ ] Run targeted tests and `npm test`; commit as `feat: run editing and validation in session-safe workers`.
+- [x] Add tests for malformed projects, blocked build remaining editable, concurrent edits ordered, old open/build/export reply after a new session, cancel/restart from accepted snapshot, reset revision fencing, independent source validation, and project JSON with no Node globals. Prepared build is invalidated whenever session or revision changes, even undo returning to identical data.
+- [x] Run targeted tests and `npm test`; commit as `feat: run editing and validation in session-safe workers`.
 
 ## Task 4: Bilingual static workspace with linked map and table
 
@@ -187,7 +187,7 @@ message.ok ? pending.resolve(message.result) : pending.reject(message.error);
 - `createI18n({languages,storage})` → `{language,setLanguage,t}`. Exact same keys in PL/EN; `t(key,params={})` uses named interpolation, never HTML insertion. Preference storage errors fall back to browser language. Diagnostics map known codes and provide localized generic text plus machine code/technical detail for unknown codes.
 - Scripts: `npm run build:web`, `npm run preview:web -- --port 4173 --base /mivue-trafficcam/`, `npm run test:browser`. Playwright starts dist-only preview, deterministic HTTP stubs, fresh storage per test. Its fixture bytes come from `makeFixture`, not the proprietary sample.
 
-- [ ] Write build/i18n and browser smoke tests before shell implementation. Browser test outline:
+- [x] Write build/i18n and browser smoke tests before shell implementation. Browser test outline:
 
 ```js
 await page.goto('/mivue-trafficcam/');
@@ -200,10 +200,10 @@ await page.getByTestId('record-row').first().click();
 await expect(page.getByTestId('selected-id')).toContainText('source:');
 ```
 
-- [ ] Run Node tests red, then browser tests red after installing the test runner/browser. Dependency installation requiring network follows normal permission approval. Keep Node glob unchanged so browser specs are not run by `node --test`.
-- [ ] Implement dist copier using explicit core/web file allowlists and Leaflet distribution assets including image paths and license. No recursive repository copy. Preview accepts GET/HEAD, validates decoded path remains under dist, rejects traversal/symlinks outside root, supports configured base, and never serves repository fallback. Test source binary, `.git`, encoded traversal, and non-allowlisted paths return 404.
-- [ ] Build accessible shell with dark navy header/teal actions/amber warnings, responsive map/list tabs, collapsible list, persistent own-risk/local-processing notice, visible attribution and PL/EN switch. Bind startup in this order: read and validate saved working document, restore it if valid; otherwise show recoverable corrupt-data state or cached source; initiate background source check independently. A user file selection advances document intent immediately, before FileReader/worker completion, blocking late startup replacement. First download may activate only when no working document/manual intent exists. Newer source offers explicit replacement, never rebase.
-- [ ] Render shared filters, stable selection, search, counts and 100-row pages. Use text-only DOM writes:
+- [x] Run Node tests red, then browser tests red after installing the test runner/browser. Dependency installation requiring network follows normal permission approval. Keep Node glob unchanged so browser specs are not run by `node --test`.
+- [x] Implement dist copier using explicit core/web file allowlists and Leaflet distribution assets including image paths and license. No recursive repository copy. Preview accepts GET/HEAD, validates decoded path remains under dist, rejects traversal/symlinks outside root, supports configured base, and never serves repository fallback. Test source binary, `.git`, encoded traversal, and non-allowlisted paths return 404.
+- [x] Build accessible shell with dark navy header/teal actions/amber warnings, responsive map/list tabs, collapsible list, persistent own-risk/local-processing notice, visible attribution and PL/EN switch. Bind startup in this order: read and validate saved working document, restore it if valid; otherwise show recoverable corrupt-data state or cached source; initiate background source check independently. A user file selection advances document intent immediately, before FileReader/worker completion, blocking late startup replacement. First download may activate only when no working document/manual intent exists. Newer source offers explicit replacement, never rebase.
+- [x] Render shared filters, stable selection, search, counts and 100-row pages. Use text-only DOM writes:
 
 ```js
 const cell = document.createElement('td');
@@ -212,7 +212,7 @@ row.append(cell);
 ```
 
 Use screen-space groups for low zoom and viewport canvas for high zoom. Group click zooms; coincident IDs remain separately selectable through table. Tile failure leaves point layer/list operational. Poland initial view is navigation only; fit-all includes all valid records.
-- [ ] Add tests for PL/EN key parity/persistence, 101-record pagination, safe HTML provenance rendering, filter/map identity agreement, invalid coordinates, group zoom, keyboard selection, narrow layout, tile error and `/mivue-trafficcam/` worker paths. Run `npm test`, `npm run build:web`, `npm run test:browser`; commit as `feat: add bilingual map workspace and static tooling`.
+- [x] Add tests for PL/EN key parity/persistence, 101-record pagination, safe HTML provenance rendering, filter/map identity agreement, invalid coordinates, group zoom, keyboard selection, narrow layout, tile error and `/mivue-trafficcam/` worker paths. Run `npm test`, `npm run build:web`, `npm run test:browser`; commit as `feat: add bilingual map workspace and static tooling`.
 
 ## Task 5: Applied edits, recovery, and validated downloads
 
@@ -225,7 +225,7 @@ Use screen-space groups for low zoom and viewport canvas for high zoom. Group cl
 - `downloadBlob({bytes,mime,filename})` creates an object URL, clicks a download anchor, revokes after the browser has consumed it; clean up on replacement/unmount.
 - `createExportDialog(element,{client,getIdentity,t})`, `getIdentity()` → `{sessionId,revision}`. Build report gates binary download against exact identity; failed builds show actionable record/issue links.
 
-- [ ] Write failing browser tests for decimal comma, Apply/Cancel, map picking, raw-byte validation, delete/restore/clone, undo/redo and safe binary reports:
+- [x] Write failing browser tests for decimal comma, Apply/Cancel, map picking, raw-byte validation, delete/restore/clone, undo/redo and safe binary reports:
 
 ```js
 await page.getByLabel('Latitude', {exact:true}).fill('37,1');
@@ -236,8 +236,8 @@ await page.getByTestId('record-row').first().click();
 await expect(page.getByLabel('Latitude', {exact:true})).toHaveValue('37.1');
 ```
 
-- [ ] Run `npm run test:browser -- test/browser/editing.spec.js`; confirm failures correspond to absent editing behavior.
-- [ ] Implement forms/advanced inspector using existing operations only. Unknown bytes/types stay explicitly unknown, no invented speed/heading units. Clone enabled only for supported original templates. Link resolution requires original964 source, original9128 target and nonempty reason; dashed geometry remains inferred. Translate limitations at disabled controls. Use strict parsing:
+- [x] Run `npm run test:browser -- test/browser/editing.spec.js`; confirm failures correspond to absent editing behavior.
+- [x] Implement forms/advanced inspector using existing operations only. Unknown bytes/types stay explicitly unknown, no invented speed/heading units. Clone enabled only for supported original templates. Link resolution requires original964 source, original9128 target and nonempty reason; dashed geometry remains inferred. Translate limitations at disabled controls. Use strict parsing:
 
 ```js
 const normalized = text.trim();
@@ -247,8 +247,8 @@ if (!Number.isFinite(value) || Math.abs(value) > limit) throw new Error('INVALID
 return value;
 ```
 
-- [ ] Wire each accepted revision to autosave, show saving/committed/failed states, warn on departure with drafts or pending/failed save. Prompt before replacing modified work, offer project backup, allow cancellation. Discard asks confirmation, calls worker reset against embedded baseline, clears drafts/history, invalidates prepared binary and autosaves reset. Preserve corrupt working envelope until explicit recovery download/replacement choice; never silently clear it on source success.
-- [ ] Add project/data/GeoJSON/CSV downloads and report-before-binary workflow. Project save remains available with unresolved/blocked builds. Record links on build errors select the relevant ID. Filters do not constrain exports. Check identity again inside download click handler:
+- [x] Wire each accepted revision to autosave, show saving/committed/failed states, warn on departure with drafts or pending/failed save. Prompt before replacing modified work, offer project backup, allow cancellation. Discard asks confirmation, calls worker reset against embedded baseline, clears drafts/history, invalidates prepared binary and autosaves reset. Preserve corrupt working envelope until explicit recovery download/replacement choice; never silently clear it on source success.
+- [x] Add project/data/GeoJSON/CSV downloads and report-before-binary workflow. Project save remains available with unresolved/blocked builds. Record links on build errors select the relevant ID. Filters do not constrain exports. Check identity again inside download click handler:
 
 ```js
 const current = getIdentity();
@@ -259,7 +259,7 @@ if (prepared.sessionId !== current.sessionId || prepared.revision !== current.re
 downloadBlob({bytes:prepared.bytes,mime:'application/octet-stream',filename:'Speedcam_Data_FEU.bin'});
 ```
 
-- [ ] Test project download/reopen, all export formats, CSV formula protection, unchanged binary byte equality, build refusal (deleted linked target/unsupported layout), stale report invalidation, draft selection guard, independent source update, discard against original baseline, both languages including failures/reports, and Blob URL cleanup. Run all Node/browser tests; document own-risk warning, cache versus working data, offline tile limitations, local storage eviction and backup guidance. Commit as `feat: add safe editing recovery and export flows`.
+- [x] Test project download/reopen, all export formats, CSV formula protection, unchanged binary byte equality, build refusal (deleted linked target/unsupported layout), stale report invalidation, draft selection guard, independent source update, discard against original baseline, both languages including failures/reports, and Blob URL cleanup. Run all Node/browser tests; document own-risk warning, cache versus working data, offline tile limitations, local storage eviction and backup guidance. Commit as `feat: add safe editing recovery and export flows`.
 
 ## Task 6: Browser race/failure coverage and real-size verification
 
@@ -267,7 +267,7 @@ downloadBlob({bytes:prepared.bytes,mime:'application/octet-stream',filename:'Spe
 
 **Interfaces:** Browser helpers provide deterministic route fixtures for HEAD/GET/tile traffic, counters and deferred replies. Persistence tests use actual IndexedDB and injected failure hooks confined to tests, not a production debug endpoint. `sample.spec.js` uses only local file upload and blocks external database requests.
 
-- [ ] Add failing adversarial tests before fixing any findings. Pin unchanged startup traffic:
+- [x] Add failing adversarial tests before fixing any findings. Pin unchanged startup traffic:
 
 ```js
 await page.goto('/mivue-trafficcam/');
@@ -278,12 +278,12 @@ await expect(page.getByTestId('source-status')).toHaveAttribute('data-state','un
 expect(downloads).toBe(1);
 ```
 
-- [ ] Cover changed metadata/new bytes, missing validators, offline cached startup, failed/cancelled update preserving cache, storage denied/quota/transaction abort, corrupt/incompatible working project recovery, undo/redo persisted but history reset on reload, delayed old save after reset/replacement, file selection during startup, and newer cache never replacing edited work. Verify external requests contain no uploaded file/project content. Use deferred events rather than arbitrary sleep timings.
-- [ ] Run `npm run test:browser`; investigate failures with systematic-debugging and add focused regressions before minimal fixes. Repeat race tests to expose scheduling dependence.
-- [ ] Independently inspect official endpoint from a real browser: record CORS-visible validators, first GET, subsequent no-body unchanged check and cancellation behavior. If network/live headers prevent verification, document that limitation and retain conservative `check-unavailable` behavior; do not weaken tests or claim a successful live check.
-- [ ] Upload local 52,935-record sample, measure load/edit/build durations and a main-thread animation heartbeat during worker work. Assert no more than 100 record rows and no per-camera DOM markers. Exercise keyboard, mobile viewport, all-record fit, map background failure, project save/reopen, and byte-identical untouched build. Record machine/browser/date and observed timings without universal performance promises.
-- [ ] Run `npm test`, `npm run build:web`, `npm run test:browser`, `git diff --check`. Inspect dist allowlist and verify no `.bin`, saved project, firmware, sample, test fixtures, or private repository files are published. Document exact results/skips in `docs/browser-verification.md`; commit as `test: verify editor persistence and full-size browser workflows`.
-- [ ] Obtain the final independent review required by executing-plans, address substantive findings with regression tests, rerun verification, and hand off for the user's integration choice. Do not merge/push/enable Pages automatically.
+- [x] Cover changed metadata/new bytes, missing validators, offline cached startup, failed/cancelled update preserving cache, storage denied/quota/transaction abort, corrupt/incompatible working project recovery, undo/redo persisted but history reset on reload, delayed old save after reset/replacement, file selection during startup, and newer cache never replacing edited work. Verify external requests contain no uploaded file/project content. Use deferred events rather than arbitrary sleep timings.
+- [x] Run `npm run test:browser`; investigate failures with systematic-debugging and add focused regressions before minimal fixes. Repeat race tests to expose scheduling dependence.
+- [x] Independently inspect official endpoint from a real browser: record CORS-visible validators, first GET, subsequent no-body unchanged check and cancellation behavior. If network/live headers prevent verification, document that limitation and retain conservative `check-unavailable` behavior; do not weaken tests or claim a successful live check.
+- [x] Upload local 52,935-record sample, measure load/edit/build durations and a main-thread animation heartbeat during worker work. Assert no more than 100 record rows and no per-camera DOM markers. Exercise keyboard, mobile viewport, all-record fit, map background failure, project save/reopen, and byte-identical untouched build. Record machine/browser/date and observed timings without universal performance promises.
+- [x] Run `npm test`, `npm run build:web`, `npm run test:browser`, `git diff --check`. Inspect dist allowlist and verify no `.bin`, saved project, firmware, sample, test fixtures, or private repository files are published. Document exact results/skips in `docs/browser-verification.md`; commit as `test: verify editor persistence and full-size browser workflows`.
+- [x] Obtain the final independent review required by executing-plans, address substantive findings with regression tests, rerun verification, and hand off for the user's integration choice. Do not merge/push/enable Pages automatically.
 
 ## Plan self-review
 

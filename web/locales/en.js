@@ -1,4 +1,7 @@
 export default {
+  "zoomIn": "Zoom in",
+  "zoomOut": "Zoom out",
+  "workingReadFailed": "Saved project could not be read. Reload to retry. Automatic replacement is blocked; explicitly replace only if you accept losing the unread saved data.",
   "open": "Open file",
   "check": "Check for updates",
   "useSource": "Open cached official database",

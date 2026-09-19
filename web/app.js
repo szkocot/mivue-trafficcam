@@ -12,9 +12,13 @@ import { downloadBlob,releaseDownloads } from './downloads.js';
 const $=id=>document.getElementById(id);
 let preference;try{preference=localStorage;}catch{}
 const i18n=createI18n({storage:preference}),t=(key,params)=>i18n.t(key,params),client=createWorkerClient();
-let state=null,selectedId=null,page=1,bounds=null,source=null,sourceInfo=null,sourceStatus='checking',saveStatus='notSaved',operation='ready',intent=0,recovery=null,busy=false;
+let state=null,selectedId=null,page=1,bounds=null,source=null,sourceInfo=null,sourceStatus='checking',saveStatus='notSaved',operation='ready',intent=0,recovery=null,recoveryBlocked=false,busy=false;
 const unavailable={getCache:async()=>null,getWorking:async()=>null,putCache:async()=>{throw Error('STORAGE_UNAVAILABLE');},putWorking:async()=>{throw Error('STORAGE_UNAVAILABLE');}};
-let store=unavailable,autosave=createAutosave({store}),cache;
+let store=unavailable,cache,resolveStorage;
+const storageReady=new Promise(resolve=>{resolveStorage=resolve;});
+// One queue/session owner for the entire page, including documents opened before IDB.
+const autosave=createAutosave({store:{async putWorking(entry){await storageReady;return store.putWorking(entry);}},
+ onStatus:s=>{saveStatus=s.state==='failed'?'saveFailed':s.state;render();}});
 const map=createMap($('map'),{onSelect:select,onPick:(lat,lon)=>details.setPickedLocation(lat,lon),onViewport:b=>{bounds=b;if($('viewport').checked)render();},onTileError:()=>{$('tile-status').hidden=false;$('tile-status').textContent=t('tileFailure');}});
 const details=createDetails($('details'),{onApply:operation=>mutate('apply',{operation}),onOperation:async operation=>{if(await guardDraft())await mutate('apply',{operation});},onPick:value=>map.setPickMode(value),t});
 const exportElement=document.createElement('dialog');document.body.append(exportElement);
@@ -38,8 +42,8 @@ function saveProject(){if(state)downloadBlob({bytes:state.projectJson,mime:'appl
 async function guardReplace(){
  if(busy && !state){intent++;client.cancel();busy=false;}
  if(busy)return false;if(!await guardDraft())return false;
- if(!state?.modified && !recovery)return true;
- const answer=await choice('replace',['backupReplace','replaceNow','cancel']);
+ if(!state?.modified && !recovery && !recoveryBlocked)return true;
+ const answer=await choice(recoveryBlocked&&!recovery?'workingReadFailed':'replace',recoveryBlocked&&!recovery?['replaceNow','cancel']:['backupReplace','replaceNow','cancel']);
  if(answer==='cancel')return false;
  if(answer==='backupReplace'){if(recovery)recover();else saveProject();}
  return true;
@@ -47,10 +51,11 @@ async function guardReplace(){
 function recover(){if(recovery)downloadBlob({bytes:JSON.stringify(recovery,null,2),mime:'application/json',filename:'mivue-recovery.json'});}
 function translate(){
  document.documentElement.lang=i18n.language;
+ map.setLanguage(t);
  for(const el of document.querySelectorAll('[data-i18n]'))el.textContent=t(el.dataset.i18n);
  $('file').setAttribute('aria-label',t('open'));$('map').setAttribute('aria-label',t('map'));
  $('pl').setAttribute('aria-pressed',i18n.language==='pl');$('en').setAttribute('aria-pressed',i18n.language==='en');
- $('tile-status').textContent=t('tileFailure');$('recovery').textContent=t('recovery');details.setLanguage();render();
+ $('tile-status').textContent=t('tileFailure');$('recovery').textContent=t(recoveryBlocked&&!recovery?'workingReadFailed':'recovery');details.setLanguage();render();
 }
 function filtered(){return state?filterView(state.view,{query:$('search').value,viewport:$('viewport').checked?bounds:null,warningsOnly:$('warnings').checked,changedOnly:$('changed').checked,showDeleted:$('deleted').checked,typeRaw:$('type').value}):[];}
 function render(){
@@ -83,7 +88,7 @@ async function open(kind,payload,{ticket=++intent,save=true,info=null}={}){
  const previous=state;setBusy(true);autosave.begin(`opening:${ticket}`);
  try{
   const result=await client.open(kind,payload);if(ticket!==intent)return;
-  sourceInfo=info;autosave.begin(client.sessionId);accept(result,{save});recovery=null;$('recovery').hidden=true;$('recover').hidden=true;operation='ready';
+  sourceInfo=info;autosave.begin(client.sessionId);accept(result,{save});recovery=null;recoveryBlocked=false;$('recovery').hidden=true;$('recover').hidden=true;operation='ready';
  }catch(error){
   if(ticket===intent){
    if(previous){await client.open('open-project',{text:previous.projectJson});autosave.begin(client.sessionId);state={...previous,revision:0,canUndo:false,canRedo:false};}
@@ -128,7 +133,6 @@ translate();
 async function start(){
  const ticket=intent;
  try{store=await openStorage();}catch{saveStatus='saveFailed';}
- autosave=createAutosave({store,onStatus:s=>{saveStatus=s.state==='failed'?'saveFailed':s.state;render();}});
  cache=createSourceCache({store,validateBytes:bytes=>client.validateSource(bytes),onStatus:s=>{sourceStatus=s.state;render();}});
  try{
   const saved=await store.getWorking();
@@ -137,11 +141,12 @@ async function start(){
    if(saved.version!==1 || typeof saved.projectJson!=='string')throw Error('INVALID_SAVED_PROJECT');
    await open('open-project',{text:saved.projectJson},{ticket,save:false,info:saved.sourceInfo});recovery=null;saveStatus='saved';
   }
- }catch{if(ticket===intent){$('recovery').hidden=false;$('recover').hidden=false;}}
+ }catch{if(ticket===intent){recoveryBlocked=true;$('recovery').textContent=t(recovery?'recovery':'workingReadFailed');$('recovery').hidden=false;$('recover').hidden=!recovery;}}
+ finally{resolveStorage();}
  source=await cache.loadCached();
- if(source && !state && !recovery && ticket===intent)await open('open-bin',{bytes:source.bytes,name:'Speedcam_Data_FEU.bin'},{ticket,info:source.source}).catch(()=>{});
+ if(source && !state && !recovery && !recoveryBlocked && ticket===intent)await open('open-bin',{bytes:source.bytes,name:'Speedcam_Data_FEU.bin'},{ticket,info:source.source}).catch(()=>{});
  const newest=await check();
- if(newest && !state && !recovery && ticket===intent && sourceStatus!=='cancelled')await open('open-bin',{bytes:newest.bytes,name:'Speedcam_Data_FEU.bin'},{ticket,info:newest.source}).catch(()=>{});
+ if(newest && !state && !recovery && !recoveryBlocked && ticket===intent && sourceStatus!=='cancelled')await open('open-bin',{bytes:newest.bytes,name:'Speedcam_Data_FEU.bin'},{ticket,info:newest.source}).catch(()=>{});
  render();
 }
 start();

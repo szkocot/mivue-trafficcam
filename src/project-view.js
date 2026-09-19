@@ -19,7 +19,7 @@ export async function projectView(project) {
     const r = { id:entry.id, originalSourceOffset:entry.sourceOffset, templateId:entry.templateId,
       latitude:e.latitude ?? original.latitude, longitude:e.longitude ?? original.longitude,
       rawBytes16To19:[...(e.rawBytes16To19 ?? original.rawBytes16To19)], typeRaw:original.typeRaw,
-      originalLinkRaw:original.linkRaw, linkTargetId, deleted:entry.deleted,
+      originalLinkRaw:original.linkRaw, linkTargetId, linkResolution:structuredClone(e.linkResolution??null), deleted:entry.deleted,
       changed:entry.sourceOffset === null || entry.deleted || Boolean(e.linkResolution)
         || ('latitude' in e && e.latitude !== original.latitude) || ('longitude' in e && e.longitude !== original.longitude)
         || (e.rawBytes16To19?.some((b,i)=>b !== original.rawBytes16To19[i]) ?? false),

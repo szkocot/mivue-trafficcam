@@ -17,7 +17,13 @@ export function createDetails(element,{onApply,onOperation,onPick,t}){
    const changes={};
    for(const [key,limit] of [['latitude',90],['longitude',180]])if(fields[key].value!==String(record[key]??''))changes[key]=parseCoordinate(fields[key].value,limit);
    if(fields.rawBytes.value!==record.rawBytes16To19.join(', '))changes.rawBytes16To19=parseRawBytes(fields.rawBytes.value);
-   const ok=await onApply({kind:'update',id:record.id,changes});if(ok)dirty=false;return ok;
+   const operations=[];
+   if(Object.keys(changes).length)operations.push({kind:'update',id:record.id,changes});
+   if(fields.target && (fields.target.value.trim()!==(record.linkTargetId??'') || fields.reason.value.trim()!==(record.linkResolution?.reason??''))){
+    if(!fields.target.value.trim()||!fields.reason.value.trim())throw Error('reason');
+    operations.push({kind:'resolve-link',id:record.id,targetId:fields.target.value.trim(),reason:fields.reason.value.trim()});
+   }
+   const ok=operations.length?await onApply(operations):true;if(ok)dirty=false;return ok;
   }catch(e){error.textContent=t(e.message);return false;}
  }
  function render(values){
@@ -32,11 +38,8 @@ export function createDetails(element,{onApply,onOperation,onPick,t}){
   if(clone.disabled)element.append(el('p',t('cloneUnavailable')));
   const advanced=el('details');advanced.append(el('summary',t('advanced')),el('p',t('unknown')));input(advanced,'rawBytes',record.rawBytes16To19.join(', '));
   if(record.typeRaw===964){
-   input(advanced,'target',record.linkTargetId??'');input(advanced,'reason','');
-   button(advanced,'resolve',async()=>{
-    if(!fields.target.value.trim()||!fields.reason.value.trim()){error.textContent=t('reason');return;}
-    const ok=await onApply({kind:'resolve-link',id:record.id,targetId:fields.target.value.trim(),reason:fields.reason.value.trim()});if(ok)dirty=false;
-   });
+   input(advanced,'target',record.linkTargetId??'');input(advanced,'reason',record.linkResolution?.reason??'');
+   button(advanced,'resolve',apply);
   }
   for(const d of record.diagnostics)element.append(el('p',`${t(d.scope)}: ${t(d.code)}`));
   advanced.append(el('pre',JSON.stringify(record,null,2)));element.append(advanced);

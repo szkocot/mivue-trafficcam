@@ -12,7 +12,8 @@ export function createExportDialog(element,{client,getIdentity,t,onSelect=()=>{}
    const identity=getIdentity();try{const result=await client.request('export',{format});if(same(identity,getIdentity()))downloadBlob({bytes:result.text,mime:result.mime,filename:result.filename});}catch(e){showError(e);}
   });
   function showError(e){error.hidden=false;error.replaceChildren(el('p',t(e.code??'failed')));const details=el('details');details.append(el('summary',t('technical')),el('pre',e.message??''));error.append(details);
-   if(e.recordId){const b=el('button',e.recordId);b.onclick=()=>{element.close();onSelect(e.recordId);};error.append(b);}}
+   const recordIds=new Set([e.recordId,...(e.issues??[]).map(issue=>issue.recordId)].filter(Boolean));
+   for(const id of recordIds){const b=el('button',id);b.onclick=()=>{element.close();onSelect(id);};error.append(b);}}
   const build=add('build',async()=>{
    const identity=getIdentity();build.disabled=true;download.disabled=true;error.hidden=true;report.replaceChildren(el('p',t('busy')));onBusy(true);
    try{const result=await client.request('build');if(generation!==token||!same(identity,getIdentity()))return;
