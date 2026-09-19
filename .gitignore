@@ -6,6 +6,7 @@
 
 # Local exports and development artifacts
 /exports/
+/projects/
 node_modules/
 *.log
 /.superpowers/

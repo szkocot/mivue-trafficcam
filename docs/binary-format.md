@@ -120,4 +120,6 @@ Preserve these values during research. Do not silently repair them or assume the
 
 Read-only inspection used `file`, `xxd`, `shasum -a 256`, and Python's standard-library `struct` and `collections` modules. Checks covered all regional and cell counts, exact record spans, total byte accounting, coordinate-grid membership, field distributions, and candidate link targets. No sample bytes were changed.
 
-Next steps are a reproducible read-only parser with raw-field preservation, malformed-input validation, and exports; comparison against known camera and OPP locations; and investigation of the 13 link anomalies. A byte-identical decode/re-encode check should precede editing or rebuilding for a device. Device compatibility and successful installation remain untested.
+The parser and encoder now perform byte-identical reconstruction of this sample, with raw-field preservation and malformed-input validation. Project builds support validated edits and understood link relocation, with explicit blocks on unresolved layout changes. Device compatibility and successful installation remain untested.
+
+Static inspection of the supplied 955W firmware found a second database with a 22×22 cell grid and the same 28-byte record structure; see [firmware research](firmware-research.md). Its header offset 20 is 72 although its first populated region starts at 82, disproving the simple first-populated-region-pointer hypothesis. This field remains opaque. The production codec still only accepts 20×20.

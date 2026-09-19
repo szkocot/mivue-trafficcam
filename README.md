@@ -6,7 +6,7 @@ The intended scope includes fixed speed cameras and section-based average-speed 
 
 ## Status
 
-A read-only parser and CLI support the layout documented in [binary-format research notes](docs/binary-format.md). They inspect databases and export JSON or GeoJSON while preserving raw fields. The local sample contains 52,935 records; all parse successfully, with 13 candidate-link warnings matching the research notes. Encoding, editing, source ingestion, and the website are not implemented yet.
+The parser, editable project model, encoder, and CLI support the 20×20 layout documented in [binary-format research notes](docs/binary-format.md). They inspect databases, export JSON/GeoJSON, save/reopen projects, apply validated edits, and rebuild binaries while preserving raw fields. Unchanged reconstruction of the 52,935-record sample is byte-identical, including its 13 candidate-link warnings. The map interface, general source ingestion, and website deployment are still upcoming; see the [approved roadmap](docs/roadmap.md).
 
 ## Usage
 
@@ -32,6 +32,40 @@ Tests use synthetic fixtures. The local-sample test runs when `Speedcam_Data_FEU
 ```sh
 node --test test/parser.test.js test/export.test.js test/cli.test.js
 ```
+
+## Editable projects and binary builds
+
+Create local `projects/` and `exports/` directories first. Both are ignored by Git. Projects embed the original binary and its SHA-256, so they contain the source database and should be treated like that database when sharing.
+
+```sh
+node bin/mivue-trafficcam.js project Speedcam_Data_FEU.bin --output projects/original.json
+node bin/mivue-trafficcam.js edit projects/original.json --patch changes.json --output projects/edited.json
+node bin/mivue-trafficcam.js build projects/edited.json --output exports/Speedcam_Data_FEU.bin
+```
+
+For the documented sample, `changes.json` can contain this raw-field research edit (the ID is the original byte offset, not a camera identifier):
+
+```json
+[
+  { "kind": "update", "id": "source:2032", "changes": { "rawBytes16To19": [70, 34, 0, 1] } }
+]
+```
+
+Available operations are `update` (latitude, longitude, or the four raw bytes), `delete`, `restore`, `clone` (a supported original template plus explicit coordinates), and `resolve-link` (a 964 source, 9128 target, and reason). New records use stable `new:<number>` IDs. Raw fields are not verified speed/direction controls. Cloning is limited to non-link raw types 1, 3, and 5; new OPP creation is not yet supported. Project edits never change the original binary; every output path must be new, including when it is a symlink/hard-link alias of an input.
+
+Unchanged builds reconstruct all parsed headers, indexes, and raw records. Edited builds regenerate counts and offsets, relocate understood links by stable ID, and reparse the output. Existing unresolved references can survive an unchanged address space; they block layout-changing builds until explicitly resolved. Changing the first populated region is also blocked while header semantics remain unknown. Invalid drafts can be saved, but invalid binary builds are rejected with diagnostics. No force-build bypass is provided. Output reports explicitly identify device acceptance as **untested**.
+
+For all synthetic tests (without the optional sample integration test):
+
+```sh
+node --test test/parser.test.js test/export.test.js test/project.test.js test/encoder.test.js test/cli.test.js test/sources.test.js
+```
+
+## Official database and firmware references
+
+Use the [official European speed-camera database](https://dl-mio.akamaized.net/dvr/MiVue8xx/Speedcam_Data_FEU.bin) as the download source. `src/sources.js` exports this URL and a browser-compatible `fetchOfficialDatabase({ signal })` loader that validates downloads; the future GitHub Pages UI can call it when the user requests the official data. The endpoint currently permits cross-origin access. It is fetched from Mio, not copied into the published website; local file import remains the fallback for network or format changes.
+
+The user-supplied [955W firmware](https://dl-mio.akamaized.net/Support/Downloads/Firmware/MiVue955W/EU/5651N7040009/VF538.10.20.BE1AD.18/SD_CarDV.bin) and [update guide](https://service.mio.com/M0100/FileReader_119674_Rest%20of%20Europe_English.html) are recorded in [firmware research notes](docs/firmware-research.md). Static analysis found an older bundled **22×22** database, which the current production codec explicitly rejects as unsupported. Do not assume all 955W database versions use the current sample's layout. The guide returned HTTP 403 during inspection.
 
 ## Planned capabilities
 

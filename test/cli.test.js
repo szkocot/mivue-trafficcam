@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, writeFile, readFile, rm, symlink, link, access } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { makeFixture } from './helpers/fixture.js';
+import { parseDatabase } from '../src/parser.js';
 
 const cli = new URL('../bin/mivue-trafficcam.js', import.meta.url).pathname;
 const run = (...args) => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8', maxBuffer: 5_000_000 });
@@ -57,4 +58,43 @@ test('closed output pipe produces a controlled failure', { timeout: 15000 }, asy
   const closed = once(child, 'close'); child.stdout.destroy();
   const [code] = await closed;
   assert.equal(code, 1); assert.match(errors, /output/i); assert.doesNotMatch(errors, /Unhandled|at .*\.js:/);
+});
+
+test('project, edit and build produce a verified binary without overwriting input', async t => {
+  const { path, bytes } = await fixture(t);
+  const project = path + '.json', edited = path + '.edited.json', output = path + '.rebuilt.bin', patch = path + '.patch.json';
+  assert.equal(run('project', path, '--output', project).status, 0);
+  const p = JSON.parse(await readFile(project, 'utf8'));
+  await writeFile(patch, JSON.stringify([{ kind: 'update', id: p.records[0].id, changes: { rawBytes16To19: [70, 0, 0, 1] } }]));
+  const edit = run('edit', project, '--patch', patch, '--output', edited);
+  assert.equal(edit.status, 0, edit.stderr);
+  const build = run('build', edited, '--output', output);
+  assert.equal(build.status, 0, build.stderr);
+  assert.equal(parseDatabase(await readFile(output)).records[0].rawBytes16To19[0], 70);
+  assert.deepEqual(new Uint8Array(await readFile(path)), bytes);
+  assert.equal(run('build', edited, '--output', output).status, 1);
+});
+test('new commands reject bad syntax and cannot clobber aliases or existing files', async t => {
+  const { path, bytes } = await fixture(t);
+  for (const args of [['project', path], ['build', path, '--output'], ['edit', path, '--output', path],
+    ['project', path, '--oops', path], ['project', path, '--output', path, 'extra']]) assert.equal(run(...args).status, 2);
+  const sym = path + '.symlink', hard = path + '.hardlink';
+  await symlink(path, sym); await link(path, hard);
+  for (const dest of [path, sym, hard]) assert.equal(run('project', path, '--output', dest).status, 1);
+  assert.deepEqual(new Uint8Array(await readFile(path)), bytes);
+  assert.equal(run('project', path, '--output', path + '/missing/out.json').status, 1);
+});
+test('failed edit or build leaves no output file', async t => {
+  const { path } = await fixture(t, [{ typeRaw: 964, linkRaw: 123 }, {}]);
+  const project = path + '.json', patch = path + '.patch.json', out = path + '.out';
+  assert.equal(run('project', path, '--output', project).status, 0);
+  await writeFile(patch, '{}');
+  assert.equal(run('edit', project, '--patch', patch, '--output', out).status, 1);
+  await assert.rejects(access(out));
+  const p = JSON.parse(await readFile(project, 'utf8')); p.records[1].edits.latitude = 38;
+  await writeFile(project, JSON.stringify(p));
+  const result = run('build', project, '--output', out);
+  assert.equal(result.status, 1); assert.match(result.stderr, /UNRESOLVED_LINK/); await assert.rejects(access(out));
+  await writeFile(project, '{');
+  assert.equal(run('build', project, '--output', out).status, 1); await assert.rejects(access(out));
 });
