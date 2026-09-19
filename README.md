@@ -8,6 +8,8 @@ The intended scope includes fixed speed cameras and section-based average-speed 
 
 The parser, editable project model, encoder, and CLI support the 20×20 layout documented in [binary-format research notes](docs/binary-format.md). They inspect databases, export JSON/GeoJSON, save/reopen projects, apply validated edits, and rebuild binaries while preserving raw fields. Unchanged reconstruction of the 52,935-record sample is byte-identical, including its 13 candidate-link warnings. The map interface, general source ingestion, and website deployment are still upcoming; see the [approved roadmap](docs/roadmap.md).
 
+The [PL/EN map-editor design](docs/superpowers/specs/2026-09-20-map-editor-design.md) and [implementation plan](docs/superpowers/plans/2026-09-20-map-editor.md) are approved. Task 1 adds tested effective-record projection, project-view JSON/GeoJSON/CSV exports, 50-state undo/redo, filtering and pagination. These core APIs are not yet exposed in a browser application. Next: official-source caching and local working-project autosave. Follow-up work includes CANARD/other website imports and selecting specific countries for a reduced dataset, with boundary and linked-record validation. This README is updated after every task.
+
 ## Usage
 
 Use Node.js (verified with v26.8.2). No dependencies or installation are required.
@@ -75,6 +77,8 @@ The user-supplied [955W firmware](https://dl-mio.akamaized.net/Support/Downloads
 - Represent OPP sections and their endpoints as supported by the device format.
 - View cameras and OPP sections on a map.
 - Ingest and reconcile records from external sources, retaining provenance and attribution.
+- Load points from CANARD and other websites, subject to verified access and reuse terms.
+- Select one or more countries for an explicitly reduced dataset, separately from map display filters.
 - Encode records and build `.bin` files for supported MiVue products.
 - Validate generated files through round-trip checks and device-specific compatibility testing.
 

@@ -1,6 +1,6 @@
 # MiVue TrafficCam: complete workflow
 
-Approved direction, 2026-09-20. Target device supplied by the user: **Mio MiVue 955W**, firmware unspecified. The user approved the roadmap and Polish-language interface. This roadmap covers the original feature request; individual increments remain separately testable.
+Approved direction, 2026-09-20. Target device supplied by the user: **Mio MiVue 955W**, firmware unspecified. The user approved the roadmap, then requested a Polish/English interface and a startup database cache that downloads again only when a newer version is available. This roadmap covers the original feature request; individual increments remain separately testable.
 
 ## Product experience
 
@@ -8,7 +8,7 @@ A GitHub Pages application that lets a user open a local database, inspect Polis
 
 Recommended architecture: extend the existing JavaScript core and build a static browser UI around it. A CLI-only expansion would delay map editing; a backend application would add hosting and upload requirements without helping the initial local-file workflow. GitHub Pages serves static HTML, CSS, and JavaScript, so any source requiring server-side access needs a separate explicit ingestion command or preprocessing workflow.
 
-Default UI language proposal: Polish, with code and developer documentation in English. Keep a visible experimental/own-risk notice. The product must distinguish verified binary structure, tentative field interpretations, source claims, and actual device testing.
+UI languages: Polish and English, with browser-language detection, a visible PL/EN switch, and a remembered choice. Code and developer documentation remain English. Automatically load/cache the official database on first startup; reuse it and check for updates on later visits. Autosave applied edits locally and restore the working project on return; offer an explicit Discard changes action that resets to that project's original baseline. Never replace an edited project with a source update. Keep a visible experimental/own-risk notice. The product must distinguish verified binary structure, tentative field interpretations, source claims, and actual device testing.
 
 ## Delivery sequence
 
@@ -16,7 +16,8 @@ Default UI language proposal: Polish, with code and developer documentation in E
 | --- | --- | --- |
 | 1. Project model and encoder | Open a binary, save a project, edit records, rebuild a binary through the CLI | Unchanged sample reconstructs byte-for-byte; edited output parses; offsets/counts/link relocation tested |
 | 2. Map and editor | Local file picker/drop target, map/table selection, filters, record forms, undo/redo, downloads | Full sample loads; table/map agree; edits survive project save/reopen; browser interaction checks |
-| 3. Ingestion and reconciliation | Import CSV/GeoJSON and OSM data; preview additions, duplicates, conflicts, and provenance | Synthetic imports, unit normalization, repeated-import idempotence, conflict review; source attribution retained |
+| 3. Ingestion and reconciliation | Load points from CANARD and other websites where access/reuse permits; import CSV/GeoJSON and OSM data; preview additions, duplicates, conflicts, and provenance on the map | Source access/terms verified; synthetic imports, unit normalization, repeated-import idempotence, conflict review; source attribution retained |
+| 3b. Country-limited datasets | Choose one or more countries and explicitly prepare a reduced dataset/binary, independently of map display filters | Versioned country boundaries; border/unknown-coordinate review; linked-endpoint integrity; preview of kept/excluded records; validated build or actionable refusal |
 | 4. OPP completion and 955W validation | Explicit directional sections, endpoint editing, validated binary mappings | Known-location comparison, link investigation, then user-reported device acceptance/alerts |
 | 5. GitHub Pages release | Public static application and automated checks/deployment configuration | Repository-subpath assets work; end-to-end open/edit/export check; sample data excluded from published assets |
 
@@ -27,6 +28,8 @@ The map can ship before all OPP type meanings are resolved. Source-backed OPP se
 Use stable record IDs independent of file offsets. A saved project keeps original binary bytes, source fingerprint, parsed raw metadata, edits, provenance, candidate links, and user resolutions. Separate editable fields from the original raw bytes so unknown bits survive edits. Binary offsets are assigned only during encoding.
 
 Preserve full European coverage when opening the sample. A Poland view is a display/filter choice; excluding other countries from a rebuilt file is a separate explicit operation. Country filtering requires a boundary dataset; a bounding box must be labeled approximate.
+
+The user explicitly requested country selection as a follow-up. Allow one or multiple countries, preview included/excluded/unknown records, and retain the original project for recovery. Define border points and cross-border OPP handling before implementation; do not silently drop a linked endpoint. Missing coordinates require an explicit user decision. A reduced binary remains subject to unresolved-link and unknown-header build restrictions, rather than bypassing existing safety checks.
 
 ## Binary builds and unresolved references
 
@@ -46,7 +49,7 @@ Provide add/delete/move operations, explicit apply/cancel, undo/redo, project sa
 
 Start with user-supplied CSV/GeoJSON and OpenStreetMap adapters. Keep source IDs, original tags, retrieval time, attribution, and units. Match exact source IDs before spatial suggestions; do not merge nearby cameras automatically because opposing directions or multiple devices can share a location. Distinguish active, planned, and unknown status when the source provides it. Missing speed or direction remains unknown.
 
-CANARD is a candidate source and reference for Polish locations. Its public map exists, but a supported machine-readable interface, data-specific reuse terms, and browser access still need inspection before promising a live connector. Handle failed downloads and browser cross-origin restrictions explicitly; a local downloaded-file import remains available. No scraping or external publication is implied by this design.
+CANARD is an explicitly requested next source for Polish locations, alongside other websites selected during the ingestion design. Its public map exists, but a supported machine-readable interface, data-specific reuse terms, and browser access still need inspection before promising a live connector. Handle failed downloads and browser cross-origin restrictions explicitly; a local downloaded-file import remains available. No scraping or external publication is implied by this design.
 
 ## Validation and release boundaries
 
@@ -61,6 +64,8 @@ Prepare the website and deployment configuration without including the user's sa
 - [OSM enforcement relations](https://wiki.openstreetmap.org/wiki/Relation:enforcement): describes enforcement relations and endpoint/member roles; useful input structure, not evidence of Mio field meanings.
 - [GitHub Pages documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages): static-site hosting model.
 
-## First implementation design to approve
+## Current next increment
 
-Build increment 1 next: a versioned, raw-preserving project model; byte-identical encoding of parsed databases; validated edit operations; and CLI project/build commands. Keep codec/model modules browser-compatible. Start with synthetic fixtures and sample round-trip tests, then verify modified counts, coordinates, and link relocation. Resolve unknown header behavior before permitting affected structural edits. This establishes the foundation needed by the map and ingestion increments.
+Increment 1 is implemented and pushed. Increment 2 has an [approved PL/EN map-editor design](superpowers/specs/2026-09-20-map-editor-design.md) and an [implementation plan for review](superpowers/plans/2026-09-20-map-editor.md). It includes automatic official-source caching, local working-project autosave, map editing, and validated downloads. CANARD/other website ingestion and country-limited datasets follow it.
+
+Update `README.md` after every task, recording actual progress and limitations without presenting planned features as implemented.
