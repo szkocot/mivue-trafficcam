@@ -6,9 +6,9 @@ The intended scope includes fixed speed cameras and section-based average-speed 
 
 ## Status
 
-The parser, editable project model, encoder, and CLI support the 20×20 layout documented in [binary-format research notes](docs/binary-format.md). They inspect databases, export JSON/GeoJSON, save/reopen projects, apply validated edits, and rebuild binaries while preserving raw fields. Unchanged reconstruction of the 52,935-record sample is byte-identical, including its 13 candidate-link warnings. A local map workspace is available; editing forms, general ingestion, and deployment are still in progress or upcoming; see the [approved roadmap](docs/roadmap.md).
+The parser, editable project model, encoder, and CLI support the 20×20 layout documented in [binary-format research notes](docs/binary-format.md). They inspect databases, export JSON/GeoJSON, save/reopen projects, apply validated edits, and rebuild binaries while preserving raw fields. Unchanged reconstruction of the 52,935-record sample is byte-identical, including its 13 candidate-link warnings. A local PL/EN map editor is available; general ingestion and deployment are still upcoming; see the [approved roadmap](docs/roadmap.md).
 
-The [PL/EN map-editor design](docs/superpowers/specs/2026-09-20-map-editor-design.md) and [implementation plan](docs/superpowers/plans/2026-09-20-map-editor.md) are approved. Tasks 1–4 provide the core projection/history/cache/worker APIs and bilingual map workspace. Cache checks use exposed HTTP metadata to avoid unchanged downloads; unavailable checks retain the cache without claiming freshness. Verification includes 80 Node tests and browser interaction checks; extensive persistence/race tests and full-sample browser measurements follow editing/download controls. CANARD/other website imports and country-limited datasets follow this increment. This README is updated after every task.
+Tasks 1–5 of the [implementation plan](docs/superpowers/plans/2026-09-20-map-editor.md) provide a bilingual map editor, cache/autosave, tentative forms, undo/redo, project recovery and validated downloads. Verification includes 81 Node tests and 9 browser tests. Next: extensive storage/source race tests and full-sample browser measurements. CANARD/other website imports and country-limited datasets follow this increment. This README is updated after every task.
 
 ## Usage
 
@@ -84,7 +84,7 @@ The user-supplied [955W firmware](https://dl-mio.akamaized.net/Support/Downloads
 
 ## Possible GitHub Pages website
 
-A local PL/EN map workspace is implemented (Task 4): file picker/drop, worker-backed loading, automatic official-source cache checks, paginated linked table, display filters, canvas map and local project persistence. Browser tests cover keyboard selection, narrow layout, language preference and unavailable map tiles. Editing forms and downloads are the next task; GitHub Pages publication has not been enabled.
+A local PL/EN map editor is implemented: file picker/drop, worker-backed loading, automatic official-source cache checks, paginated linked table, display filters, canvas map, autosave, coordinate/raw-field edits, clone/delete/restore, link resolution, undo/redo, and downloads. Binary download is enabled only after a validated report for the current revision. See the [browser guide](docs/browser-editor.md) for recovery, limitations and own-risk precautions. GitHub Pages publication has not been enabled.
 
 ```sh
 npm ci
