@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { parseDatabase } from '../src/parser.js';
 import { serializeJson, serializeGeoJson } from '../src/export.js';
+import { reconstructDatabase, buildProject } from '../src/encoder.js';
+import { createProject } from '../src/project.js';
 
 test('local research sample matches documented counts and anomalies', async t => {
   const path = new URL('../Speedcam_Data_FEU.bin', import.meta.url);
@@ -24,5 +26,10 @@ test('local research sample matches documented counts and anomalies', async t =>
   ]);
   assert.equal(JSON.parse(serializeJson(db)).records.length, 52935);
   assert.equal(JSON.parse(serializeGeoJson(db)).features.length, 52935);
+  assert.deepEqual(Buffer.from(reconstructDatabase(structuredClone(db))), bytes);
+  const rebuilt = await buildProject(await createProject(bytes));
+  assert.deepEqual(Buffer.from(rebuilt.bytes), bytes);
+  assert.equal(rebuilt.report.layoutChanged, false);
+  assert.equal(rebuilt.report.warnings.length, 13);
   assert.equal(hash(bytes), before); assert.equal(hash(await readFile(path)), before);
 });

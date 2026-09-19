@@ -1,3 +1,5 @@
+import { decodeCoordinate as decode, axisIndex } from './spatial.js';
+
 /** A structural failure in the supported database layout. */
 export class ParseError extends Error {
   /** @param {string} code @param {number} offset @param {string} message */
@@ -11,7 +13,6 @@ export class ParseError extends Error {
 
 const hex = bytes => Array.from(bytes, n => n.toString(16).padStart(2, '0')).join('');
 const jsonNumber = n => Number.isFinite(n) ? n : String(n);
-const decode = n => Math.trunc(n / 100) + (n - Math.trunc(n / 100) * 100) / 60;
 const validRaw = n => Number.isFinite(n) && Math.abs(n % 100) < 60;
 
 /**
@@ -72,17 +73,6 @@ export function parseDatabase(bytes) {
   const regions = [], cells = [], records = [], diagnostics = [];
   const warn = (code, offset, message, targetOffset) => {
     diagnostics.push({ code, offset, message, ...(targetOffset === undefined ? {} : { targetOffset }) });
-  };
-  // Compare against boundaries directly: normalizing and flooring can turn an
-  // exact boundary (e.g. 42.8°) into 11.999999999999995 and select the prior cell.
-  const axisIndex = (n, min, max) => {
-    let low = 0, high = 60;
-    while (low + 1 < high) {
-      const middle = Math.floor((low + high) / 2);
-      if (n < min + (max - min) * middle / 60) high = middle;
-      else low = middle;
-    }
-    return low;
   };
   const readRecord = (offset, regionIndex, cellIndex) => {
     span(offset, 28);
