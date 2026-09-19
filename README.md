@@ -14,6 +14,8 @@ The next increment has an [approved automatic-ingestion design](docs/superpowers
 
 ## Usage
 
+Browser-location task 1 adds a tested one-shot controller with explicit requests, cancellation, stale-callback protection and no persistence. Map controls are the next task; location is not yet available in the UI.
+
 Use Node.js (verified with v26.8.2). The CLI needs no installed dependencies. Browser development uses the pinned dependencies in `package-lock.json`.
 
 ```sh
