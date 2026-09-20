@@ -6,6 +6,14 @@ on:
     paths-ignore:
       - '**/*.md'
   workflow_dispatch:
+    inputs:
+      operation:
+        description: Deploy accepted data, update CANARD, or withdraw hosted CANARD
+        type: choice
+        options: [deploy, update, withdraw]
+        default: deploy
+  schedule:
+    - cron: '23 3 * * *'
 
 permissions:
   contents: read
@@ -15,7 +23,103 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  resolve:
+    if: github.ref == 'refs/heads/main' && (github.event_name != 'schedule' || vars.CANARD_PUBLICATION_ENABLED == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      main_sha: ${{ steps.heads.outputs.main_sha }}
+      data_sha: ${{ steps.heads.outputs.data_sha }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: main
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '26'
+      - name: Pin current source and accepted data after acquiring serialization
+        id: heads
+        run: node scripts/canard/cli.js resolve
+
+  prepare:
+    needs: resolve
+    if: github.event_name == 'schedule' || inputs.operation == 'update' || inputs.operation == 'withdraw'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.resolve.outputs.main_sha }}
+          persist-credentials: false
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        if: needs.resolve.outputs.data_sha != ''
+        with:
+          ref: ${{ needs.resolve.outputs.data_sha }}
+          path: _canard-data
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '26'
+          cache: npm
+      - run: npm ci
+      - name: Reuse upstream validators and body outside the public dataset
+        if: inputs.operation != 'withdraw'
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: .cache/canard
+          key: canard-http-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: canard-http-v1-
+      - name: Prepare without repository write credentials
+        env:
+          CANARD_PUBLICATION_ENABLED: ${{ vars.CANARD_PUBLICATION_ENABLED }}
+          OPERATION: ${{ inputs.operation }}
+          DATA_SHA: ${{ needs.resolve.outputs.data_sha }}
+        run: |
+          if [ "$OPERATION" = "withdraw" ]; then
+            node scripts/canard/cli.js withdraw _canard-candidate
+          else
+            previous=-
+            if [ -n "$DATA_SHA" ]; then previous=_canard-data; fi
+            node scripts/canard/cli.js prepare _canard-candidate "$previous" .cache/canard/access.json
+          fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: canard-candidate
+          path: _canard-candidate/
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: [resolve, prepare]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      data_sha: ${{ steps.publish.outputs.data_sha }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.resolve.outputs.main_sha }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '26'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: canard-candidate
+          path: _canard-candidate
+      - name: Compare-and-swap data-only branch with a normal fast-forward push
+        id: publish
+        env:
+          CANARD_PUBLICATION_ENABLED: ${{ vars.CANARD_PUBLICATION_ENABLED }}
+          EXPECTED_PARENT: ${{ needs.resolve.outputs.data_sha }}
+        run: node scripts/canard/cli.js publish _canard-candidate "${EXPECTED_PARENT:--}"
+
   build:
+    needs: [resolve, prepare, publish]
+    if: always() && needs.resolve.result == 'success' && (needs.prepare.result == 'skipped' || needs.publish.result == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -24,6 +128,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.resolve.outputs.main_sha }}
+          persist-credentials: false
+      - name: Checkout pinned data only; never run code from this branch
+        if: needs.publish.outputs.data_sha != '' || needs.resolve.outputs.data_sha != ''
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ needs.publish.outputs.data_sha || needs.resolve.outputs.data_sha }}
+          path: _canard-data
+          persist-credentials: false
       - name: Set up Node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
@@ -36,7 +150,14 @@ jobs:
       - name: Browser regression tests
         run: npm run test:browser
       - name: Build allowlisted static assets
-        run: npm run build:web
+        env:
+          DATA_SHA: ${{ needs.publish.outputs.data_sha || needs.resolve.outputs.data_sha }}
+        run: |
+          if [ -n "$DATA_SHA" ]; then
+            npm run build:web -- --canard-dir _canard-data
+          else
+            npm run build:web
+          fi
       - name: Configure Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Upload only the static build

@@ -1,5 +1,7 @@
 # External source access research
 
+Hosted snapshot implementation now includes a fail-closed publisher: only reviewed normalized observations and attribution are public outputs, never raw pages or downloaded JavaScript. Daily checks are disabled until both the repository variable and review record permit publication. Changes to observed terms/robots or schema stop updates; withdrawal requires no upstream access and removes the active hosted body without purging historical Git commits. See the [deployment procedure](deployment.md#hosted-canard-pipeline-not-released-yet). This is an engineering reuse assessment, not legal certification; bulk detail endpoints and live-video sources remain out of scope.
+
 ## CANARD — preliminary inspection, 2026-09-20
 
 User priority: retain as much usable CANARD information as possible, including traffic/enforcement cameras. Inspect all four public-map categories, not only OPP. Preserve source IDs, names/serial identifiers, original metadata, attribution and retrieval time. Surface speed limits, direction, operational status and detailed location only when actually supplied; absent values remain unknown.

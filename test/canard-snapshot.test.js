@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {prepareSnapshot,validateSnapshot,validateManifest,sha256} from '../src/canard-snapshot.js';
-import {prepareCanard} from '../scripts/canard/prepare.js';
+import {prepareCanard,inspectCanard} from '../scripts/canard/prepare.js';
 import {normalizeCanardLayers} from '../src/canard-adapter.js';
 import {makeCanardLayers,makeCanardHtml,review,retrievedAt} from './helpers/canard-fixture.js';
 const t1=retrievedAt,t2='2026-09-20T10:23:00.000Z';
@@ -58,6 +58,9 @@ test('publication gate requires approved terms, robots, identities and initial e
  approved.notices={...review.notices,reviewedTermsSha256:approved.termsSha256};
  const candidate=await prepareSnapshot({...input(),notices:approved.notices});approved.reviewedCandidateSha256=candidate.manifest.sha256;
  const output=await prepareCanard({access,review:approved,previous:null});
+ const unpublished=await inspectCanard({access,review:{...approved,publicationApproved:false,reviewedCandidateSha256:null}});
+ assert.equal(unpublished.manifest.sha256,output.manifest.sha256);
+ await assert.rejects(inspectCanard({access:{...access,termsText:'changed'},review:approved}),{code:'CANARD_TERMS_CHANGED'});
  assert.equal(output.manifest.total,3);assert.doesNotMatch(new TextDecoder().decode(output.bytes),/PRIVATE|<script>/);
  for(const change of [{publicationApproved:false},{termsSha256:'0'.repeat(64)},{robotsSha256:'0'.repeat(64)},{identityEvidence:null},{reviewedCandidateSha256:null}])await assert.rejects(prepareCanard({access,review:{...approved,...change},previous:null}));
 });
