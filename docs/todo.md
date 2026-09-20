@@ -6,7 +6,7 @@ The existing baseline includes decoding/rebuilding the researched BIN layout, th
 
 ## 1. Activate CANARD data — release work
 
-- [ ] Obtain explicit approval to publish the reviewed dataset and enable daily updates.
+- [x] Obtain explicit approval to publish the reviewed dataset and enable daily updates — user requested implementation of point 1 on 2026-09-20.
 - [ ] Recheck the release gates and publish the exact approved candidate with attribution; do not substitute newly fetched bytes without checking their digest.
 - [ ] Enable the repository publication variable only after the review record permits publication.
 - [ ] Verify the Actions result, deployed source/data commits, manifest hash and counts.

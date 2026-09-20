@@ -10,7 +10,9 @@ The intended scope includes fixed speed cameras and section-based average-speed 
 
 ## Status
 
-The [remaining-work checklist](docs/todo.md) tracks CANARD activation, country selection, additional sources/metadata, binary research, MiVue 955W testing and PL/EN/browser polish. Recommended next steps are CANARD activation followed by country selection; publication still requires explicit approval.
+The [remaining-work checklist](docs/todo.md) tracks CANARD activation, country selection, additional sources/metadata, binary research, MiVue 955W testing and PL/EN/browser polish. The user authorized points 1–4 and 6 on 2026-09-20, including CANARD publication; hardware testing remains out of scope.
+
+Current activation work: a fresh bounded CANARD check reproduced the exact reviewed snapshot (`9033e492…afa26`, 806 observations) and passed terms/robots/schema gates. The review configuration now permits publication. A Pages scheduling fix explicitly requires a successful build even when optional data jobs are skipped; regression tests reproduce the previous skipped-deployment condition. Dataset publication, scheduled updates and public-site verification are still pending. The historical task notes below describe earlier milestones, not current release status.
 
 The parser, editable project model, encoder, and CLI support the 20×20 layout documented in [binary-format research notes](docs/binary-format.md). They inspect databases, export JSON/GeoJSON, save/reopen projects, apply validated edits, and rebuild binaries while preserving raw fields. Unchanged reconstruction of the 52,935-record sample is byte-identical, including its 13 candidate-link warnings. The PL/EN map editor and CSV/GeoJSON ingestion are integrated into `main` and deployed to GitHub Pages. Live website connectors and country filtering remain outstanding; see the [approved roadmap](docs/roadmap.md).
 

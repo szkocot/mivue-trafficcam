@@ -167,7 +167,9 @@ jobs:
 
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/main'
+    # Optional data jobs are skipped on app-only deployments. Override the
+    # implicit success() across that chain, but require a successful build.
+    if: always() && !cancelled() && needs.build.result == 'success' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
