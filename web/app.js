@@ -56,8 +56,9 @@ const importsUI=createImportDialog({t,storage:preference,onImport:async(payload,
   committing();
   const result=await client.request('import',{batch,policies:payload.policies,expectedRevision:identity.revision});
   if(ticket!==intent)return;
-  importSummary=result.summary;accept(result.snapshot,{save:result.snapshot.revision!==state.revision,preserveSelection:true});
- }finally{if(ticket===intent){busy=false;details.setBusy(false);render();}}
+  operation='ready';importSummary=result.summary;accept(result.snapshot,{save:result.snapshot.revision!==state.revision,preserveSelection:true});
+ }catch(e){if(ticket===intent)operation='failed';throw e;}
+ finally{if(ticket===intent){if(!isCurrent())operation='cancelled';busy=false;details.setBusy(false);render();}}
 }});
 function setBusy(value){busy=value;operation=value?'busy':'ready';details.setBusy(value);render();}
 function choice(message,options){
@@ -103,7 +104,7 @@ function render(){
  $('warnings-count').textContent=state?.view.diagnostics.length??0;
  $('source-status').textContent=t(sourceStatus==='ready'?'sourceReady':sourceStatus==='failed'?'sourceFailed':sourceStatus);$('source-status').dataset.state=sourceStatus;
  $('save-status').textContent=t(saveStatus);$('operation-status').textContent=t(operation);
- $('empty').hidden=Boolean(state);$('hidden-selection').hidden=!selectedId||records.some(r=>r.id===selectedId);
+ $('empty').hidden=Boolean(state);$('hidden-selection').hidden=!selectedId||records.some(r=>r.id===selectedId)||references().some(r=>r.id===selectedId);
  $('filename').textContent=state?.view.source.name??'MiVue 955W · EU';$('use-source').disabled=!source||busy;
  $('operation-cancel').hidden=!busy;
  $('save').disabled=!state;$('exports').disabled=!state||busy;

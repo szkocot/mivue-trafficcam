@@ -50,13 +50,17 @@ export async function reconcile(project,input){
   const k=key(o),binding=bindings.get(k),codes=[];let recordId=binding?.recordId??null,changed=false;
   if(binding){
    const i=recordIndices.get(recordId),record=records[i],owner=owners.get(recordId);
-   if(!supported(o)){codes.push('UNSUPPORTED');}
+   if(!supported(o)){
+    codes.push('UNSUPPORTED');ingestion.bindings=ingestion.bindings.filter(b=>key(b)!==k);detachOwner(ingestion,namespace,o.sourceId);
+    recordId=null;summary.referenceOnly++;
+   }
    else if(record.deleted){codes.push('DELETED');summary.protected++;}
    else if(!owner||owner==='manual'||identity(owner.namespace,owner.sourceId)!==k){codes.push('MANUAL_PROTECTED');summary.protected++;}
    else {
     const [longitude,latitude]=o.geometry.coordinates;
     if(record.edits.latitude!==latitude||record.edits.longitude!==longitude){records[i]={...record,edits:{...record.edits,latitude,longitude}};changed=true;recordsChanged=true;}
    }
+   if(supported(o)&&o.status!=='active')codes.push('NOT_ACTIVE');
   }else{
    if(o.disposition==='reference')codes.push('REFERENCE_ONLY');
    else if(!supported(o))codes.push('UNSUPPORTED');

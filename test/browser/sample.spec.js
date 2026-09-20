@@ -10,6 +10,8 @@ test('full local sample: bounded DOM, responsive worker, byte-identical build',a
  await expect(page.getByTestId('record-count')).toHaveText('52935',{timeout:30000});const loadMs=Date.now()-started;
  await expect(page.getByTestId('record-row')).toHaveCount(100);expect(await page.locator('.leaflet-marker-icon').count()).toBe(0);
  await page.getByRole('button',{name:'Fit all records',exact:true}).click();
+ await page.getByLabel('Show speed limits',{exact:true}).check();await page.getByLabel('Show metadata',{exact:true}).check();
+ expect(Number(await page.locator('canvas.points').getAttribute('data-label-count'))).toBeLessThanOrEqual(200);
  const frames=await page.evaluate(()=>window.frames);expect(frames).toBeGreaterThan(1);
  await page.getByTestId('record-row').first().getByRole('button').focus();await page.keyboard.press('Enter');
  const editStart=Date.now();await page.locator('#details summary').click();await page.getByLabel('Four raw bytes (0–255)',{exact:true}).fill('1, 2, 3, 4');

@@ -78,5 +78,6 @@ test('initial template selection and batch commit form one undo transaction',asy
  const batch=makeImportBatch(),policy={namespace:'example',kind:'camera',templateId:p.view.records[0].id};
  const imported=await req('import',{batch,policies:[policy],expectedRevision:0});
  assert.equal(imported.ok,true);assert.equal(imported.result.snapshot.view.records.length,2);assert.equal(imported.result.snapshot.revision,1);
+ const repeat=await req('import',{batch,policies:[policy],expectedRevision:1});assert.equal(repeat.result.snapshot.revision,1);
  assert.equal((await req('undo')).result.references.length,0);
 });

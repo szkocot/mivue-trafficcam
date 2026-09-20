@@ -8,15 +8,15 @@ export function parseRawBytes(text){
  const bytes=text.split(',').map(Number);if(bytes.some(n=>!Number.isInteger(n)||n<0||n>255))throw Error('invalidBytes');return bytes;
 }
 export function createDetails(element,{onApply,onOperation,onPick,onResolve,t}){
- let record=null,dirty=false,fields={},error;
+ let record=null,dirty=false,fields={},error,touched=new Set();
  const el=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
- function input(parent,key,value){const label=el('label',t(key)),field=el('input');field.value=value??'';field.oninput=()=>{dirty=true;};label.append(field);parent.append(label);fields[key]=field;return field;}
+ function input(parent,key,value){const label=el('label',t(key)),field=el('input');field.value=value??'';field.oninput=()=>{dirty=true;touched.add(key);};label.append(field);parent.append(label);fields[key]=field;return field;}
  function button(parent,key,action){const b=el('button',t(key));b.onclick=action;parent.append(b);return b;}
  async function apply(){
   if(!record)return false;
   try{
    const changes={};
-   for(const [key,limit] of [['latitude',90],['longitude',180]])if(fields[key].value!==String(record[key]??''))changes[key]=parseCoordinate(fields[key].value,limit);
+   for(const [key,limit] of [['latitude',90],['longitude',180]])if(touched.has(key)||fields[key].value!==String(record[key]??''))changes[key]=parseCoordinate(fields[key].value,limit);
    if(fields.rawBytes.value!==record.rawBytes16To19.join(', '))changes.rawBytes16To19=parseRawBytes(fields.rawBytes.value);
    const operations=[];
    if(Object.keys(changes).length)operations.push({kind:'update',id:record.id,changes});
@@ -24,7 +24,7 @@ export function createDetails(element,{onApply,onOperation,onPick,onResolve,t}){
     if(!fields.target.value.trim()||!fields.reason.value.trim())throw Error('reason');
     operations.push({kind:'resolve-link',id:record.id,targetId:fields.target.value.trim(),reason:fields.reason.value.trim()});
    }
-   const ok=operations.length?await onApply(operations):true;if(ok)dirty=false;return ok;
+   const ok=operations.length?await onApply(operations):true;if(ok){dirty=false;touched.clear();}return ok;
   }catch(e){error.textContent=t(e.message);return false;}
  }
  function render(values){
@@ -52,7 +52,7 @@ export function createDetails(element,{onApply,onOperation,onPick,onResolve,t}){
    return;
   }
   input(element,'latitude',record.latitude);input(element,'longitude',record.longitude);
-  button(element,'apply',apply).id='apply';button(element,'cancel',()=>{dirty=false;render();onPick(false);});button(element,'pick',()=>onPick(true));
+  button(element,'apply',apply).id='apply';button(element,'cancel',()=>{dirty=false;touched.clear();render();onPick(false);});button(element,'pick',()=>onPick(true));
   error=el('p');error.className='error';error.setAttribute('role','alert');element.append(error);
   button(element,record.deleted?'restore':'delete',()=>onOperation({kind:record.deleted?'restore':'delete',id:record.id}));
   const clone=button(element,'clone',()=>onOperation({kind:'clone',templateId:record.id,latitude:record.latitude,longitude:record.longitude}));
@@ -67,8 +67,8 @@ export function createDetails(element,{onApply,onOperation,onPick,onResolve,t}){
   advanced.append(el('pre',JSON.stringify(record,null,2)));element.append(advanced);
   if(values)for(const [key,value] of Object.entries(values))if(fields[key])fields[key].value=value;
  }
- return {select(r){record=r;dirty=false;render();},hasDraft:()=>dirty,apply,discardDraft(){dirty=false;render();onPick(false);},
-  setPickedLocation(lat,lon){if(record&&!record.reference){fields.latitude.value=lat.toFixed(7);fields.longitude.value=lon.toFixed(7);dirty=true;}},
+ return {select(r){record=r;dirty=false;touched.clear();render();},hasDraft:()=>dirty,apply,discardDraft(){dirty=false;touched.clear();render();onPick(false);},
+  setPickedLocation(lat,lon){if(record&&!record.reference){fields.latitude.value=lat.toFixed(7);fields.longitude.value=lon.toFixed(7);dirty=true;touched.add('latitude');touched.add('longitude');}},
   setLanguage(){const values=Object.fromEntries(Object.entries(fields).map(([k,v])=>[k,v.value]));render(values);},
   setBusy(v){for(const e of element.querySelectorAll('input,button')){if(v){e.dataset.wasDisabled=String(e.disabled);e.disabled=true;}else if('wasDisabled'in e.dataset){e.disabled=e.dataset.wasDisabled==='true';delete e.dataset.wasDisabled;}}}
  };

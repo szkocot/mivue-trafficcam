@@ -78,3 +78,15 @@ test('malformed batch does not mutate project or bypass existing binary blockers
  blocked=setImportPolicy(blocked,{namespace:'example',kind:'camera',templateId:blocked.records[1].id});
  const added=await reconcile(blocked,batch());await assert.rejects(buildProject(added.project));
 });
+test('source category changes retain the binary record and display the new unsupported observation',async()=>{
+ const original=(await reconcile(await base(),batch())).project;
+ const changed=await reconcile(original,batch([{kind:'section',geometry:{type:'LineString',coordinates:[[19,52],[20,53]]}}]));
+ assert.equal(changed.project.records.length,2);assert.deepEqual(changed.project.records[1],original.records[1]);
+ assert.equal(changed.project.ingestion.bindings.length,0);assert.equal(changed.project.ingestion.ownership[0].coordinates,'manual');
+ assert.deepEqual(changed.project.ingestion.observations[0].codes,['UNSUPPORTED']);
+});
+test('inactive bound observations are retained and flagged, without deleting the record',async()=>{
+ const original=(await reconcile(await base(),batch())).project;
+ const changed=await reconcile(original,batch([{status:'inactive',originalProperties:{status:'inactive'}}]));
+ assert.equal(changed.project.records[1].deleted,false);assert.ok(changed.project.ingestion.observations[0].codes.includes('NOT_ACTIVE'));
+});

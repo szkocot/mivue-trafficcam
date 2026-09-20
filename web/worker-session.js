@@ -35,7 +35,7 @@ export function createWorkerSession(){
         let candidate=history.current;
         if(payload.policies?.length){
           if(!Array.isArray(payload.policies)||payload.policies.length>2)throw Object.assign(new Error('Invalid policies'),{code:'INVALID_IMPORT'});
-          candidate=(await reconcile(candidate,{...payload.batch,observations:[]})).project;
+          if(!candidate.ingestion.sources.some(s=>s.namespace===payload.batch.source.namespace))candidate=(await reconcile(candidate,{...payload.batch,observations:[]})).project;
           for(const policy of payload.policies){
             if(policy.namespace!==payload.batch.source.namespace)throw Object.assign(new Error('Policy namespace mismatch'),{code:'INVALID_IMPORT'});
             candidate=setImportPolicy(candidate,policy);
