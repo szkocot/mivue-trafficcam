@@ -68,3 +68,7 @@ A fresh read-only reviewer inspected `f9850ce..ad554da` and independently passed
 The author reran the entire suite after fixes: **134 Node tests, 41 browser tests pass**, one opt-in live-source check skipped, 46 allowlisted assets, clean diff check. No second reviewer was dispatched. Deferred Minor: internal parser issue codes such as `DUPLICATE_ID` and `CSV_QUOTE` need localized actionable descriptions; the surrounding messages are translated. The earlier cache-status minor remains a separate tracked item.
 
 Review boundaries remain explicit: live CANARD schemas/parsing are deferred after the CORS gate; country filtering and Pages are separate increments; physical-device acceptance is unverified; location internals belong to the reviewed companion increment, with its regression suite retained here.
+
+### Local integration — 2026-09-20
+
+By user choice, `feat/source-ingestion` was fast-forward merged into local `main` at `dcf3f49` after confirming the remote base was current. Verification on the merged tree passed all 134 Node tests, 41 browser tests (one opt-in live-source check skipped), the 46-asset web build and diff checks. README/roadmap now reflect local integration. Nothing was pushed or deployed; the merged feature-branch name can be removed without losing its commits.

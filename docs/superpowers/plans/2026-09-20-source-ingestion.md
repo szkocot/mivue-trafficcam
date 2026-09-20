@@ -1,6 +1,6 @@
 # Automatic Source Ingestion Implementation Plan
 
-Status: all seven tasks and independent-review fixes completed on `feat/source-ingestion`, 2026-09-20. 134 Node / 41 browser tests pass; live-source check skipped. Integration awaits user choice. CANARD live connector remains disabled after the documented access gate, not implemented.
+Status: all seven tasks and independent-review fixes completed on `feat/source-ingestion`, then fast-forward merged into local `main` by user choice on 2026-09-20. 134 Node / 41 browser tests pass; live-source check skipped. Not pushed or deployed. CANARD live connector remains disabled after the documented access gate, not implemented.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -248,4 +248,4 @@ await expect(page.getByTestId('reference-row')).toHaveCount(1);
 
 ## Execution handoff
 
-The approved plan was executed inline on the existing feature-branch checkout. No new dependencies or unverified live adapter were added. Browser location was delivered first in the companion `2026-09-20-browser-location.md` plan. Final review findings, fixes, measurements and remaining limits are recorded in `docs/browser-verification.md`; integration remains a user decision.
+The approved plan was executed inline on the existing feature-branch checkout. No new dependencies or unverified live adapter were added. Browser location was delivered first in the companion `2026-09-20-browser-location.md` plan. Final review findings, fixes, measurements and remaining limits are recorded in `docs/browser-verification.md`. The user selected local integration; push/publication was not performed.
