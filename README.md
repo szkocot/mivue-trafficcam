@@ -46,6 +46,8 @@ Task 8 local release checks: the fresh candidate contains 806 observations with 
 
 Local integration: by user choice, the reviewed CANARD implementation was fast-forward merged into `main` at `9d2ce5e`. Verification on the merged checkout passed all 205 Node tests, 52 browser tests (one optional live-source skip), the 50-asset build and diff checks. The exact reviewed candidate and release ledger are preserved locally. **Nothing was pushed or deployed; CANARD publication remains disabled pending release approval and public-site verification.**
 
+Source-only release: the user subsequently authorized pushing `main`. The source push triggers the existing test-gated Pages workflow, but does not publish the locally reviewed CANARD candidate or enable scheduled data updates. `publicationApproved` remains false and no `canard-data` branch is included. Check the Actions result before treating the website as deployed; initial CANARD data publication remains a separate release decision.
+
 **Locate me / Moja lokalizacja** is available on the website: opt-in one-shot browser positioning, accuracy circle and fix time, cancel/clear, translated errors and no saved location history. It does not edit camera coordinates. The UI explains browser-provider and map-tile privacy implications. That increment passed 103 Node tests and 33 deterministic browser tests (one opt-in live-source test skipped); physical GPS and non-Chromium browsers remain untested. Local ingestion/metadata display is also deployed; live connectors and country filtering remain unfinished.
 
 Use Node.js (verified with v26.8.2). The CLI needs no installed dependencies. Browser development uses the pinned dependencies in `package-lock.json`.
