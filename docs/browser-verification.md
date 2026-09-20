@@ -72,3 +72,9 @@ Review boundaries remain explicit: live CANARD schemas/parsing are deferred afte
 ### Local integration — 2026-09-20
 
 By user choice, `feat/source-ingestion` was fast-forward merged into local `main` at `dcf3f49` after confirming the remote base was current. Verification on the merged tree passed all 134 Node tests, 41 browser tests (one opt-in live-source check skipped), the 46-asset web build and diff checks. README/roadmap now reflect local integration. Nothing was pushed or deployed; the merged feature-branch name can be removed without losing its commits.
+
+### Pages publication — 2026-09-20
+
+The subsequent explicit “push and deploy” request authorized releasing the current experimental version before live CANARD/country filtering completion. `main` was pushed and [Pages deployment 35503630138](https://github.com/szkocot/mivue-trafficcam/actions/runs/35503630138) succeeded for `459e92c`. CI passed 133 Node tests plus 40 browser tests; absent private-sample checks and the optional live-source browser test were skipped. Only 46 allowlisted static assets were published.
+
+Fresh-browser public-site verification passed: HTTPS, PL/EN, official Mio startup load (52,935 records), synthetic BIN open/edit/validated export and reparse (latitude 37.1), CSV reference import with displayed speed, worker/core asset 200 responses, private sample URL 404, zero page errors. See [deployment record](deployment.md). No physical GPS or device acceptance was tested.

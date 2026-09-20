@@ -1,6 +1,6 @@
 # Local browser editor
 
-Build with `npm ci && npm run build:web`; preview with `npm run preview:web -- --base /mivue-trafficcam/`. Open `http://127.0.0.1:4173/mivue-trafficcam/`. The preview exposes only generated assets. No Pages deployment is enabled.
+Use the [published editor](https://szkocot.github.io/mivue-trafficcam/), or build with `npm ci && npm run build:web` and preview with `npm run preview:web -- --base /mivue-trafficcam/` at `http://127.0.0.1:4173/mivue-trafficcam/`. Both publication and preview expose only generated assets. See [deployment details](deployment.md).
 
 ## Working with data
 

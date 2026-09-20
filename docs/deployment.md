@@ -19,4 +19,8 @@ After deployment, verify the HTTPS root and module/worker assets, switch PL/EN, 
 
 Workflow reference: [GitHub custom Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
-Initial status: publishing source enabled; first workflow deployment and live-site smoke check pending.
+Published 2026-09-20 from `459e92c7df0a991dd612b44a03853c27746590d1`: [successful deployment run](https://github.com/szkocot/mivue-trafficcam/actions/runs/35503630138). CI passed 133 Node tests (one local-sample skip) and 40 browser tests (local-sample and opt-in live-source skips); 46 assets were built. Local verification also passed all 134 Node tests and 41 browser tests with the private sample available.
+
+A separate fresh Chromium session against the public HTTPS site loaded 52,935 records directly from Mio, switched PL/EN, opened a synthetic BIN, edited latitude to 37.1, downloaded/reparsed the resulting binary, and imported a source point with attributed speed metadata. App/worker/core module URLs returned 200, the sample BIN URL returned 404, and no page errors occurred. This live smoke check is separate from the skipped optional CI live-source test; no device acceptance is implied.
+
+Non-blocking GitHub warnings: some pinned official Pages actions declare Node 20 and are currently run under Node 24 by GitHub; `ubuntu-latest` has an announced future image migration. The deployment succeeded; review upstream action/runner updates as maintenance, without suppressing test gates.

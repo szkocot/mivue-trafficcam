@@ -76,10 +76,10 @@ Update `README.md` after every task, recording actual progress and limitations w
 | --- | --- |
 | Decode, extract, edit and rebuild BIN | Implemented for the researched layout; physical 955W acceptance remains unverified |
 | PL/EN map, official dataset cache and working-project recovery | Implemented; preserve regression coverage |
-| Automatic imports protecting manual edits/deletions | CSV/GeoJSON workflow integrated into local `main`; 134 Node / 41 browser tests pass after independent-review fixes; not yet pushed |
+| Automatic imports protecting manual edits/deletions | CSV/GeoJSON workflow integrated, pushed and deployed; 134 Node / 41 browser tests pass locally after independent-review fixes |
 | CANARD and other websites | CANARD gate completed: direct browser CORS blocked; live adapter/preprocessing workflow remains outstanding; other website adapters remain follow-up work |
 | Speed limits and other metadata | Implemented independent local presentation toggles and attributed details; source-reported values, not guessed BIN fields |
 | Browser location | Integrated into `main`; independent review found no blocking issues |
 | Restrict dataset to selected countries | Separate future design: versioned boundaries, unknown/border policy, paired OPP preservation and existing build blockers |
-| GitHub Pages website | Static build exists; user authorized deployment after all work is complete and verified; configuration/publication still pending |
+| GitHub Pages website | Published 2026-09-20 by explicit user request for the current experimental version; test-gated Actions workflow and public-site smoke check passed; live connectors/country filtering remain unfinished |
 | README, tests and own-risk warning | Required for every implementation task and release |
