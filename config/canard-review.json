@@ -1,7 +1,7 @@
 {
   "version": 1,
   "publicationApproved": false,
-  "publicationBlockers": ["INITIAL_CANDIDATE_NOT_REVIEWED"],
+  "publicationBlockers": ["RELEASE_APPROVAL_PENDING"],
   "unavailableCategoryPolicy": {"PK":{"exactLiteral":"[{}]","count":null,"userApproved":true}},
   "termsSha256": "1f6e8f2f7daf6edbd2654668b1af4d7fb82d8c47ac703cc9fb087115a541f3da",
   "robotsSha256": "1a64ba72fb329dda8e1b4cada84d07776d28b86e3a4fc4df7e4d6688195b77bf",
@@ -61,5 +61,5 @@
     "transformationVersion":1,
     "reviewedTermsSha256":"1f6e8f2f7daf6edbd2654668b1af4d7fb82d8c47ac703cc9fb087115a541f3da"
   },
-  "reviewedCandidateSha256": null
+  "reviewedCandidateSha256": "9033e492f0cfdd4355c9fcb92bb2c4a8cd982ce9cee018af0af7aeb1df0afa26"
 }

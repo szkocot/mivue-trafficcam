@@ -1,5 +1,19 @@
 # Browser editor verification — 2026-09-20
 
+## Hosted CANARD local release checks — awaiting publication
+
+The `feat/canard-snapshot` implementation passed **205 Node tests**, **52 Chromium browser tests**, the 50-asset static build, workflow lint and diff checks. The private sample was available through an ignored local symlink; its byte-identical rebuild test passed and it is not distributed. One opt-in live-source browser test is skipped.
+
+A fresh actual CANARD capture at 11:50:53 UTC normalized to PP 499, OPP 138, RL 169, PK unavailable (806 observations; 399,681 bytes). Candidate SHA-256: `9033e492f0cfdd4355c9fcb92bb2c4a8cd982ce9cee018af0af7aeb1df0afa26`. Current terms/robots matched the review record; IDs matched the earlier capture. A fresh Chromium session on the local static build imported all 806 references, restored them after reload with zero additional snapshot-body requests, switched PL/EN, and observed no page errors. BIN sample, firmware and configuration URLs returned 404. This is **local verification, not a new public-site release**.
+
+One independent whole-branch reviewer found three Important issues, all reproduced with failing tests and corrected in one fix pass:
+
+- A second tab could repopulate withdrawn data after a pending download. Withdrawal now persists a separate marker, atomically blocks active writes and broadcasts invalidation to other tabs. Saved user projects are untouched. Reactivation requires a separate reviewed change.
+- A valid stale manifest could downgrade a newer cache. Both the cache controller and shared IndexedDB commit enforce freshness ordering, retaining the newer validated data.
+- Direct CLI publication could skip baseline anomaly checks. The publisher now validates its actual parent data and independently enforces count/identity overlap and monotonic timestamps; exact reviewed-digest exemptions remain supported.
+
+No new Critical or Minor findings were reported. The fix pass also verified storage-denial warnings without uncaught quota errors. Publication remains disabled pending integration/release authority. Remote Actions execution, deployed commit/hash checks, and fresh public-site Chromium verification still belong to Task 8; do not infer their success from local tests. Legal sufficiency is not certified, long-term source ID stability is not guaranteed, and detail endpoints/country filtering/device acceptance are not completed by this increment.
+
 Environment: macOS 27.0 (26A428), arm64; Node 26.8.2; Playwright 1.63.0; Chromium 153.0.8010.12. Preview under `/mivue-trafficcam/`.
 
 ## Final results after review fixes

@@ -2,6 +2,8 @@
 
 Hosted snapshot implementation now includes a fail-closed publisher: only reviewed normalized observations and attribution are public outputs, never raw pages or downloaded JavaScript. Daily checks are disabled until both the repository variable and review record permit publication. Changes to observed terms/robots or schema stop updates; withdrawal requires no upstream access and removes the active hosted body without purging historical Git commits. See the [deployment procedure](deployment.md#hosted-canard-pipeline-not-released-yet). This is an engineering reuse assessment, not legal certification; bulk detail endpoints and live-video sources remain out of scope.
 
+At 2026-09-20 11:50:53 UTC, a fresh bounded public-page/robots check passed the recorded terms, robots and schema gates. The unpublished candidate contains 806 observations (PP 499, OPP 138, RL 169, PK unavailable), with all IDs retained from the earlier inspected capture. SHA-256: `9033e492f0cfdd4355c9fcb92bb2c4a8cd982ce9cee018af0af7aeb1df0afa26`; 399,681 snapshot bytes. Its notices include source/licence links, transformation disclosure, PL/EN disclaimers and attribution. The candidate is locally reviewed, not a legal certification or public release; publication remains disabled pending release authority.
+
 ## CANARD — preliminary inspection, 2026-09-20
 
 User priority: retain as much usable CANARD information as possible, including traffic/enforcement cameras. Inspect all four public-map categories, not only OPP. Preserve source IDs, names/serial identifiers, original metadata, attribution and retrieval time. Surface speed limits, direction, operational status and detailed location only when actually supplied; absent values remain unknown.
