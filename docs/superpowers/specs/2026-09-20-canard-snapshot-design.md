@@ -1,6 +1,6 @@
 # Hosted CANARD snapshots
 
-Date: 2026-09-20. Status: written spec awaiting user review. The user approved the hosted approach, legal/access safeguards and update flow in conversation; implementation has not started.
+Date: 2026-09-20. Status: written spec approved by the user on 2026-09-20. Implementation planning is underway; implementation has not started.
 
 ## Intent and scope
 
