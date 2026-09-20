@@ -49,7 +49,7 @@ Provide add/delete/move operations, explicit apply/cancel, undo/redo, project sa
 
 Start with user-supplied CSV/GeoJSON and OpenStreetMap adapters. Keep source IDs, original tags, retrieval time, attribution, and units. Match exact source IDs before spatial suggestions; do not merge nearby cameras automatically because opposing directions or multiple devices can share a location. Distinguish active, planned, and unknown status when the source provides it. Missing speed or direction remains unknown.
 
-CANARD is an explicitly requested next source for Polish locations, alongside other websites selected during the ingestion design. Its public map exists, but a supported machine-readable interface, data-specific reuse terms, and browser access still need inspection before promising a live connector. Handle failed downloads and browser cross-origin restrictions explicitly; a local downloaded-file import remains available. No scraping or external publication is implied by this design.
+CANARD remains a priority for Polish locations, including point-speed, OPP, red-light and control-point layers. The 2026-09-20 access gate found positive site-wide reuse terms, but Chromium cannot fetch the map from GitHub Pages because the response lacks a CORS header. The registry therefore reports `CORS_BLOCKED`; a live adapter is not implemented. A separately agreed preprocessing workflow or supported cross-origin endpoint is needed, with stable-ID and field-semantics verification. See [access evidence](source-access.md). Local CSV/GeoJSON remain the current import path; no proxy or external publication is implied.
 
 ## Validation and release boundaries
 
