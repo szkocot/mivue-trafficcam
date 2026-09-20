@@ -138,3 +138,9 @@ export function applyEdit(project, operation) {
   if(manualId)result.ingestion={...project.ingestion,ownership:[...project.ingestion.ownership.filter(o=>o.recordId!==manualId),{recordId:manualId,coordinates:'manual'}]};
   inspectProject(result); return result;
 }
+
+/** Internal ingestion candidate: one validation for the entire batch, not per row. */
+export function applyImportTransaction(project,transaction){
+ keys(transaction,['records','nextId','ingestion']);
+ const next={...project,...transaction};inspectProject(next);return next;
+}
