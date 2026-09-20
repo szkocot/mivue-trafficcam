@@ -10,7 +10,8 @@
     "test:browser":"playwright test"
   },
   "dependencies": {
-    "leaflet": "1.9.4"
+    "leaflet": "1.9.4",
+    "lz-string": "1.5.0"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0"

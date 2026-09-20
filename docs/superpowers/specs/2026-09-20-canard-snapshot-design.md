@@ -1,6 +1,6 @@
 # Hosted CANARD snapshots
 
-Date: 2026-09-20. Status: written spec approved by the user on 2026-09-20. Implementation planning is underway; implementation has not started.
+Date: 2026-09-20. Status: written spec and plan approved; native implementation started. Task 1 found unavailable PK data, so publication remains disabled pending coverage direction; see the [field inventory](../../canard-field-inventory.md).
 
 ## Intent and scope
 

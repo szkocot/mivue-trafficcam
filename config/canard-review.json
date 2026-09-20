@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "publicationApproved": false,
+  "publicationBlockers": ["PK_UNAVAILABLE", "INITIAL_CANDIDATE_NOT_REVIEWED"],
+  "termsSha256": "1f6e8f2f7daf6edbd2654668b1af4d7fb82d8c47ac703cc9fb087115a541f3da",
+  "robotsSha256": "1a64ba72fb329dda8e1b4cada84d07776d28b86e3a4fc4df7e4d6688195b77bf",
+  "fieldsByCategory": {
+    "PP": {
+      "id": {"type":"number","required":true,"meaning":"sourceId"},
+      "lon": {"type":"number","required":true,"meaning":"longitude"},
+      "lat": {"type":"number","required":true,"meaning":"latitude"},
+      "rodzajPomiaru": {"type":"string","required":true,"values":["PP"],"meaning":"originalMeasurementKind"},
+      "nrSeryjny": {"type":"string","required":true,"meaning":"serialIdentifier"},
+      "lok2PktDlugosc": {"type":"null","required":true,"meaning":"unused"},
+      "lok2PktSzerokosc": {"type":"null","required":true,"meaning":"unused"}
+    },
+    "OPP": {
+      "id": {"type":"number","required":true,"meaning":"sourceId"},
+      "lon": {"type":"number","required":true,"meaning":"longitude"},
+      "lat": {"type":"number","required":true,"meaning":"latitude"},
+      "rodzajPomiaru": {"type":"string","required":true,"values":["PO"],"meaning":"originalMeasurementKind"},
+      "nrSeryjny": {"type":"string","required":true,"meaning":"serialIdentifier"},
+      "lok2PktDlugosc": {"type":"number","required":true,"meaning":"secondEndpointLongitude"},
+      "lok2PktSzerokosc": {"type":"number","required":true,"meaning":"secondEndpointLatitude"}
+    },
+    "RL": {
+      "id": {"type":"number","required":true,"meaning":"sourceId"},
+      "lon": {"type":"number","required":true,"meaning":"longitude"},
+      "lat": {"type":"number","required":true,"meaning":"latitude"},
+      "rodzajPomiaru": {"type":"string","required":true,"values":["PC"],"meaning":"originalMeasurementKind"},
+      "nrSeryjny": {"type":"string","required":true,"meaning":"serialIdentifier"},
+      "lok2PktDlugosc": {"type":"null","required":true,"meaning":"unused"},
+      "lok2PktSzerokosc": {"type":"null","required":true,"meaning":"unused"}
+    },
+    "PK": null
+  },
+  "categoryAvailability": {"PP":"observed","OPP":"observed","RL":"observed","PK":"unavailable-unverified-placeholder"},
+  "identityEvidence": {
+    "status": "same-identifiers-observed-in-two-fetches",
+    "longTermStabilityGuaranteed": false,
+    "checks": ["2026-09-20T00:17:59Z", "2026-09-20T10:22:00Z"],
+    "timestampBasis": "local capture file modification times, not upstream modification times",
+    "counts": {"PP":499,"OPP":138,"RL":169,"PK":null},
+    "idSetHashes": {
+      "PP":"28b9141a2c39b6878c0d35dcc593a5215ffa62642eb492ff3ff5afda3378fcd6",
+      "OPP":"46007fb9885fe026d1c3c71d5e56f116ccd1087e3c8563a066d49e1842223f64",
+      "RL":"ed7ff17695824b8576181a61f26f827818092c56d21664c72933787c16d213b7"
+    }
+  },
+  "decoder": {"package":"lz-string","version":"1.5.0","licence":"MIT","productionBoundedDecodingImplemented":false},
+  "notices": {
+    "attribution":"GITD / CANARD",
+    "sourceUrl":"https://www.canard.gitd.gov.pl/cms/en/mapa-urzadzen",
+    "termsUrl":"https://www.canard.gitd.gov.pl/cms/en/mapa-urzadzen",
+    "licenceLabel":"CANARD published reuse permission; marked copyright content: Creative Commons Uznanie Autorstwa 4.0 Polska, unless otherwise stated",
+    "licenceUrl":"https://creativecommons.org/licenses/by/4.0/",
+    "disclaimerPl":"Dane poglądowe, nie dokument urzędowy. Projekt niezależny, bez poparcia GITD/CANARD. Używasz na własne ryzyko.",
+    "disclaimerEn":"Illustrative data, not an official document. Independent project, not endorsed by GITD/CANARD. Use at your own risk.",
+    "transformation":"Public map observations normalized for independent display; OPP endpoints are not road routes. No status, speed or direction inferred.",
+    "transformationVersion":1,
+    "reviewedTermsSha256":"1f6e8f2f7daf6edbd2654668b1af4d7fb82d8c47ac703cc9fb087115a541f3da"
+  },
+  "reviewedCandidateSha256": null
+}
