@@ -4,6 +4,10 @@ An independent project for inspecting and building speed-camera databases for Mi
 
 The intended scope includes fixed speed cameras and section-based average-speed enforcement (Polish: **odcinkowy pomiar prędkości**, or **OPP**).
 
+## Website
+
+GitHub Pages target: **https://szkocot.github.io/mivue-trafficcam/**. Deployment is now explicitly authorized for the current experimental version; the first publish is being verified. [Deployment workflow and safety notes](docs/deployment.md). Live CANARD imports and country filtering are not yet available. **Use at your own risk; MiVue 955W device acceptance is untested.**
+
 ## Status
 
 The parser, editable project model, encoder, and CLI support the 20×20 layout documented in [binary-format research notes](docs/binary-format.md). They inspect databases, export JSON/GeoJSON, save/reopen projects, apply validated edits, and rebuild binaries while preserving raw fields. Unchanged reconstruction of the 52,935-record sample is byte-identical, including its 13 candidate-link warnings. The local PL/EN map editor and CSV/GeoJSON ingestion are integrated into local `main`. Live website connectors, country filtering and deployment remain outstanding; see the [approved roadmap](docs/roadmap.md).
