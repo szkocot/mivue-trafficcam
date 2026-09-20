@@ -66,7 +66,7 @@ Prepare the website and deployment configuration without including the user's sa
 
 ## Current next increment
 
-Use the [remaining-work checklist](todo.md) for the current actionable backlog. The map/editor, local ingestion and browser location are implemented; the reviewed hosted CANARD implementation is merged and pushed, but its dataset publication remains disabled. Finish CANARD activation and public-site verification first, then country selection. Additional source/detail adapters, binary-field research, physical 955W validation and browser/translation polish remain tracked follow-ups. Check the deployment record and Actions result separately from implementation status.
+Use the [remaining-work checklist](todo.md) for the current actionable backlog. The map/editor, local ingestion, browser location and hosted CANARD snapshot are deployed and public-browser verified. Daily gated CANARD checks are enabled. Country selection is next; additional source/detail adapters, binary-field research and browser/translation polish remain requested work. Physical 955W validation is a separate user/device task. See the deployment record for exact source/data commits and limitations.
 
 Update `README.md` after every task, recording actual progress and limitations without presenting planned features as implemented.
 
@@ -77,7 +77,7 @@ Update `README.md` after every task, recording actual progress and limitations w
 | Decode, extract, edit and rebuild BIN | Implemented for the researched layout; physical 955W acceptance remains unverified |
 | PL/EN map, official dataset cache and working-project recovery | Implemented; preserve regression coverage |
 | Automatic imports protecting manual edits/deletions | CSV/GeoJSON workflow integrated, pushed and deployed; 134 Node / 41 browser tests pass locally after independent-review fixes |
-| CANARD and other websites | Hosted PP/OPP/RL adapter, cache, synchronization, notices and gated publisher implemented/reviewed, merged and pushed; 205 Node/52 browser checks pass. Dataset publication/activation pending. PK explicitly unavailable; detail enrichment and other website adapters remain follow-up work |
+| CANARD and other websites | Hosted PP/OPP/RL adapter, cache, synchronization, notices and gated publisher deployed; 806 observations public-browser verified in run 35529021193. PK explicitly unavailable; detail enrichment and other website adapters remain follow-up work |
 | Speed limits and other metadata | Implemented independent local presentation toggles and attributed details; source-reported values, not guessed BIN fields |
 | Browser location | Integrated into `main`; independent review found no blocking issues |
 | Restrict dataset to selected countries | Separate future design: versioned boundaries, unknown/border policy, paired OPP preservation and existing build blockers |

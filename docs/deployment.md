@@ -19,9 +19,13 @@ After deployment, verify the HTTPS root and module/worker assets, switch PL/EN, 
 
 Workflow reference: [GitHub custom Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
-## Hosted CANARD pipeline (not released yet)
+<a id="hosted-canard-pipeline-not-released-yet"></a>
 
-Activation authorized on 2026-09-20 by the request to implement backlog point 1. A fresh bounded check reproduced reviewed snapshot `9033e492f0cfdd4355c9fcb92bb2c4a8cd982ce9cee018af0af7aeb1df0afa26` (806 observations) and accepted the reviewed terms/robots/schema. Publication configuration is approved; remote publication and verification must still be recorded below before calling this released.
+## Hosted CANARD pipeline
+
+Activation authorized on 2026-09-20 by the request to implement backlog point 1. A fresh bounded check reproduced reviewed snapshot `9033e492f0cfdd4355c9fcb92bb2c4a8cd982ce9cee018af0af7aeb1df0afa26` (806 observations) and accepted the reviewed terms/robots/schema.
+
+Release completed: [run 35529021193](https://github.com/szkocot/mivue-trafficcam/actions/runs/35529021193) successfully built **and deployed** source `f95ea5fda6b171b48c5493a45b336b0481e4368a` with data-only commit `7bb196ec462115ef2ebd7355fb19b229dbac49f2`. CI passed 206 Node tests and 51 Chromium tests; private-sample checks and optional live-source browser check were skipped. Artifact: 50 app assets plus the three validated CANARD files. `CANARD_PUBLICATION_ENABLED=true` is set; first scheduled execution remains unobserved. Fresh public Chromium verified the exact snapshot hash/counts, PL/EN, import/edit/save/reopen/export and attribution. Reload issued no additional snapshot-body request. Sample BIN, firmware, research firmware and HTTP-capture paths returned 404; no page errors occurred. See [browser evidence](browser-verification.md).
 
 Run [35528334492](https://github.com/szkocot/mivue-trafficcam/actions/runs/35528334492) built successfully but skipped deployment. Optional data jobs propagated a skipped status through the dependency chain. The deployment condition now explicitly overrides that implicit status check while still requiring a successful build, main branch and a non-cancelled run. See [GitHub dependency semantics](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idneeds). Check the **deploy job**, not only the overall workflow conclusion.
 

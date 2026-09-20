@@ -1,5 +1,20 @@
 # Browser editor verification — 2026-09-20
 
+## Hosted CANARD public release — verified
+
+Run `35529021193` deployed source `f95ea5fda6b171b48c5493a45b336b0481e4368a` and data `7bb196ec462115ef2ebd7355fb19b229dbac49f2`. Local isolated and CI suites: 206 Node pass (one private-sample skip), 51 Chromium pass (private-sample and optional live-source skips). Workflow lint and diff checks passed. Two new scheduling tests went RED→GREEN for optional-job skips; failed/skipped/cancelled builds and non-main refs remain excluded.
+
+Fresh Chromium on https://szkocot.github.io/mivue-trafficcam/ verified:
+
+- HTTP 200 manifest/snapshot/notice; body SHA-256 `9033e492f0cfdd4355c9fcb92bb2c4a8cd982ce9cee018af0af7aeb1df0afa26`; PP 499, OPP 138, RL 169, PK null.
+- Import all 806 observations into a synthetic one-record project; synchronization opt-in and PL/EN unavailable-control-point messaging.
+- Edit latitude to 37.1, save project, reload, explicitly confirm replacement when reopening the downloaded project; edit and 806 observations retained.
+- Export 806-feature reference GeoJSON and project JSON with GITD/CANARD notices; build/download/reparse the synthetic one-record BIN with the edited latitude.
+- Exactly one browser snapshot-body request across startup and reload; the unchanged reload added zero.
+- `Speedcam_Data_FEU.bin`, `SD_CarDV.bin`, `research/SD_CarDV.bin` and `.cache/canard/access.json` returned 404; zero page errors.
+
+The first smoke attempt omitted the expected project-replacement confirmation and timed out; after adding that confirmation, the full fresh-context check passed. This was a smoke-script correction, not an application change. Daily checks are enabled, not yet observed on schedule. No physical-device, Firefox/WebKit or MiVue acceptance claim follows from this release. Earlier sections below are historical evidence.
+
 ## Hosted CANARD local release checks — awaiting publication
 
 Local integration: user-selected fast-forward merge into `main` at `9d2ce5e` completed. The merged checkout independently passed all 205 Node tests, 52 browser tests (one opt-in live-source skip), the 50-asset build and diff checks. The reviewed dataset candidate was moved intact to the main checkout's ignored `_canard-candidate/` directory and its digest revalidated. Release evidence/cache were preserved before temporary-worktree cleanup. No push, publication-variable change or deployment was performed.

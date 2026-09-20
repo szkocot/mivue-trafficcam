@@ -1,19 +1,19 @@
 # Remaining work
 
-Recorded 2026-09-20 from the agreed follow-up list. This is a backlog, not authorization to publish data or a claim that every feature is implemented. Recommended order: finish CANARD activation, then country selection; binary research may be needed before some reduced BIN builds can succeed.
+Recorded 2026-09-20 from the agreed follow-up list. The subsequent user request authorized implementing points 1–4 and 6, including point 1 publication. This is not a claim that every feature is implemented. CANARD activation is complete; country selection is next. Binary research may be needed before some reduced BIN builds can succeed.
 
-The existing baseline includes decoding/rebuilding the researched BIN layout, the PL/EN map editor, CSV/GeoJSON imports, source metadata display, browser location and startup caching. Hosted CANARD implementation and review fixes are merged and pushed; publishing its dataset is a separate release step.
+The existing baseline includes decoding/rebuilding the researched BIN layout, the PL/EN map editor, CSV/GeoJSON imports, source metadata display, browser location and startup caching. Hosted CANARD implementation and review fixes are merged, pushed and deployed with the reviewed dataset.
 
 ## 1. Activate CANARD data — release work
 
 - [x] Obtain explicit approval to publish the reviewed dataset and enable daily updates — user requested implementation of point 1 on 2026-09-20.
-- [ ] Recheck the release gates and publish the exact approved candidate with attribution; do not substitute newly fetched bytes without checking their digest.
-- [ ] Enable the repository publication variable only after the review record permits publication.
-- [ ] Verify the Actions result, deployed source/data commits, manifest hash and counts.
-- [ ] In a fresh browser on the public site, verify PL/EN, import/edit/save/reopen/export, notices and reload without an unchanged snapshot-body download.
-- [ ] Confirm sample BIN, firmware and private research files remain absent from the public artifact; record the deployment evidence.
+- [x] Recheck the release gates and publish the exact approved candidate with attribution; fresh validation reproduced the reviewed digest.
+- [x] Enable the repository publication variable only after the review record permits publication.
+- [x] Verify the Actions result, deployed source/data commits, manifest hash and counts — run `35529021193`, source `f95ea5f`, data `7bb196e`.
+- [x] In a fresh browser on the public site, verify PL/EN, import/edit/save/reopen/export, notices and reload without an unchanged snapshot-body download.
+- [x] Confirm sample BIN, firmware and private research files remain absent from the public artifact; record the deployment evidence.
 
-Current reviewed coverage: 499 point-speed, 138 OPP and 169 red-light observations. Control-point data is unavailable, not a verified zero. The publication gate remains disabled. See [release procedure](deployment.md#hosted-canard-pipeline-not-released-yet), [access assessment](source-access.md) and [field inventory](canard-field-inventory.md). Reuse safeguards are not legal certification.
+Published coverage: 499 point-speed, 138 OPP and 169 red-light observations. Control-point data is unavailable, not a verified zero. Daily gated checks are enabled; the first scheduled run has not yet been observed. See [release evidence](deployment.md), [access assessment](source-access.md) and [field inventory](canard-field-inventory.md). Reuse safeguards are not legal certification.
 
 ## 2. Country selection — implementation
 
