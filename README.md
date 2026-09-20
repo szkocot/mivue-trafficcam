@@ -14,6 +14,8 @@ The next increment has an [approved automatic-ingestion design](docs/superpowers
 
 ## Usage
 
+CANARD ingestion is planned to retain all usable camera/control-point layers and available metadata, not just OPP. [Preliminary source research](docs/source-access.md) identifies point-speed, section, red-light and control-point layers; detailed fields, reuse permission and browser access still need verification. No live-video feeds or implemented CANARD connector are claimed.
+
 The `feat/browser-location` branch adds **Locate me / Moja lokalizacja**: opt-in one-shot browser positioning, accuracy circle and fix time, cancel/clear, translated errors and no saved location history. It does not edit camera coordinates. The UI explains browser-provider and map-tile privacy implications. Verification: 103 Node tests and 33 deterministic browser tests pass (one opt-in live-source test skipped); physical GPS and non-Chromium browsers remain untested. The feature is not yet deployed. Ingestion/metadata display and country filtering remain separate unfinished work.
 
 Use Node.js (verified with v26.8.2). The CLI needs no installed dependencies. Browser development uses the pinned dependencies in `package-lock.json`.

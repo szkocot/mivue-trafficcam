@@ -145,6 +145,8 @@ const sameIdentity=(a,b)=>a.namespace===b.namespace&&a.sourceId===b.sourceId;
 
 ## Task 4: CANARD feasibility gate and source registry
 
+User clarification: use as much CANARD information as possible, including all usable camera layers. Start from `docs/source-access.md`; inspect point-speed, OPP, red-light and control-point observations and publicly available object details within verified access/reuse conditions. Retain all supplied metadata, not only normalized display fields; unknown categories remain reference-only. No live-video feed is assumed and endpoints are not road-route geometry.
+
 **Files:** Create `docs/source-access.md`, `web/import-sources.js`, `test/import-sources.test.js`; conditionally create `src/import-canard.js`, `test/import-canard.test.js`; update README and roadmap.
 
 **Interfaces:** `listImportSources()` returns `{id,labelKey,available,reasonCode,attribution,url}[]`. `fetchImportSource(id,{signal})` returns a normalized batch for supported enabled sources; unavailable entries reject with `SOURCE_UNAVAILABLE`. No credentials or arbitrary proxy URL configuration.
