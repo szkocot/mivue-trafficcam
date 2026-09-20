@@ -1,5 +1,18 @@
 import { test,expect } from '@playwright/test';
 import { stubNetwork,openFixture,official,makeFixture } from './helpers.js';
+test('storage v2 preserves legacy BIN and edits while isolating removable CANARD data',async({page})=>{
+ await page.route('**/legacy-storage',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><title>Migration test</title>'}));
+ await page.goto('/mivue-trafficcam/legacy-storage');
+ const result=await page.evaluate(async()=>{
+  await new Promise((resolve,reject)=>{const r=indexedDB.open('mivue-trafficcam',1);
+   r.onupgradeneeded=()=>{r.result.createObjectStore('source');r.result.createObjectStore('working');};r.onerror=()=>reject(r.error);
+   r.onsuccess=()=>{const db=r.result,tx=db.transaction(['source','working'],'readwrite');tx.objectStore('source').put({marker:'bin'},'current');tx.objectStore('working').put({marker:'edits'},'current');tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>reject(tx.error);};});
+  const {openStorage}=await import('/mivue-trafficcam/web/storage.js');const s=await openStorage();
+  await s.putCanardCache({marker:'canard'});const canard=await s.getCanardCache();await s.clearCanardCache();
+  const result={canard,cleared:await s.getCanardCache(),bin:await s.getCache(),working:await s.getWorking()};s.close();return result;
+ });
+ expect(result).toEqual({canard:{marker:'canard'},cleared:null,bin:{marker:'bin'},working:{marker:'edits'}});
+});
 test('quota/transaction failures remain editable and offer backup; no false saved state',async({page})=>{
  await stubNetwork(page);await page.addInitScript(()=>{
   const original=IDBObjectStore.prototype.put;
@@ -56,6 +69,6 @@ test('manual file opened before IndexedDB is ready keeps its autosave session',a
  await openFixture(page);await expect(page.getByTestId('record-count')).toHaveText('1');await page.evaluate(()=>window.releaseStorage());
  await page.getByTestId('record-row').first().getByRole('button').click();await page.getByLabel('Latitude',{exact:true}).fill('37.3');await page.getByRole('button',{name:'Apply',exact:true}).click();
  await expect(page.locator('#changes')).toHaveText('1');await expect(page.getByTestId('save-status')).toHaveText('Saved locally');
- const saved=await page.evaluate(()=>new Promise((resolve,reject)=>{const request=indexedDB.open('mivue-trafficcam',1);request.addEventListener('success',()=>{const db=request.result,tx=db.transaction('working'),get=tx.objectStore('working').get('current');tx.oncomplete=()=>{db.close();resolve(get.result);};tx.onabort=()=>reject(tx.error);});}));
+ const saved=await page.evaluate(()=>new Promise((resolve,reject)=>{const request=indexedDB.open('mivue-trafficcam');request.addEventListener('success',()=>{const db=request.result,tx=db.transaction('working'),get=tx.objectStore('working').get('current');tx.oncomplete=()=>{db.close();resolve(get.result);};tx.onabort=()=>reject(tx.error);});}));
  expect(JSON.parse(saved.projectJson).records[0].edits.latitude).toBe(37.3);
 });
