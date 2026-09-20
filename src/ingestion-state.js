@@ -1,12 +1,14 @@
 import { plainObject,identity,stableId,normalizeObservation,normalizeBatch } from './import-normalize.js';
+import {validateNotices,CANARD_NAMESPACE} from './canard-snapshot.js';
 export const emptyIngestion=()=>({sources:[],observations:[],bindings:[],ownership:[],policies:[]});
 const check=(ok,message)=>{if(!ok)throw Object.assign(new Error(message),{code:'INVALID_PROJECT'});};
 function fields(o,allowed){check(plainObject(o)&&Object.keys(o).every(k=>allowed.includes(k)),'Invalid ingestion fields');}
 export function upgradeProject(project){
- if(project.projectVersion===2)return project;
- check(project.projectVersion===1,'Unsupported project version');
- return {...project,projectVersion:2,ingestion:{...emptyIngestion(),ownership:project.records
-  .filter(r=>'latitude'in r.edits||'longitude'in r.edits).map(r=>({recordId:r.id,coordinates:'manual'}))}};
+ if(project.projectVersion===3)return project;
+ check([1,2].includes(project.projectVersion),'Unsupported project version');
+ const ingestion=project.projectVersion===2?project.ingestion:{...emptyIngestion(),ownership:project.records
+  .filter(r=>'latitude'in r.edits||'longitude'in r.edits).map(r=>({recordId:r.id,coordinates:'manual'}))};
+ return {...project,projectVersion:3,ingestion:{...ingestion,sources:ingestion.sources.map(s=>({...s,syncEnabled:false}))}};
 }
 export function isProjectModified(project){
  return project.records.some(r=>r.deleted||r.sourceOffset===null||Object.keys(r.edits).length>0||r.provenance.length>0)
@@ -18,7 +20,10 @@ export function validateIngestionState(project,originals){
  for(const key of ['sources','observations','bindings','ownership','policies'])check(Array.isArray(s[key]),`Missing ${key}`);
  const sources=new Map(),observations=new Map(),bindings=new Map(),records=new Map(project.records.map(r=>[r.id,r]));
  for(const source of s.sources){
-  fields(source,['namespace','attribution','url','contentSha256']);
+  fields(source,['namespace','attribution','url','contentSha256',...(project.projectVersion===3?['syncEnabled','notices']:[])]);
+  if(source.syncEnabled!==undefined)check(typeof source.syncEnabled==='boolean','Invalid source sync setting');
+  if(source.notices!==undefined)validateNotices(source.notices);
+  if(source.syncEnabled)check(source.namespace===CANARD_NAMESPACE&&source.notices,'Source not eligible for hosted sync');
   normalizeBatch({source,retrievedAt:'2026-01-01T00:00:00.000Z',observations:[]});
   check(typeof source.namespace==='string'&&!sources.has(source.namespace),'Duplicate source');
   if(source.contentSha256!==undefined)check(/^[a-f0-9]{64}$/.test(source.contentSha256),'Invalid source digest');

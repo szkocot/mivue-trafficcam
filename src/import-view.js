@@ -1,4 +1,5 @@
 import {identity} from './import-normalize.js';
+import {projectNotices} from './source-notices.js';
 
 /** Source positions are observations, not claims about encoded raw fields. */
 export function referenceView(project){
@@ -14,6 +15,6 @@ export function referenceView(project){
  });
 }
 export function exportReferences(project){
- return JSON.stringify({type:'FeatureCollection',schema:'mivue-source-observations',version:1,
+ return JSON.stringify({type:'FeatureCollection',schema:'mivue-source-observations',version:1,sourceNotices:projectNotices(project),
   features:referenceView(project).map(({id,geometry,...properties})=>({type:'Feature',id,geometry,properties}))},null,2)+'\n';
 }

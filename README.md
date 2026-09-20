@@ -34,6 +34,8 @@ The [hosted CANARD snapshot spec](docs/superpowers/specs/2026-09-20-canard-snaps
 
 Task 3 adds deterministic, hash-verified snapshots and manifest validation. An unchanged dataset reuses its bytes/retrieval date while advancing only the successful-check timestamp; provenance changes create a new version. Count/identity losses over 20% require candidate-specific review. Initial publication, changed terms/robots and unverified identities are independently gated. No hosted snapshot has been published.
 
+Task 4 adds project v3 source notices and opt-in synchronization settings, migrated safely from v1/v2. Verified hosted imports commit once with undo, revision/session protection and repeat-import no-ops. Local imports cannot impersonate the hosted namespace. Project/reference exports retain attribution; encoded-record exports and BIN builds expose applicable notices for the upcoming download UI. Older releases cannot reopen v3 projects; keep backups. The source download/cache UI and publication remain unfinished.
+
 **Locate me / Moja lokalizacja** is available on the website: opt-in one-shot browser positioning, accuracy circle and fix time, cancel/clear, translated errors and no saved location history. It does not edit camera coordinates. The UI explains browser-provider and map-tile privacy implications. That increment passed 103 Node tests and 33 deterministic browser tests (one opt-in live-source test skipped); physical GPS and non-Chromium browsers remain untested. Local ingestion/metadata display is also deployed; live connectors and country filtering remain unfinished.
 
 Use Node.js (verified with v26.8.2). The CLI needs no installed dependencies. Browser development uses the pinned dependencies in `package-lock.json`.

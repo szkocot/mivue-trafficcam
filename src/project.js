@@ -47,8 +47,8 @@ function jsonData(value, ancestors = new Set()) {
 
 /** Structural validation; deleted targets are allowed in drafts, never in builds. */
 export function inspectProject(project) {
-  keys(project, ['projectVersion', 'targetDevice', 'source', 'records', 'nextId',...(project.projectVersion===2?['ingestion']:[])]);
-  requireValue([1,2].includes(project.projectVersion) && project.targetDevice === 'MiVue 955W', 'Unsupported project version or target device');
+  keys(project, ['projectVersion', 'targetDevice', 'source', 'records', 'nextId',...([2,3].includes(project.projectVersion)?['ingestion']:[])]);
+  requireValue([1,2,3].includes(project.projectVersion) && project.targetDevice === 'MiVue 955W', 'Unsupported project version or target device');
   keys(project.source, ['name', 'sha256', 'bytesHex']);
   requireValue(typeof project.source.name === 'string' && typeof project.source.sha256 === 'string'
     && /^[\da-f]{64}$/i.test(project.source.sha256), 'Invalid source metadata');
@@ -92,7 +92,7 @@ export async function createProject(bytes, { name = '' } = {}) {
   requireValue(typeof name === 'string', 'Invalid source name');
   const baseline = parseDatabase(bytes);
   const copy = Uint8Array.from(bytes);
-  return { projectVersion: 2, targetDevice: 'MiVue 955W',ingestion:emptyIngestion(),
+  return { projectVersion: 3, targetDevice: 'MiVue 955W',ingestion:emptyIngestion(),
     source: { name, sha256: await fingerprint(copy), bytesHex: bytesToHex(copy) },
     records: baseline.records.map(r => ({ id: `source:${r.offset}`, sourceOffset: r.offset,
       templateId: null, edits: {}, deleted: false, provenance: [] })), nextId: 1 };

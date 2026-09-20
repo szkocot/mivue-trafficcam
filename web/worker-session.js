@@ -1,4 +1,6 @@
-import { createProject,loadProject,serializeProject } from '../src/project.js';
+import { createProject,loadProject,serializeProject,applyImportTransaction } from '../src/project.js';
+import {validateSnapshot,CANARD_NAMESPACE,canonical} from '../src/canard-snapshot.js';
+import {projectNotices} from '../src/source-notices.js';
 import { createHistory } from '../src/history.js';
 import { projectView,exportView } from '../src/project-view.js';
 import { buildProject } from '../src/encoder.js';
@@ -14,7 +16,9 @@ export function createWorkerSession(){
     if(cached?.revision===history.revision)return cached;
     const view=await projectView(history.current);
     cached={revision:history.revision,view,canUndo:history.canUndo,canRedo:history.canRedo,
-      modified:isProjectModified(history.current),references:referenceView(history.current),importPolicies:structuredClone(history.current.ingestion.policies),projectJson:await serializeProject(history.current)};
+      modified:isProjectModified(history.current),references:referenceView(history.current),importPolicies:structuredClone(history.current.ingestion.policies),
+      sourceSync:history.current.ingestion.sources.filter(s=>s.namespace===CANARD_NAMESPACE&&s.notices).map(s=>({namespace:s.namespace,enabled:s.syncEnabled===true})),
+      projectJson:await serializeProject(history.current)};
     return cached;
   }
   async function execute({kind,payload={},sessionId:id}){
@@ -24,6 +28,23 @@ export function createWorkerSession(){
       history=createHistory(p);sessionId=id;cached=null;return snapshot();
     }
     if(!history || id!==sessionId)throw Object.assign(new Error('No active document'),{code:'NO_DOCUMENT'});
+    if(['import-canard','source-sync'].includes(kind)){
+      if(payload.expectedRevision!==history.revision)throw Object.assign(new Error('Import revision changed'),{code:'STALE_IMPORT'});
+      let candidate=history.current,summary;
+      if(kind==='import-canard'){
+        if(payload.enableSync!==undefined&&typeof payload.enableSync!=='boolean')throw Object.assign(new Error('Invalid sync setting'),{code:'INVALID_IMPORT'});
+        const hosted=await validateSnapshot(payload.bytes,payload.manifest);
+        const result=await reconcile(candidate,hosted.batch);candidate=result.project;summary=result.summary;
+        const sources=candidate.ingestion.sources.map(s=>s.namespace===CANARD_NAMESPACE?{...s,notices:hosted.notices,syncEnabled:payload.enableSync??s.syncEnabled??false}:s);
+        if(canonical(sources)!==canonical(candidate.ingestion.sources))candidate=applyImportTransaction(candidate,{ingestion:{...candidate.ingestion,sources}});
+      }else{
+        const source=candidate.ingestion.sources.find(s=>s.namespace===payload.namespace);
+        if(payload.namespace!==CANARD_NAMESPACE||!source?.notices||typeof payload.enabled!=='boolean')throw Object.assign(new Error('Invalid sync source'),{code:'INVALID_IMPORT'});
+        if(source.syncEnabled!==payload.enabled)candidate=applyImportTransaction(candidate,{ingestion:{...candidate.ingestion,sources:candidate.ingestion.sources.map(s=>s===source?{...s,syncEnabled:payload.enabled}:s)}});
+      }
+      history.commit(candidate);
+      return kind==='import-canard'?{snapshot:await snapshot(),summary}:snapshot();
+    }
     if(['import','parse-import','import-policy','import-resolve'].includes(kind)){
       if(payload.expectedRevision!==history.revision)throw Object.assign(new Error('Import revision changed'),{code:'STALE_IMPORT'});
       if(kind==='parse-import'){
@@ -32,6 +53,7 @@ export function createWorkerSession(){
         return parser(payload.text,payload.source,payload.retrievedAt);
       }
       if(kind==='import'){
+        if(payload.batch?.source?.namespace===CANARD_NAMESPACE)throw Object.assign(new Error('Use verified hosted import for this namespace'),{code:'RESERVED_SOURCE'});
         let candidate=history.current;
         if(payload.policies?.length){
           if(!Array.isArray(payload.policies)||payload.policies.length>2)throw Object.assign(new Error('Invalid policies'),{code:'INVALID_IMPORT'});
@@ -52,10 +74,13 @@ export function createWorkerSession(){
     else if(kind==='undo')history.undo();
     else if(kind==='redo')history.redo();
     else if(kind==='reset')await history.reset();
-    else if(kind==='build')return {revision:history.revision,...await buildProject(history.current)};
+    else if(kind==='build')return {revision:history.revision,...await buildProject(history.current),notices:projectNotices(history.current,{encodedOnly:true})};
     else if(kind==='export'){
       const s=await snapshot(),format=payload.format;
-      return {revision:history.revision,text:format==='project'?s.projectJson:exportView(s.view,format),
+      const notices=projectNotices(history.current,{encodedOnly:true});
+      let text=format==='project'?s.projectJson:exportView(s.view,format);
+      if(['json','geojson'].includes(format)&&notices.length){const value=JSON.parse(text);text=JSON.stringify(Array.isArray(value)?{records:value,sourceNotices:notices}:{...value,sourceNotices:notices},null,2)+'\n';}
+      return {revision:history.revision,text,notices,
         mime:format==='csv'?'text/csv;charset=utf-8':'application/json',filename:format==='project'?'mivue-project.json':`mivue-records.${format}`};
     }else if(kind!=='snapshot')throw Object.assign(new Error('Unknown worker request'),{code:'INVALID_REQUEST'});
     return snapshot();

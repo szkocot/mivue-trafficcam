@@ -23,7 +23,7 @@ export async function reconcile(project,input){
  project=upgradeProject(project);const checked=inspectProject(project),batch=normalizeBatch(input),namespace=batch.source.namespace;
  const digest=bytesToHex(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(jsonCopy({source:batch.source,observations:[...batch.observations].sort((a,b)=>a.sourceId<b.sourceId?-1:1)}))))));
  const ingestion={...project.ingestion,sources:project.ingestion.sources.filter(s=>s.namespace!==namespace),bindings:[...project.ingestion.bindings],ownership:[...project.ingestion.ownership]};
- ingestion.sources.push({...batch.source,contentSha256:digest});ingestion.sources.sort((a,b)=>a.namespace<b.namespace?-1:1);
+ ingestion.sources.push({...project.ingestion.sources.find(s=>s.namespace===namespace),...batch.source,contentSha256:digest});ingestion.sources.sort((a,b)=>a.namespace<b.namespace?-1:1);
  const oldObservations=new Map(project.ingestion.observations.map(o=>[key(o),o])),observations=new Map(oldObservations);
  const incoming=[];
  for(const o of batch.observations){

@@ -7,8 +7,8 @@ import { makeFixture } from './helpers/fixture.js';
 import { makeImportBatch } from './helpers/import-fixture.js';
 let upgradeProject,isProjectModified;
 try{({upgradeProject,isProjectModified}=await import('../src/ingestion-state.js'));}catch(e){if(e.code!=='ERR_MODULE_NOT_FOUND')throw e;}
-test('v2 projects protect manual coordinates even when equal to baseline and undo atomically',async()=>{
- const p=await createProject(makeFixture([{}]).bytes);assert.equal(p.projectVersion,2);const id=p.records[0].id;
+test('current projects protect manual coordinates even when equal to baseline and undo atomically',async()=>{
+ const p=await createProject(makeFixture([{}]).bytes);assert.equal(p.projectVersion,3);const id=p.records[0].id;
  const edited=applyEdit(p,{kind:'update',id,changes:{latitude:37,longitude:-7}});
  assert.equal(edited.ingestion.ownership[0].coordinates,'manual');assert.equal(isProjectModified(edited),true);
  assert.equal(isProjectModified(p),false);assert.deepEqual(await loadProject(await serializeProject(edited)),edited);
@@ -21,12 +21,12 @@ test('v1 migrates without changing bytes or dropping deletions, edits and proven
  const legacy={...p,projectVersion:1};delete legacy.ingestion;legacy.records=structuredClone(p.records);
  legacy.records[0].edits={latitude:37};legacy.records[0].deleted=true;
  await validateProject(legacy);const migrated=await loadProject(JSON.stringify(legacy));
- assert.equal(migrated.projectVersion,2);assert.equal(migrated.records[0].deleted,true);
+ assert.equal(migrated.projectVersion,3);assert.equal(migrated.records[0].deleted,true);
  assert.equal(migrated.ingestion.ownership[0].coordinates,'manual');assert.equal(legacy.projectVersion,1);
  const unchanged={...legacy,records:p.records};assert.deepEqual((await buildProject(await loadProject(JSON.stringify(unchanged)))).bytes,bytes);
 });
 test('metadata-only state is modified and round-trips; invalid identities and bindings reject',async()=>{
- const p=await createProject(makeFixture([{}]).bytes);assert.equal(p.projectVersion,2);
+ const p=await createProject(makeFixture([{}]).bytes);assert.equal(p.projectVersion,3);
  const b=makeImportBatch(),o={...b.observations[0],namespace:b.source.namespace,retrievedAt:b.retrievedAt,disposition:'auto',codes:[]};
  const withData={...p,ingestion:{...p.ingestion,sources:[b.source],observations:[o]}};
  assert.equal(isProjectModified(withData),true);assert.deepEqual(await loadProject(await serializeProject(withData)),withData);
@@ -40,7 +40,7 @@ test('metadata-only state is modified and round-trips; invalid identities and bi
  const h=createHistory(p);const bad={...withData,source:{...p.source,name:'other'}};assert.throws(()=>h.commit(bad));assert.strictEqual(h.current,p);
 });
 test('identity tuples with special keys are distinct and clone deletion persists',async()=>{
- let p=await createProject(makeFixture([{}]).bytes);assert.equal(p.projectVersion,2);
+ let p=await createProject(makeFixture([{}]).bytes);assert.equal(p.projectVersion,3);
  const b=makeImportBatch();p={...p,ingestion:{...p.ingestion,sources:[{...b.source,namespace:'__proto__'},{...b.source,namespace:'a:b'}],
   observations:[{...b.observations[0],namespace:'__proto__',sourceId:'a:b',retrievedAt:b.retrievedAt,disposition:'auto',codes:[]},
    {...b.observations[0],namespace:'a:b',sourceId:'__proto__',retrievedAt:b.retrievedAt,disposition:'auto',codes:[]}]}};

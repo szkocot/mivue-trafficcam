@@ -11,7 +11,7 @@ test('allowlisted build and subpath preview never expose repo or traversal',asyn
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
  try{
   const root=`http://127.0.0.1:${server.address().port}`;
-  for(const p of ['/mivue-trafficcam/','/mivue-trafficcam/web/worker.js'])assert.equal((await fetch(root+p)).status,200);
+  for(const p of ['/mivue-trafficcam/','/mivue-trafficcam/web/worker.js','/mivue-trafficcam/src/canard-snapshot.js','/mivue-trafficcam/src/source-notices.js'])assert.equal((await fetch(root+p)).status,200);
   for(const p of ['/README.md','/mivue-trafficcam/Speedcam_Data_FEU.bin','/mivue-trafficcam/.git/config','/mivue-trafficcam/%2e%2e%2fREADME.md'])assert.equal((await fetch(root+p)).status,404);
  }finally{await new Promise(r=>server.close(r));}
 });
