@@ -3,6 +3,7 @@ import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {preparedFiles,fail} from './files.js';
+import {prepareSnapshot,validateSnapshot} from '../../src/canard-snapshot.js';
 const branch='refs/heads/canard-data',oid=/^[a-f0-9]{40}$/;
 const sameFiles=(a,b)=>Object.keys(a).length===Object.keys(b).length&&Object.entries(a).every(([p,v])=>b[p]&&Buffer.from(v).equals(Buffer.from(b[p])));
 export async function publishPrepared({prepared,expectedParent,git,review}){
@@ -15,6 +16,14 @@ export async function publishPrepared({prepared,expectedParent,git,review}){
  if(await git.head()!==expectedParent)fail('CANARD_PUBLISH_CONFLICT');
  const prior=expectedParent?await git.files(expectedParent):{};
  if(prepared.manifest.state==='active'&&prior['data/canard/manifest.json']&&JSON.parse(prior['data/canard/manifest.json']).state==='disabled')fail('CANARD_SOURCE_WITHDRAWN');
+ if(prepared.manifest.state==='active'&&expectedParent){
+  const manifest=JSON.parse(prior['data/canard/manifest.json']),previous={manifest,bytes:prior[manifest.path],noticeBytes:prior[manifest.noticePath]};
+  const expected=await preparedFiles(previous);
+  if(!sameFiles(expected,prior))fail('CANARD_INVALID_FILES');
+  const snapshot=await validateSnapshot(prepared.bytes,prepared.manifest);
+  const checked=await prepareSnapshot({batch:snapshot.batch,notices:snapshot.notices,previous,checkedAt:prepared.manifest.checkedAt,review});
+  if(checked.manifest.sha256!==prepared.manifest.sha256)fail('CANARD_INVALID_SNAPSHOT');
+ }
  if(sameFiles(files,prior))return expectedParent;
  const commit=await git.commit(files,expectedParent);
  if(await git.head()!==expectedParent)fail('CANARD_PUBLISH_CONFLICT');

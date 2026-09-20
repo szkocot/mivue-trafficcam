@@ -67,3 +67,11 @@ test('disabled manifest clears cache and fences a pending cache read',async()=>{
  const loading=c.loadCached();assert.equal(await c.check(),null);read.resolve(e);assert.equal(await loading,null);
  assert.equal(store.value,null);assert.equal(states.at(-1).state,'disabled');
 });
+test('stale deployment cannot replace a newer validated cache or download its body',async()=>{
+ const older=await entry(),batch=normalizeCanardLayers(makeCanardLayers(),{review,retrievedAt:'2026-09-20T10:23:00.000Z'});
+ batch.observations[0].geometry.coordinates[0]=20;batch.observations[0].longitude=20;
+ const newer=await prepareSnapshot({batch,notices:review.notices,checkedAt:batch.retrievedAt,review});
+ const store=memory(newer);let bodies=0;
+ const c=createCanardCache({store,baseUrl,now:()=>Date.parse(batch.retrievedAt),fetchImpl:async url=>{if(url.endsWith('manifest.json'))return Response.json(older.manifest);bodies++;return new Response(older.bytes);}});
+ await c.loadCached();assert.equal((await c.check()).manifest.sha256,newer.manifest.sha256);assert.equal(bodies,0);assert.equal(store.value,newer);
+});

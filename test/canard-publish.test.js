@@ -72,3 +72,16 @@ test('CLI withdrawal needs no network and active publication refuses a disabled 
  const active=await temporary(t);await writeDataset(active,await candidate());
  assert.throws(()=>execFileSync(process.execPath,['scripts/canard/cli.js','publish',active,'-'],{env:{...process.env,CANARD_PUBLICATION_ENABLED:'false'},stdio:'pipe'}),error=>error.stderr.toString().includes('CANARD_PUBLICATION_DISABLED'));
 });
+test('publisher independently rejects category loss, identity churn and stale candidates',async()=>{
+ const before=await candidate(),parent='a'.repeat(40),approved={...review,publicationApproved:true,reviewedCandidateSha256:null};let commits=0;
+ const git={head:async()=>parent,files:()=>preparedFiles(before),commit:async()=>{commits++;return 'b'.repeat(40);},push:async()=>{}};
+ for(const mode of ['empty','churn','stale']){
+  const batch=normalizeCanardLayers(makeCanardLayers(),{review,retrievedAt:mode==='stale'?'2026-09-19T00:00:00Z':retrievedAt});
+  if(mode==='empty')batch.observations=[];
+  if(mode==='churn')for(const o of batch.observations)o.sourceId=JSON.stringify([JSON.parse(o.sourceId)[0],'999']);
+  const prepared=await prepareSnapshot({batch,notices:review.notices,checkedAt:batch.retrievedAt,review});
+  await assert.rejects(publishPrepared({prepared,expectedParent:parent,git,review:approved}));
+  if(mode!=='stale')assert.equal(await publishPrepared({prepared,expectedParent:parent,git,review:{...approved,reviewedCandidateSha256:prepared.manifest.sha256}}),'b'.repeat(40));
+ }
+ assert.equal(commits,2);
+});
