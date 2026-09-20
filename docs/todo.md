@@ -17,10 +17,10 @@ Published coverage: 499 point-speed, 138 OPP and 169 red-light observations. Con
 
 ## 2. Country selection — implementation
 
-Design status: the [written specification](superpowers/specs/2026-09-20-country-export-design.md) is approved. The [six-task implementation plan](superpowers/plans/2026-09-20-country-export.md) awaits review before native execution; implementation and dataset verification remain pending. Points 3, 4 and 6 remain open, not superseded by this increment.
+Design and [six-task implementation plan](superpowers/plans/2026-09-20-country-export.md) approved for native execution. Task 1 boundary artifacts/validation are implemented and tested on the feature branch; classifier, selection, exports and UI remain in progress. Points 3, 4 and 6 remain open, not superseded by this increment.
 
 - [ ] Let users select one or more countries for a reduced export, separately from map display filters.
-- [ ] Use a versioned boundary dataset with verified reuse terms and attribution.
+- [x] Use a versioned boundary dataset with verified reuse terms and attribution — pinned Natural Earth 5.1.1; see [evidence](country-boundaries.md).
 - [ ] Define handling for border points, unknown/invalid coordinates and cross-border OPP before implementation.
 - [ ] Preview kept, excluded and unresolved records; preserve linked OPP endpoints and the original project for recovery.
 - [ ] Build and reparse the reduced BIN, or explain why unresolved links/header semantics prevent a safe build. Do not bypass existing encoder safeguards.
