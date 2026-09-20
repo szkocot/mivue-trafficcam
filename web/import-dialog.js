@@ -1,5 +1,5 @@
 import {listImportSources} from './import-sources.js';
-export function createImportDialog({onImport,onCancel,t,storage}){
+export function createImportDialog({onImport,onCanard,getCanard=()=>null,onCancel,t,storage}){
  const dialog=document.createElement('dialog');dialog.className='import-dialog';document.body.append(dialog);
  let token=0,snapshot=null,fields={},committing=false,remembered={namespace:'',attribution:''};
  try{const saved=JSON.parse(storage?.getItem('mivue-import-source')??'null');if(saved&&typeof saved.namespace==='string'&&typeof saved.attribution==='string')remembered=saved;}catch{}
@@ -7,7 +7,16 @@ export function createImportDialog({onImport,onCancel,t,storage}){
  const cancel=()=>{if(committing)return;token++;dialog.close();onCancel?.();};dialog.oncancel=e=>{e.preventDefault();cancel();};
  function render(){
   ++token;committing=false;dialog.replaceChildren(el('h2',t('import')),el('p',t('importHelp')),el('p',t('importSafety')));fields={};
-  for(const source of listImportSources().filter(s=>!s.available))dialog.append(el('p',t(source.reasonCode)));
+  const canard=getCanard();
+  for(const source of listImportSources({canardAvailable:Boolean(canard)}).filter(s=>!s.available))dialog.append(el('p',t(source.reasonCode)));
+  dialog.append(el('p',t('canardImportHelp')));
+  const hosted=el('button',t('canardImport'));hosted.disabled=!canard;dialog.append(hosted);
+  hosted.onclick=async()=>{
+   const current=++token;committing=true;for(const control of dialog.querySelectorAll('input,select,button'))control.disabled=true;
+   try{await onCanard();if(current===token)dialog.close();}
+   catch{if(current===token){committing=false;render();dialog.append(el('p',t('importFailed')));}}
+   finally{committing=false;}
+  };
   function field(key,type='text'){const label=el('label',t(key)),input=el('input');input.type=type;label.append(input);dialog.append(label);fields[key]=input;return input;}
   field('namespace').value=remembered.namespace;field('attribution').value=remembered.attribution;
   const savedPolicies=el('section');savedPolicies.dataset.testid='saved-import-policies';savedPolicies.setAttribute('aria-live','polite');dialog.append(savedPolicies);

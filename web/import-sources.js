@@ -1,9 +1,9 @@
 // Live connectors must pass the documented access gate before being enabled.
-export function listImportSources(){
+export function listImportSources({canardAvailable=false}={}){
  return [
   {id:'csv',labelKey:'importCsv',available:true,reasonCode:null,attribution:null,url:null},
   {id:'geojson',labelKey:'importGeojson',available:true,reasonCode:null,attribution:null,url:null},
-  {id:'canard',labelKey:'importCanard',available:false,reasonCode:'CORS_BLOCKED',
+  {id:'canard',labelKey:'importCanard',available:canardAvailable,reasonCode:canardAvailable?null:'SNAPSHOT_UNAVAILABLE',
    attribution:'GITD / CANARD',url:'https://www.canard.gitd.gov.pl/cms/en/mapa-urzadzen'},
  ];
 }

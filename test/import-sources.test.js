@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 const registry=await import('../web/import-sources.js').catch(()=>({}));
-test('local formats remain available while CANARD has an explicit browser access blocker',()=>{
+test('local formats stay available and CANARD availability depends on a verified snapshot',()=>{
  assert.equal(typeof registry.listImportSources,'function');
  const sources=registry.listImportSources();
  for(const id of ['csv','geojson'])assert.equal(sources.find(s=>s.id===id).available,true);
  const canard=sources.find(s=>s.id==='canard');
- assert.equal(canard.available,false);assert.equal(canard.reasonCode,'CORS_BLOCKED');
+ assert.equal(canard.available,false);assert.equal(canard.reasonCode,'SNAPSHOT_UNAVAILABLE');
+ assert.equal(registry.listImportSources({canardAvailable:true}).find(s=>s.id==='canard').available,true);
  assert.ok(canard.attribution);assert.ok(canard.url.startsWith('https://'));
  sources[0].available=false;assert.equal(registry.listImportSources()[0].available,true);
 });

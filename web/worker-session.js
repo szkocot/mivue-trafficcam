@@ -18,6 +18,7 @@ export function createWorkerSession(){
     cached={revision:history.revision,view,canUndo:history.canUndo,canRedo:history.canRedo,
       modified:isProjectModified(history.current),references:referenceView(history.current),importPolicies:structuredClone(history.current.ingestion.policies),
       sourceSync:history.current.ingestion.sources.filter(s=>s.namespace===CANARD_NAMESPACE&&s.notices).map(s=>({namespace:s.namespace,enabled:s.syncEnabled===true})),
+      sourceNotices:projectNotices(history.current,{encodedOnly:true}),
       projectJson:await serializeProject(history.current)};
     return cached;
   }

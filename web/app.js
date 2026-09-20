@@ -13,12 +13,17 @@ import { createLocation } from './location.js';
 import { createImportDialog } from './import-dialog.js';
 import { renderImportResults } from './import-results.js';
 import { createMetadataOptions } from './metadata-options.js';
+import {createCanardCache} from './canard-cache.js';
+import {createCanardSync} from './canard-sync.js';
+import {CANARD_NAMESPACE} from '../src/canard-snapshot.js';
 const $=id=>document.getElementById(id);
 let preference;try{preference=localStorage;}catch{}
 const i18n=createI18n({storage:preference}),t=(key,params)=>i18n.t(key,params),client=createWorkerClient();
 let state=null,selectedId=null,page=1,bounds=null,source=null,sourceInfo=null,sourceStatus='checking',saveStatus='notSaved',operation='ready',intent=0,recovery=null,recoveryBlocked=false,busy=false;
 let referencePage=1,importSummary=null;
+let canardEntry=null,canardState={state:'checking'},canardSyncState='',startupSettled=false;
 const unavailable={getCache:async()=>null,getWorking:async()=>null,putCache:async()=>{throw Error('STORAGE_UNAVAILABLE');},putWorking:async()=>{throw Error('STORAGE_UNAVAILABLE');}};
+Object.assign(unavailable,{getCanardCache:async()=>null,putCanardCache:async()=>{throw Error('STORAGE_UNAVAILABLE');},clearCanardCache:async()=>{throw Error('STORAGE_UNAVAILABLE');}});
 let store=unavailable,cache,resolveStorage;
 const storageReady=new Promise(resolve=>{resolveStorage=resolve;});
 // One queue/session owner for the entire page, including documents opened before IDB.
@@ -43,10 +48,14 @@ function renderLocation(){
 }
 const details=createDetails($('details'),{onApply:operation=>mutate('apply',{operation}),onOperation:async operation=>{if(await guardDraft())await mutate('apply',{operation});},onResolve:resolution=>mutate('import-resolve',{resolution,expectedRevision:state.revision}),onPick:value=>map.setPickMode(value),t});
 const exportElement=document.createElement('dialog');document.body.append(exportElement);
-const exportsUI=createExportDialog(exportElement,{client,getIdentity:()=>({sessionId:client.sessionId,revision:state?.revision}),t,onSelect:select,onBusy:setBusy});
+const exportsUI=createExportDialog(exportElement,{client,getIdentity:()=>({sessionId:client.sessionId,revision:state?.revision}),getNotices:()=>state?.sourceNotices??[],t,onSelect:select,onBusy:setBusy});
 const metadataOptions=createMetadataOptions({storage:preference,t,onChange:values=>map.setDisplayOptions(values)});
 let importIdentity=null;
-const importsUI=createImportDialog({t,storage:preference,onImport:async(payload,isCurrent,committing)=>{
+const importsUI=createImportDialog({t,storage:preference,getCanard:()=>canardEntry,onCanard:async()=>{
+ const identity=importIdentity;if(!identity||!canardEntry)throw Error('No hosted source');
+ await importHosted(canardEntry,{sessionId:identity.sessionId,expectedRevision:identity.revision},true);
+ canardSync.markHandled(canardEntry.manifest.sha256);canardSyncState='applied';renderCanard();
+},onImport:async(payload,isCurrent,committing)=>{
  const identity=importIdentity,ticket=intent;
  if(!identity||identity.sessionId!==client.sessionId||identity.revision!==state?.revision)throw Object.assign(Error('Stale import'),{code:'STALE_IMPORT'});
  setBusy(true);
@@ -60,6 +69,38 @@ const importsUI=createImportDialog({t,storage:preference,onImport:async(payload,
  }catch(e){if(ticket===intent)operation='failed';throw e;}
  finally{if(ticket===intent){if(!isCurrent())operation='cancelled';busy=false;details.setBusy(false);render();}}
 }});
+const canardSync=createCanardSync({getContext:()=>({sessionId:client.sessionId,revision:state?.revision,
+ ready:Boolean(state)&&startupSettled&&!recoveryBlocked&&!recovery,dirty:details.hasDraft()||Boolean(document.querySelector('dialog[open]')),busy,
+ enabled:state?.sourceSync?.some(s=>s.namespace===CANARD_NAMESPACE&&s.enabled)??false}),
+ importSnapshot:importHosted,onStatus:value=>{canardSyncState=value;renderCanard();}});
+async function importHosted(entry,identity,enableSync){
+ const ticket=intent;
+ if(busy||identity.sessionId!==client.sessionId||identity.expectedRevision!==state?.revision||details.hasDraft())throw Error('Stale hosted import');
+ setBusy(true);
+ try{
+  const result=await client.request('import-canard',{bytes:entry.bytes,manifest:entry.manifest,enableSync,expectedRevision:identity.expectedRevision});
+  if(ticket!==intent||identity.sessionId!==client.sessionId)throw Error('Stale hosted result');
+  importSummary=result.summary;accept(result.snapshot,{save:result.snapshot.revision!==state.revision,preserveSelection:true});
+  operation='ready';
+ }catch(error){if(ticket===intent)operation='failed';throw error;}
+ finally{if(ticket===intent){busy=false;details.setBusy(false);render();}}
+}
+function renderCanard(){
+ const m=canardState.manifest,parts=[t(`canard_${canardState.state}`),t('canardUnavailablePK')];
+ if(m)parts.push(t('canardTimes',{retrieved:new Date(m.retrievedAt).toLocaleString(i18n.language),checked:new Date(m.checkedAt).toLocaleString(i18n.language)}));
+ if(canardState.stale)parts.push(t('canardStale'));if(canardState.persistenceFailed)parts.push(t('canardPersistenceFailed'));
+ if(canardSyncState)parts.push(t(`canardSync_${canardSyncState}`));
+ $('canard-status').textContent=parts.join(' · ');
+ const configured=state?.sourceSync?.find(s=>s.namespace===CANARD_NAMESPACE);
+ $('canard-sync').checked=configured?.enabled??false;$('canard-sync').disabled=!configured||busy||canardState.state==='disabled';
+ $('canard-reapply').disabled=!canardEntry||!configured?.enabled||busy;
+ $('canard-notices').textContent=canardEntry?JSON.stringify(canardEntry.snapshot.notices,null,2):'';
+}
+async function startCanard(){
+ const sourceCache=createCanardCache({store,onStatus:s=>{canardState=s;if(s.state==='disabled'){canardEntry=null;canardSync.setEnabled(false);}renderCanard();}});
+ await sourceCache.loadCached();canardEntry=await sourceCache.check();
+ if(canardEntry){canardSync.offer(canardEntry);await canardSync.flush();}renderCanard();
+}
 function setBusy(value){busy=value;operation=value?'busy':'ready';details.setBusy(value);render();}
 function choice(message,options){
  return new Promise(resolve=>{
@@ -99,6 +140,7 @@ function filtered(){return state?filterView(state.view,{query:$('search').value,
 function references(){return (state?.references??[]).filter(r=>!r.encoded).map(r=>({...r,reference:true,longitude:r.geometry.type==='Point'?r.geometry.coordinates[0]:r.geometry.coordinates[0][0],latitude:r.geometry.type==='Point'?r.geometry.coordinates[1]:r.geometry.coordinates[0][1]}));}
 function findRecord(id){return state?.view.records.find(r=>r.id===id)??references().find(r=>r.id===id);}
 function render(){
+ renderCanard();queueMicrotask(()=>canardSync.flush());
  const records=filtered();$('record-count').textContent=state?.view.records.filter(r=>!r.deleted).length??0;
  $('result-count').textContent=records.length;$('changes').textContent=state?.view.records.filter(r=>r.changed).length??0;
  $('warnings-count').textContent=state?.view.diagnostics.length??0;
@@ -175,6 +217,10 @@ async function check(options){if(!cache)return;const result=await cache.check(op
 $('check').onclick=()=>check();$('force-source').onclick=()=>check({force:true});$('source-cancel').onclick=()=>cache?.cancel();
 $('use-source').onclick=async()=>{if(source&&await guardReplace())await open('open-bin',{bytes:source.bytes,name:'Speedcam_Data_FEU.bin'},{info:source.source}).catch(()=>{});};
 $('save').onclick=saveProject;$('exports').onclick=()=>exportsUI.open();$('recover').onclick=recover;
+$('canard-sync').onchange=async()=>{const enabled=$('canard-sync').checked;if(await guardDraft())await mutate('source-sync',{namespace:CANARD_NAMESPACE,enabled,expectedRevision:state.revision});render();};
+$('canard-reapply').onclick=async()=>{if(canardEntry&&await guardDraft()){canardSync.offer(canardEntry,{reapply:true});await canardSync.flush();}};
+document.addEventListener('close',()=>queueMicrotask(()=>canardSync.flush()),true);
+document.addEventListener('click',()=>queueMicrotask(()=>canardSync.flush()));
 $('import').onclick=async()=>{if(!busy&&state&&await guardDraft()){importIdentity={sessionId:client.sessionId,revision:state.revision};importsUI.open(state);}};
 for(const kind of ['undo','redo'])$(kind).onclick=async()=>{if(await guardDraft())await mutate(kind);};
 $('discard').onclick=async()=>{if(!busy&&confirm(t('discardConfirm')))await mutate('reset');};
@@ -185,6 +231,7 @@ translate();
 async function start(){
  const ticket=intent;
  try{store=await openStorage();}catch{saveStatus='saveFailed';}
+ startCanard().catch(()=>{canardState={state:'check-failed'};renderCanard();});
  cache=createSourceCache({store,validateBytes:bytes=>client.validateSource(bytes),onStatus:s=>{sourceStatus=s.state;render();}});
  try{
   const saved=await store.getWorking();
@@ -194,7 +241,7 @@ async function start(){
    await open('open-project',{text:saved.projectJson},{ticket,save:false,info:saved.sourceInfo});recovery=null;saveStatus='saved';
   }
  }catch{if(ticket===intent){recoveryBlocked=true;$('recovery').textContent=t(recovery?'recovery':'workingReadFailed');$('recovery').hidden=false;$('recover').hidden=!recovery;}}
- finally{resolveStorage();}
+ finally{resolveStorage();startupSettled=true;queueMicrotask(()=>canardSync.flush());}
  source=await cache.loadCached();
  if(source && !state && !recovery && !recoveryBlocked && ticket===intent)await open('open-bin',{bytes:source.bytes,name:'Speedcam_Data_FEU.bin'},{ticket,info:source.source}).catch(()=>{});
  const newest=await check();

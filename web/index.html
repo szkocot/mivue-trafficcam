@@ -7,6 +7,11 @@
 <section class="source-bar"><button id="check" data-i18n="check"></button><button id="source-cancel" data-i18n="cancel"></button><button id="use-source" data-i18n="useSource" disabled></button>
 <button id="force-source" data-i18n="downloadSource"></button><span id="source-status" data-testid="source-status" role="status"></span>
 <details><summary data-i18n="sourceInfo"></summary><pre id="source-info"></pre></details></section>
+<section class="source-bar" aria-label="CANARD"><strong>CANARD</strong>
+<span id="canard-status" data-testid="canard-status" role="status"></span>
+<label><input id="canard-sync" type="checkbox" disabled><span data-i18n="canardSync"></span></label>
+<button id="canard-reapply" data-i18n="canardReapply" disabled></button>
+<details><summary data-i18n="canardAttribution"></summary><p data-i18n="canardDisclaimer"></p><p data-i18n="canardCoverage"></p><pre id="canard-notices"></pre></details></section>
 <section class="stats"><span><span data-i18n="active"></span>: <b data-testid="record-count" id="record-count">0</b></span><span><span data-i18n="results"></span>: <b id="result-count">0</b></span>
 <span><span data-i18n="changes"></span>: <b id="changes">0</b></span><span><span data-i18n="warningCount"></span>: <b id="warnings-count">0</b></span>
 <span id="save-status" data-testid="save-status" role="status"></span><button id="undo" data-i18n="undo" disabled></button><button id="redo" data-i18n="redo" disabled></button><button id="discard" data-i18n="discard" disabled></button></section>

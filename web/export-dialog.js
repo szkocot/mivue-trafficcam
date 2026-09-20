@@ -1,5 +1,5 @@
 import { downloadBlob } from './downloads.js';
-export function createExportDialog(element,{client,getIdentity,t,onSelect=()=>{},onBusy=()=>{}}){
+export function createExportDialog(element,{client,getIdentity,getNotices=()=>[],t,onSelect=()=>{},onBusy=()=>{}}){
  let prepared=null,token=0;
  const same=(a,b)=>a.sessionId===b.sessionId&&a.revision===b.revision;
  const el=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
@@ -8,6 +8,10 @@ export function createExportDialog(element,{client,getIdentity,t,onSelect=()=>{}
   const error=el('div');error.dataset.testid='export-error';error.hidden=true;
   const report=el('div');report.dataset.testid='build-report';
   const add=(key,fn)=>{const b=el('button',t(key));b.onclick=fn;element.append(b);return b;};
+  const noticeIdentity=getIdentity(),notices=getNotices();
+  if(notices.length){element.append(el('p',t('sourceNoticeReminder')));add('sourceNoticeDownload',()=>{
+   if(same(noticeIdentity,getIdentity()))downloadBlob({bytes:JSON.stringify(notices,null,2)+'\n',mime:'application/json',filename:'Speedcam_Data_FEU-NOTICE.json'});
+  });}
   for(const [key,format] of [['project','project'],['dataJson','json'],['geojson','geojson'],['csv','csv']])add(key,async()=>{
    const identity=getIdentity();try{const result=await client.request('export',{format});if(same(identity,getIdentity()))downloadBlob({bytes:result.text,mime:result.mime,filename:result.filename});}catch(e){showError(e);}
   });
