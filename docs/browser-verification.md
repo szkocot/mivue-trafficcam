@@ -2,6 +2,8 @@
 
 ## Hosted CANARD local release checks — awaiting publication
 
+Local integration: user-selected fast-forward merge into `main` at `9d2ce5e` completed. The merged checkout independently passed all 205 Node tests, 52 browser tests (one opt-in live-source skip), the 50-asset build and diff checks. The reviewed dataset candidate was moved intact to the main checkout's ignored `_canard-candidate/` directory and its digest revalidated. Release evidence/cache were preserved before temporary-worktree cleanup. No push, publication-variable change or deployment was performed.
+
 The `feat/canard-snapshot` implementation passed **205 Node tests**, **52 Chromium browser tests**, the 50-asset static build, workflow lint and diff checks. The private sample was available through an ignored local symlink; its byte-identical rebuild test passed and it is not distributed. One opt-in live-source browser test is skipped.
 
 A fresh actual CANARD capture at 11:50:53 UTC normalized to PP 499, OPP 138, RL 169, PK unavailable (806 observations; 399,681 bytes). Candidate SHA-256: `9033e492f0cfdd4355c9fcb92bb2c4a8cd982ce9cee018af0af7aeb1df0afa26`. Current terms/robots matched the review record; IDs matched the earlier capture. A fresh Chromium session on the local static build imported all 806 references, restored them after reload with zero additional snapshot-body requests, switched PL/EN, and observed no page errors. BIN sample, firmware and configuration URLs returned 404. This is **local verification, not a new public-site release**.

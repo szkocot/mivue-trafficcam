@@ -77,7 +77,7 @@ Update `README.md` after every task, recording actual progress and limitations w
 | Decode, extract, edit and rebuild BIN | Implemented for the researched layout; physical 955W acceptance remains unverified |
 | PL/EN map, official dataset cache and working-project recovery | Implemented; preserve regression coverage |
 | Automatic imports protecting manual edits/deletions | CSV/GeoJSON workflow integrated, pushed and deployed; 134 Node / 41 browser tests pass locally after independent-review fixes |
-| CANARD and other websites | Hosted PP/OPP/RL adapter, cache, synchronization, notices and gated publisher implemented/reviewed on `feat/canard-snapshot`; public release pending. PK explicitly unavailable; detail enrichment and other website adapters remain follow-up work |
+| CANARD and other websites | Hosted PP/OPP/RL adapter, cache, synchronization, notices and gated publisher implemented/reviewed and merged into local `main`; 205 Node/52 browser checks pass. Push/public release pending. PK explicitly unavailable; detail enrichment and other website adapters remain follow-up work |
 | Speed limits and other metadata | Implemented independent local presentation toggles and attributed details; source-reported values, not guessed BIN fields |
 | Browser location | Integrated into `main`; independent review found no blocking issues |
 | Restrict dataset to selected countries | Separate future design: versioned boundaries, unknown/border policy, paired OPP preservation and existing build blockers |
