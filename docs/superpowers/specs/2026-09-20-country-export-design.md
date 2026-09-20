@@ -1,6 +1,6 @@
 # Country-limited exports
 
-Status: written design awaiting user review. The user approved the export-only approach and keeping both endpoints of cross-border OPP sections with warnings. This document does not claim implementation or device compatibility.
+Status: written design approved by the user on 2026-09-20. The user approved the export-only approach and keeping both endpoints of cross-border OPP sections with warnings. The implementation plan awaits review. This document does not claim implementation or device compatibility.
 
 ## Intent and scope
 
@@ -99,4 +99,4 @@ Completion requires recorded tests, README/checklist updates and a separately ve
 
 ## Review handoff
 
-The approved conversational choices are reflected above. Newly specified defaults for review are Natural Earth 5.1.1, the 1 km uncertainty band, endpoint-based section inclusion, ephemeral selection settings, and an unfiltered full-project backup. Source hashes will be recorded from the actual fetched artifacts during implementation, not invented in this design. No implementation plan or product changes have been made yet.
+The user approved this written design, including Natural Earth 5.1.1, the 1 km uncertainty band, endpoint-based section inclusion, ephemeral selection settings, and an unfiltered full-project backup. Source hashes will be recorded from the actual fetched artifacts during implementation, not invented in this design. The [implementation plan](../plans/2026-09-20-country-export.md) awaits review; no product changes have been made yet.

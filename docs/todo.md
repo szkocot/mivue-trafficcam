@@ -17,7 +17,7 @@ Published coverage: 499 point-speed, 138 OPP and 169 red-light observations. Con
 
 ## 2. Country selection — implementation
 
-Design status: export-only selection and complete linked cross-border OPP retention approved in conversation. The [written specification](superpowers/specs/2026-09-20-country-export-design.md) now awaits review; implementation and dataset verification remain pending. Points 3, 4 and 6 remain open, not superseded by this increment.
+Design status: the [written specification](superpowers/specs/2026-09-20-country-export-design.md) is approved. The [six-task implementation plan](superpowers/plans/2026-09-20-country-export.md) awaits review before native execution; implementation and dataset verification remain pending. Points 3, 4 and 6 remain open, not superseded by this increment.
 
 - [ ] Let users select one or more countries for a reduced export, separately from map display filters.
 - [ ] Use a versioned boundary dataset with verified reuse terms and attribution.
