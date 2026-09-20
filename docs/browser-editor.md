@@ -29,6 +29,8 @@ Experimental and unofficial: use at your own risk. Device acceptance on MiVue 95
 Implementation references: [Leaflet 1.9.4 API](https://leafletjs.com/reference.html), [Playwright installation](https://playwright.dev/docs/intro), [OSM tile policy](https://operations.osmfoundation.org/policies/tiles/).
 # Browser location
 
+Project compatibility: current saves use version 2, including ingestion sources/observations, source bindings, template policies and explicit manual-coordinate ownership. Existing version 1 projects upgrade in memory on open without changing their embedded BIN; older app releases cannot open version 2 saves. Keep original project backups. Latitude/longitude share manual ownership, including an explicit edit back to original values. Source metadata does not change binary field meanings.
+
 Choose **Locate me / Moja lokalizacja** above the map to request a single browser position. Allow location in the browser prompt if desired. The map shows a blue marker, reported accuracy circle and fix time. Accuracy may come from GPS or another provider; it is not guaranteed. The feature works before opening a database and does not move camera records or alter project history.
 
 Use **Cancel location request** while waiting, or **Clear location** to remove the fix. Retry is always explicit. Failed retries retain the previous fix, labelled as such. Opening another file or reloading clears location. HTTPS or a trusted localhost preview is required; denied/unavailable location does not prevent manual map use.

@@ -1,4 +1,4 @@
-import { applyEdit, createProject, hexToBytes } from './project.js';
+import { applyEdit, createProject, hexToBytes,inspectProject } from './project.js';
 
 export function createHistory(project,{limit=50}={}) {
   if (!Number.isInteger(limit) || limit < 1) throw new Error('Invalid history limit');
@@ -7,6 +7,12 @@ export function createHistory(project,{limit=50}={}) {
   return {
     get current(){return current;}, get revision(){return revision;},
     get canUndo(){return past.length>0;}, get canRedo(){return future.length>0;},
+    commit(next){
+      if(next===current)return current;
+      if(next.source.name!==current.source.name||next.source.sha256!==current.source.sha256||next.source.bytesHex!==current.source.bytesHex)throw new Error('Import changed project baseline');
+      inspectProject(next);past.push(current);if(past.length>limit)past.shift();
+      current=next.source===current.source?next:{...next,source:current.source};future.length=0;revision++;return current;
+    },
     apply(operation){
       // Build a candidate first: a failed compound form never commits a partial edit.
       const operations=Array.isArray(operation)?operation:[operation];

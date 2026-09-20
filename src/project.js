@@ -1,4 +1,5 @@
 import { parseDatabase } from './parser.js';
+import { emptyIngestion,upgradeProject,validateIngestionState } from './ingestion-state.js';
 
 export class ProjectError extends Error {
   constructor(message) { super(message); this.name = 'ProjectError'; this.code = 'INVALID_PROJECT'; }
@@ -45,9 +46,9 @@ function jsonData(value, ancestors = new Set()) {
 }
 
 /** Structural validation; deleted targets are allowed in drafts, never in builds. */
-function inspectProject(project) {
-  keys(project, ['projectVersion', 'targetDevice', 'source', 'records', 'nextId']);
-  requireValue(project.projectVersion === 1 && project.targetDevice === 'MiVue 955W', 'Unsupported project version or target device');
+export function inspectProject(project) {
+  keys(project, ['projectVersion', 'targetDevice', 'source', 'records', 'nextId',...(project.projectVersion===2?['ingestion']:[])]);
+  requireValue([1,2].includes(project.projectVersion) && project.targetDevice === 'MiVue 955W', 'Unsupported project version or target device');
   keys(project.source, ['name', 'sha256', 'bytesHex']);
   requireValue(typeof project.source.name === 'string' && typeof project.source.sha256 === 'string'
     && /^[\da-f]{64}$/i.test(project.source.sha256), 'Invalid source metadata');
@@ -76,6 +77,7 @@ function inspectProject(project) {
     const to = target && originals.get(target.id);
     requireValue(from?.typeRaw === 964 && to?.typeRaw === 9128, 'Resolution requires a 964 source and 9128 target');
   }
+  validateIngestionState(project,originals);
   return { bytes, baseline, originals, entries };
 }
 
@@ -90,7 +92,7 @@ export async function createProject(bytes, { name = '' } = {}) {
   requireValue(typeof name === 'string', 'Invalid source name');
   const baseline = parseDatabase(bytes);
   const copy = Uint8Array.from(bytes);
-  return { projectVersion: 1, targetDevice: 'MiVue 955W',
+  return { projectVersion: 2, targetDevice: 'MiVue 955W',ingestion:emptyIngestion(),
     source: { name, sha256: await fingerprint(copy), bytesHex: bytesToHex(copy) },
     records: baseline.records.map(r => ({ id: `source:${r.offset}`, sourceOffset: r.offset,
       templateId: null, edits: {}, deleted: false, provenance: [] })), nextId: 1 };
@@ -99,7 +101,7 @@ export async function createProject(bytes, { name = '' } = {}) {
 export async function loadProject(text) {
   let p;
   try { p = JSON.parse(text); } catch { throw new ProjectError('Invalid project JSON'); }
-  await validateProject(p); return p;
+  await validateProject(p); return upgradeProject(p);
 }
 /** Save validated JSON; source bytes and all provenance remain in the project. */
 export async function serializeProject(project) {
@@ -108,6 +110,7 @@ export async function serializeProject(project) {
 /** Apply one explicit operation without changing the supplied project. */
 export function applyEdit(project, operation) {
   const checked = inspectProject(project);
+  project=upgradeProject(project);
   requireValue(object(operation), 'Invalid edit operation');
   const schemas = { update: ['kind', 'id', 'changes'], delete: ['kind', 'id'], restore: ['kind', 'id'],
     clone: ['kind', 'templateId', 'latitude', 'longitude'], 'resolve-link': ['kind', 'id', 'targetId', 'reason'] };
@@ -130,5 +133,8 @@ export function applyEdit(project, operation) {
     if (operation.kind === 'delete' || operation.kind === 'restore') result.records[index].deleted = operation.kind === 'delete';
     if (operation.kind === 'resolve-link') edits.linkResolution = { targetId: operation.targetId, reason: operation.reason };
   }
+  const manualId=operation.kind==='clone'?result.records.at(-1).id:
+    operation.kind==='update'&&('latitude'in operation.changes||'longitude'in operation.changes)?operation.id:null;
+  if(manualId)result.ingestion={...project.ingestion,ownership:[...project.ingestion.ownership.filter(o=>o.recordId!==manualId),{recordId:manualId,coordinates:'manual'}]};
   inspectProject(result); return result;
 }

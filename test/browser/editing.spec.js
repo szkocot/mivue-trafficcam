@@ -27,7 +27,7 @@ test('draft selection guard, strict coordinate validation, clone delete restore'
 test('project save/reopen and unchanged binary download use real bytes',async({page})=>{
  await openFixture(page);await expect(page.getByTestId('record-count')).toHaveText('1');
  let event=page.waitForEvent('download');await page.getByRole('button',{name:'Save project',exact:true}).click();
- const project=await event;const projectBytes=await readFile(await project.path());expect(JSON.parse(projectBytes).projectVersion).toBe(1);
+ const project=await event;const projectBytes=await readFile(await project.path());expect(JSON.parse(projectBytes).projectVersion).toBe(2);
  await page.getByRole('button',{name:'Export',exact:true}).click();await page.getByRole('button',{name:'Prepare binary',exact:true}).click();
  await expect(page.getByRole('button',{name:'Download validated binary',exact:true})).toBeEnabled();
  event=page.waitForEvent('download');await page.getByRole('button',{name:'Download validated binary',exact:true}).click();
