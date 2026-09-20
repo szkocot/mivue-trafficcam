@@ -1,5 +1,7 @@
 # Automatic Source Ingestion Implementation Plan
 
+Status: all seven tasks and independent-review fixes completed on `feat/source-ingestion`, 2026-09-20. 134 Node / 41 browser tests pass; live-source check skipped. Integration awaits user choice. CANARD live connector remains disabled after the documented access gate, not implemented.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Import camera/OPP observations automatically, protect manual edits, and display attributed metadata without guessing MiVue encoding.
@@ -64,7 +66,7 @@ Summary contract: `{added,updated,unchanged,protected,referenceOnly,ambiguous,it
 
 **Interfaces:** `parseCsv(text,source,retrievedAt)` and `parseGeoJson(text,source,retrievedAt)` synchronously return a normalized batch or throw ImportError. `normalizeBatch(batch)` returns canonical validated data. `makeImportBatch(overrides={})` in the test helper returns the example above with structured-cloned overrides.
 
-- [ ] Write adapter tests, including the following anchor, plus quoted multiline CSV, escaped quotes, BOM/CRLF, duplicate/missing headers and IDs, nulls, invalid coordinates, mph, missing speed units, nonfinite/negative speeds, unknown enum values, invalid geometry, limits and malicious object keys. Normalize IDs to nonempty strings without silently trimming identity; reject conflicting GeoJSON Feature.id/properties.id. Permit extra CSV columns as original metadata.
+- [x] Write adapter tests, including the following anchor, plus quoted multiline CSV, escaped quotes, BOM/CRLF, duplicate/missing headers and IDs, nulls, invalid coordinates, mph, missing speed units, nonfinite/negative speeds, unknown enum values, invalid geometry, limits and malicious object keys. Normalize IDs to nonempty strings without silently trimming identity; reject conflicting GeoJSON Feature.id/properties.id. Permit extra CSV columns as original metadata.
 
 ```js
 const source={namespace:'example',attribution:'Example owner',url:null};
@@ -74,8 +76,8 @@ assert.deepEqual(parsed.observations[0].geometry.coordinates,[19,52]);
 assert.throws(()=>parseCsv('id,latitude,longitude,kind\na,52,19,camera\na,53,20,camera',source,'2026-09-20T12:00:00.000Z'));
 ```
 
-- [ ] Run `node --test test/import-adapters.test.js`; confirm failures concern missing/new behavior.
-- [ ] Implement CSV parsing as a quoted/unquoted state machine, not split(','); GeoJSON parsing via JSON.parse plus strict feature validation. Validate byte size before parsing and counts/vertices/metadata before retention. Permit only finite speed >=0, explicit km/h or mph; conversion is `mph * 1.609344`. Reject conflicting IDs, malformed quoting, and the entire invalid batch; never partially import.
+- [x] Run `node --test test/import-adapters.test.js`; confirm failures concern missing/new behavior.
+- [x] Implement CSV parsing as a quoted/unquoted state machine, not split(','); GeoJSON parsing via JSON.parse plus strict feature validation. Validate byte size before parsing and counts/vertices/metadata before retention. Permit only finite speed >=0, explicit km/h or mph; conversion is `mph * 1.609344`. Reject conflicting IDs, malformed quoting, and the entire invalid batch; never partially import.
 
 ```js
 const identity = (namespace,sourceId) => JSON.stringify([namespace,sourceId]);
@@ -83,7 +85,7 @@ const byteLength = value => new TextEncoder().encode(value).byteLength;
 // Use Map keyed by identity for uniqueness; never concatenate with a delimiter.
 ```
 
-- [ ] Run the adapter file and `npm test`; update README with the exact supported local schema and limitations; commit `feat: normalize local camera imports`.
+- [x] Run the adapter file and `npm test`; update README with the exact supported local schema and limitations; commit `feat: normalize local camera imports`.
 
 ## Task 2: Versioned project state and atomic history
 
@@ -91,7 +93,7 @@ const byteLength = value => new TextEncoder().encode(value).byteLength;
 
 **Interfaces:** Export `upgradeProject(project)` (pure v1->v2), `validateIngestionState(project)` (structural validation), and `isProjectModified(project)` from ingestion-state. `loadProject` accepts v1 and returns v2; `createProject` creates v2. Keep `validateProject` accepting valid v1 input for programmatic backward compatibility. Add `history.commit(nextProject)` for a structurally validated v2 candidate, sharing immutable source data and making one revision; it must skip identity no-ops. Existing apply/undo/redo/reset remain available.
 
-- [ ] Write migration/validation and ownership tests using independent existing fixtures. Test unsupported versions, duplicate identities, bad bindings/policies, forged ownership, v1 deleted/edited records, unchanged BIN builds, metadata-only dirty state and clone deletion/reopen.
+- [x] Write migration/validation and ownership tests using independent existing fixtures. Test unsupported versions, duplicate identities, bad bindings/policies, forged ownership, v1 deleted/edited records, unchanged BIN builds, metadata-only dirty state and clone deletion/reopen.
 
 ```js
 const p=await createProject(makeFixture([{}]).bytes);
@@ -102,8 +104,8 @@ assert.deepEqual(reopened.ingestion,edited.ingestion);
 const h=createHistory(p);h.commit(edited);h.undo();assert.deepEqual(h.current,p);
 ```
 
-- [ ] Run `node --test test/ingestion-state.test.js test/project.test.js test/history.test.js`; record RED.
-- [ ] Implement strict v2 state/reference validation. Upgrade v1 edits to manual ownership, even edits equal to baseline. Public coordinate edits mark the coordinate group manual; internal import transactions set source ownership explicitly. Validate eligible original templates via parsed originals. Make commit validate once structurally and require unchanged embedded source; keep asynchronous hash validation on load/serialization. Reset creates a fresh v2 baseline with empty ingestion state. Extend encoder validation without altering record-byte semantics.
+- [x] Run `node --test test/ingestion-state.test.js test/project.test.js test/history.test.js`; record RED.
+- [x] Implement strict v2 state/reference validation. Upgrade v1 edits to manual ownership, even edits equal to baseline. Public coordinate edits mark the coordinate group manual; internal import transactions set source ownership explicitly. Validate eligible original templates via parsed originals. Make commit validate once structurally and require unchanged embedded source; keep asynchronous hash validation on load/serialization. Reset creates a fresh v2 baseline with empty ingestion state. Extend encoder validation without altering record-byte semantics.
 
 ```js
 // Preserve source object sharing; never mutate project.ingestion arrays in place.
@@ -111,7 +113,7 @@ const emptyIngestion = () => ({sources:[],observations:[],bindings:[],ownership:
 // Dirty includes ingestion state and manual ownership, not only changed bytes.
 ```
 
-- [ ] Run focused tests and `npm test`; update schema documentation in `docs/browser-editor.md` and README; commit `feat: persist import identity and manual ownership`.
+- [x] Run focused tests and `npm test`; update schema documentation in `docs/browser-editor.md` and README; commit `feat: persist import identity and manual ownership`.
 
 ## Task 3: Deterministic reconciliation and safe binary additions
 
@@ -119,7 +121,7 @@ const emptyIngestion = () => ({sources:[],observations:[],bindings:[],ownership:
 
 **Interfaces:** `reconcile(project,batch)` asynchronously returns `{project,summary}`. `setImportPolicy(project,{namespace,kind,templateId})` returns a validated immutable project. `resolveImport(project,{namespace,sourceId,action,recordId})` supports `bind`, `reference`, `add-distinct`; add-distinct uses the configured template, recordId is required only for bind. Transaction internals are not accepted as unvalidated JSON operations from the UI.
 
-- [ ] Write tests for the full spec merge matrix. Use active points far from the fixture for additions; same IDs moved for updates; nearby new points reversed in input order; protected/deleted records; source omission; planned/unknown status; coordinate pair protection; policy changes followed by identical content; held observations reconsidered after template setup; explicit bind/reference/distinct actions; no-op retrieval time; conflicting sources; sections never encoded.
+- [x] Write tests for the full spec merge matrix. Use active points far from the fixture for additions; same IDs moved for updates; nearby new points reversed in input order; protected/deleted records; source omission; planned/unknown status; coordinate pair protection; policy changes followed by identical content; held observations reconsidered after template setup; explicit bind/reference/distinct actions; no-op retrieval time; conflicting sources; sections never encoded.
 
 ```js
 let p=await createProject(makeFixture([{}]).bytes);
@@ -131,8 +133,8 @@ assert.strictEqual(b.project,a.project);
 assert.equal(b.summary.added,0);
 ```
 
-- [ ] Run `node --test test/reconcile.test.js`; verify RED before implementing reconciliation.
-- [ ] Index identity by JSON tuple and positions in geographic spatial bins; use great-circle distance for the exact <=100m candidate test, including longitude wrap and polar bins. Compare each new point against baseline, held observations and other batch identities without treating its own identity as a duplicate. Sort stable identities before assigning new IDs. Retain reference-only reason codes and explicit reference decisions in observation state (add strict `disposition:'auto'|'reference'` and `codes:string[]` fields). Add eligible clones in one transaction rather than calling full-project applyEdit per row.
+- [x] Run `node --test test/reconcile.test.js`; verify RED before implementing reconciliation.
+- [x] Index identity by JSON tuple and positions in geographic spatial bins; use great-circle distance for the exact <=100m candidate test, including longitude wrap and polar bins. Compare each new point against baseline, held observations and other batch identities without treating its own identity as a duplicate. Sort stable identities before assigning new IDs. Retain reference-only reason codes and explicit reference decisions in observation state (add strict `disposition:'auto'|'reference'` and `codes:string[]` fields). Add eligible clones in one transaction rather than calling full-project applyEdit per row.
 
 ```js
 // Coordinate source updates are permitted only for the owning source.
@@ -141,7 +143,7 @@ const sameIdentity=(a,b)=>a.namespace===b.namespace&&a.sourceId===b.sourceId;
 // Candidate source data still updates in ingestion.observations.
 ```
 
-- [ ] Verify template raw bytes/type are copied unchanged, source metadata cannot write bytes, build blockers still apply and successful synthetic clones reparse at the intended coordinates. Run `node --test test/reconcile.test.js test/encoder.test.js` and `npm test`; README update; commit `feat: merge source observations without overwriting manual edits`.
+- [x] Verify template raw bytes/type are copied unchanged, source metadata cannot write bytes, build blockers still apply and successful synthetic clones reparse at the intended coordinates. Run `node --test test/reconcile.test.js test/encoder.test.js` and `npm test`; README update; commit `feat: merge source observations without overwriting manual edits`.
 
 ## Task 4: CANARD feasibility gate and source registry
 
@@ -151,8 +153,8 @@ User clarification: use as much CANARD information as possible, including all us
 
 **Interfaces:** `listImportSources()` returns `{id,labelKey,available,reasonCode,attribution,url}[]`. `fetchImportSource(id,{signal})` returns a normalized batch for supported enabled sources; unavailable entries reject with `SOURCE_UNAVAILABLE`. No credentials or arbitrary proxy URL configuration.
 
-- [ ] Inspect only public CANARD map scripts/endpoints and published reuse information. Record exact endpoint/schema/IDs, conditions and CORS evidence, date, and whether source status/speed are actually supplied. Do not assume a successful curl proves browser access. If evidence is insufficient, document a disabled CANARD entry and continue the local-import deliverable.
-- [ ] Write registry tests asserting local formats remain usable with CANARD unavailable and abort/fetch failures never yield a partial batch. If enabled, add a tiny synthetic response fixture and parsing test using observed field names; do not invent an API contract before inspection.
+- [x] Inspect only public CANARD map scripts/endpoints and published reuse information. Record exact endpoint/schema/IDs, conditions and CORS evidence, date, and whether source status/speed are actually supplied. Do not assume a successful curl proves browser access. If evidence is insufficient, document a disabled CANARD entry and continue the local-import deliverable.
+- [x] Write registry tests asserting local formats remain usable with CANARD unavailable and abort/fetch failures never yield a partial batch. If enabled, add a tiny synthetic response fixture and parsing test using observed field names; do not invent an API contract before inspection.
 
 ```js
 const source=listImportSources().find(s=>s.id==='canard');
@@ -163,8 +165,8 @@ if(!source.available) {
 }
 ```
 
-- [ ] Run `node --test test/import-sources.test.js`; confirm RED for the registry interface. Implement the registry and only the evidenced connector. A disabled connector is a reported partial scope outcome, never described as completed CANARD ingestion.
-- [ ] Run registry tests and `npm test`; document evidence and exact unavailable reason in README/roadmap; commit `feat: expose verified import source availability`.
+- [x] Run `node --test test/import-sources.test.js`; confirm RED for the registry interface. Implement the registry and only the evidenced connector. A disabled connector is a reported partial scope outcome, never described as completed CANARD ingestion.
+- [x] Run registry tests and `npm test`; document evidence and exact unavailable reason in README/roadmap; commit `feat: expose verified import source availability`.
 
 ## Task 5: Worker imports, persistence and reference projections
 
@@ -172,7 +174,7 @@ if(!source.available) {
 
 **Interfaces:** `referenceView(project)` returns observation views with collision-free `id:'import:'+JSON.stringify([namespace,sourceId])`, binding/encoding status, geometry and metadata; `exportReferences(project)` returns attributed GeoJSON text including encoded:false for unbound observations. Worker adds `import`, `import-policy`, `import-resolve`, `export-references`. Import payload contains normalized batch and `expectedRevision`; return `{snapshot,summary}`. Policy and resolution payloads contain the operations from Task 3 and expectedRevision. Snapshot adds `references` and uses isProjectModified.
 
-- [ ] Extend worker tests for import one-revision commit, no-op no revision, undo/redo all state, stale revision/session rejection, metadata-only snapshots, failed transaction rollback, project reopen and reference export without position leakage from unrelated UI state.
+- [x] Extend worker tests for import one-revision commit, no-op no revision, undo/redo all state, stale revision/session rejection, metadata-only snapshots, failed transaction rollback, project reopen and reference export without position leakage from unrelated UI state.
 
 ```js
 const opened=await session.handle({kind:'open-bin',sessionId:'a',requestId:1,payload:{bytes:makeFixture([{}]).bytes}});
@@ -182,8 +184,8 @@ assert.equal(imported.result.snapshot.references.length,1);
 assert.equal(imported.result.snapshot.modified,true);
 ```
 
-- [ ] Run `node --test test/worker-session.test.js test/import-view.test.js`; confirm RED.
-- [ ] Validate incoming batch again inside worker, compare revision before reconcile/commit, commit once and invalidate cached snapshot/build. Stale requests return `STALE_IMPORT` without changes. UI fetch cancellation does not mutate history. Preserve existing queue and session guarantees. Include bound source metadata in encoded-record projection without duplicate markers; reference export is a separate action, not a changed meaning for existing exports.
+- [x] Run `node --test test/worker-session.test.js test/import-view.test.js`; confirm RED.
+- [x] Validate incoming batch again inside worker, compare revision before reconcile/commit, commit once and invalidate cached snapshot/build. Stale requests return `STALE_IMPORT` without changes. UI fetch cancellation does not mutate history. Preserve existing queue and session guarantees. Include bound source metadata in encoded-record projection without duplicate markers; reference export is a separate action, not a changed meaning for existing exports.
 
 ```js
 if(payload.expectedRevision!==history.revision)
@@ -192,7 +194,7 @@ const result=await reconcile(history.current,normalizeBatch(payload.batch));
 history.commit(result.project);
 ```
 
-- [ ] Run focused tests, `npm test` and `npm run build:web`; update README; commit `feat: apply imports through revision-safe worker history`.
+- [x] Run focused tests, `npm test` and `npm run build:web`; update README; commit `feat: apply imports through revision-safe worker history`.
 
 ## Task 6: Bilingual import UI and metadata options
 
@@ -200,7 +202,7 @@ history.commit(result.project);
 
 **Interfaces:** `createImportDialog({onImport,onPolicy,onCancel,t})` returns `{open,sync,destroy}`; onImport receives batch, onPolicy receives Task 3 policy. `renderImportResults(element,summary,{t,onResolve})` shows translated reasons. `metadataRows(reference,t)` returns safe label/value text pairs; `speedLabel(references,t)` returns a single attributed limit or translated unknown/conflict. `createMetadataOptions({storage,onChange,t})` returns `{values,setLanguage,destroy}` with values `{showSpeedLimits:false,showMetadata:false}`; storage denial falls back to memory. Extend map with `setReferenceLayers(references)`, `setDisplayOptions(values)`; keep existing render/fit/selection APIs.
 
-- [ ] Write metadata unit tests and browser tests that import a file, select its unencoded point, see attributed speed/name/status, enable independent toggles, and switch PL/EN. Include hostile labels, unknown BIN speed, mph original-unit details, conflicting limits, source links restricted to http(s), reference-only section display, and reload of display preferences.
+- [x] Write metadata unit tests and browser tests that import a file, select its unencoded point, see attributed speed/name/status, enable independent toggles, and switch PL/EN. Include hostile labels, unknown BIN speed, mph original-unit details, conflicting limits, source links restricted to http(s), reference-only section display, and reload of display preferences.
 
 ```js
 await page.getByRole('button',{name:'Import',exact:true}).click();
@@ -211,8 +213,8 @@ await expect(page.getByTestId('import-summary')).toContainText('reference');
 await page.getByLabel('Show speed limits',{exact:true}).check();
 ```
 
-- [ ] Run `node --test test/source-metadata.test.js` and `npm run test:browser -- test/browser/imports.spec.js`; verify RED.
-- [ ] Implement setup and automatic commit after valid file selection, respecting unfinished-form guards and captured document/revision intent. Template selection requires explicit acknowledgement of copied unverified fields. Pending cancel invalidates fetch/parse results. Render text via textContent; handle storage/fetch errors without discarding state. Reference-only details disable binary edits. Use canvas source geometry and label collision boxes; draw <=200 single-point labels, never aggregate limits. Bound references do not duplicate their binary marker. Keep encoded and reference tables distinctly labelled, paginated, keyboard-accessible and usable on narrow screens.
+- [x] Run `node --test test/source-metadata.test.js` and `npm run test:browser -- test/browser/imports.spec.js`; verify RED.
+- [x] Implement setup and automatic commit after valid file selection, respecting unfinished-form guards and captured document/revision intent. Template selection requires explicit acknowledgement of copied unverified fields. Pending cancel invalidates fetch/parse results. Render text via textContent; handle storage/fetch errors without discarding state. Reference-only details disable binary edits. Use canvas source geometry and label collision boxes; draw <=200 single-point labels, never aggregate limits. Bound references do not duplicate their binary marker. Keep encoded and reference tables distinctly labelled, paginated, keyboard-accessible and usable on narrow screens.
 
 ```js
 // Label option changes affect presentation only, never history or source bytes.
@@ -221,13 +223,13 @@ const metadataOptions=createMetadataOptions({storage:localStorage,t,
 // When rendering external strings use textContent, not innerHTML.
 ```
 
-- [ ] Run focused tests, `npm test`, `npm run build:web`, deterministic browser suite; document schema/example and reference-vs-encoded distinction; commit `feat: show imported cameras and attributed metadata`.
+- [x] Run focused tests, `npm test`, `npm run build:web`, deterministic browser suite; document schema/example and reference-vs-encoded distinction; commit `feat: show imported cameras and attributed metadata`.
 
 ## Task 7: End-to-end regression and handoff
 
 **Files:** Extend `test/browser/imports.spec.js`, `test/browser/persistence.spec.js`, `test/browser/sample.spec.js`, `test/web-build.test.js`; update README, `docs/browser-verification.md`, `docs/roadmap.md`.
 
-- [ ] Add regression tests for one-step undo/redo, reimport after save/reload, protected manual move and deletion, held duplicate resolution, raw template bytes, stale fetch after file replacement, pending form guard, storage quota recovery and separate reference GeoJSON export. Assert no-op import preserves revision and does not save again. Add synthetic 100,000-observation limit test without an external dataset; reject one extra record.
+- [x] Add regression tests for one-step undo/redo, reimport after save/reload, protected manual move and deletion, held duplicate resolution, raw template bytes, stale fetch after file replacement, pending form guard, storage quota recovery and separate reference GeoJSON export. Assert no-op import preserves revision and does not save again. Add synthetic 100,000-observation limit test without an external dataset; reject one extra record.
 
 ```js
 // After importing a valid fixture through the Task 6 controls:
@@ -239,11 +241,11 @@ await page.reload();
 await expect(page.getByTestId('reference-row')).toHaveCount(1);
 ```
 
-- [ ] Run each regression test before fixes; diagnose real failures and make minimal scoped fixes. Run `npm test`, `npm run build:web`, `npm run test:browser`, and `git diff --check`. Keep live-source checks opt-in; do not imply they passed unless run.
-- [ ] Inspect desktop/mobile synthetic UI and full local sample rendering; verify <=100 visible table rows, <=200 optional labels and no per-camera DOM markers. Record actual measurements, test counts and limitations, not invented thresholds or device acceptance.
-- [ ] Update README and roadmap with completed/blocked work, retain country filtering and Pages as next increments, and link the companion location plan. Commit `test: verify automatic ingestion and metadata workflows`.
-- [ ] Follow executing-plans' final independent review gate, fix reproduced findings with tests, then request integration/push direction; do not publish Pages implicitly.
+- [x] Run each regression test before fixes; diagnose real failures and make minimal scoped fixes. Run `npm test`, `npm run build:web`, `npm run test:browser`, and `git diff --check`. Keep live-source checks opt-in; do not imply they passed unless run.
+- [x] Inspect desktop/mobile synthetic UI and full local sample rendering; verify <=100 visible table rows, <=200 optional labels and no per-camera DOM markers. Record actual measurements, test counts and limitations, not invented thresholds or device acceptance.
+- [x] Update README and roadmap with completed/blocked work, retain country filtering and Pages as next increments, and link the companion location plan. Commit `test: verify automatic ingestion and metadata workflows`.
+- [x] Follow executing-plans' final independent review gate, fix reproduced findings with tests, then request integration/push direction; do not publish Pages implicitly.
 
 ## Execution handoff
 
-Plan awaits user review. Preserve the established native in-session execution method and feature-branch workflow; use isolation instructions at execution time. No new dependencies or live adapter assumptions are pre-approved by this plan. Browser location is tracked in `2026-09-20-browser-location.md` and may be delivered first because it does not depend on the project-v2 migration.
+The approved plan was executed inline on the existing feature-branch checkout. No new dependencies or unverified live adapter were added. Browser location was delivered first in the companion `2026-09-20-browser-location.md` plan. Final review findings, fixes, measurements and remaining limits are recorded in `docs/browser-verification.md`; integration remains a user decision.

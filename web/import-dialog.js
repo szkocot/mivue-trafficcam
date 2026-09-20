@@ -10,6 +10,13 @@ export function createImportDialog({onImport,onCancel,t,storage}){
   for(const source of listImportSources().filter(s=>!s.available))dialog.append(el('p',t(source.reasonCode)));
   function field(key,type='text'){const label=el('label',t(key)),input=el('input');input.type=type;label.append(input);dialog.append(label);fields[key]=input;return input;}
   field('namespace').value=remembered.namespace;field('attribution').value=remembered.attribution;
+  const savedPolicies=el('section');savedPolicies.dataset.testid='saved-import-policies';savedPolicies.setAttribute('aria-live','polite');dialog.append(savedPolicies);
+  function showPolicies(){
+   const policies=(snapshot?.importPolicies??[]).filter(p=>p.namespace===fields.namespace.value);
+   savedPolicies.replaceChildren(el('p',t(policies.length?'savedPolicies':'noSavedPolicies')));
+   for(const policy of policies)savedPolicies.append(el('p',`${t(`kind_${policy.kind}`)}: ${policy.templateId}`));
+  }
+  fields.namespace.oninput=showPolicies;showPolicies();
   function select(key,choices){const label=el('label',t(key)),input=el('select');input.setAttribute('aria-label',t(key));for(const [value,name] of choices){const option=el('option',t(name));option.value=value;input.append(option);}label.append(input);dialog.append(label);fields[key]=input;return input;}
   select('importFormat',[['csv','importCsv'],['geojson','importGeojson']]);
   field('templateId');select('templateKind',[['camera','kind_camera'],['red-light','kind_red-light']]);field('templateAck','checkbox');dialog.append(el('p',t('templateHint')));

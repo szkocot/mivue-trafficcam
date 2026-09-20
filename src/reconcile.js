@@ -51,6 +51,7 @@ export async function reconcile(project,input){
   if(binding){
    const i=recordIndices.get(recordId),record=records[i],owner=owners.get(recordId);
    if(!supported(o)){
+    o.disposition='reference';
     codes.push('UNSUPPORTED');ingestion.bindings=ingestion.bindings.filter(b=>key(b)!==k);detachOwner(ingestion,namespace,o.sourceId);
     recordId=null;summary.referenceOnly++;
    }

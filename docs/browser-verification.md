@@ -57,3 +57,14 @@ Coverage includes strict CSV/GeoJSON normalization, stable identities and hostil
 The 52,935-record local sample loads and rebuilds byte-identically with both label toggles enabled. Observed load 804 ms, edit 883 ms, build 849 ms, 53 animation frames during load. Desktop and 390px mobile synthetic screenshots were inspected; mobile has no horizontal document overflow. Reference metadata stays read-only and source strings are text. Tests found and corrected lingering busy/hidden-selection notices and duplicate pagination names.
 
 Initial regression runs reproduced unnecessary history on repeated template setup, missing inactive-source flags, rejection on a point-to-section transition and loss of explicit manual ownership when a coordinate was edited back to its prior value. Each was corrected and rerun; final suites above are green. A point-to-unsupported transition retains the BIN record, detaches the source binding and protects its coordinates as manual, leaving the new geometry visible as a reference. Cancel is available during file reading/parsing, but not after atomic commit dispatch. Final independent whole-branch review is pending.
+
+### Independent review and final gate
+
+A fresh read-only reviewer inspected `f9850ce..ad554da` and independently passed 30 focused Node tests. No Critical findings; two Important findings were reproduced with failing tests and fixed in one pass:
+
+- Detaching an unsupported source identity now persists explicit reference-only disposition. Reopening and later importing a moved active camera cannot create another record or bypass an earlier manual deletion. Tested both retained and deleted originals.
+- Import setup displays the saved policies for its namespace and explains in PL/EN that blank template input retains them. Switching namespaces updates the disclosure before file selection. New policy configuration still requires acknowledgement.
+
+The author reran the entire suite after fixes: **134 Node tests, 41 browser tests pass**, one opt-in live-source check skipped, 46 allowlisted assets, clean diff check. No second reviewer was dispatched. Deferred Minor: internal parser issue codes such as `DUPLICATE_ID` and `CSV_QUOTE` need localized actionable descriptions; the surrounding messages are translated. The earlier cache-status minor remains a separate tracked item.
+
+Review boundaries remain explicit: live CANARD schemas/parsing are deferred after the CORS gate; country filtering and Pages are separate increments; physical-device acceptance is unverified; location internals belong to the reviewed companion increment, with its regression suite retained here.

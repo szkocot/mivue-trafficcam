@@ -102,3 +102,20 @@ test('reference canvas and mobile table remain bounded for a large synthetic imp
  console.log(`Synthetic 100k import: ${importMs} ms; reference rows: 100; labels capped at 200; zero per-point DOM markers.`);
  await testInfo.attach('import-timing',{body:JSON.stringify({importMs}),contentType:'application/json'});
 });
+test('reopened import discloses saved templates before a blank-template import adds new points',async({page})=>{
+ await setup(page);const id=await page.getByTestId('record-row').getByRole('button').textContent();
+ await page.getByRole('button',{name:'Import',exact:true}).click();await page.getByLabel('Source namespace',{exact:true}).fill('example');await page.getByLabel('Attribution',{exact:true}).fill('Example owner');
+ await page.getByLabel('Original template record ID (optional)',{exact:true}).fill(id);await page.getByLabel('I accept that the template raw fields are copied unchanged and unverified.',{exact:true}).check();
+ await page.getByLabel('Import file',{exact:true}).setInputFiles({name:'a.csv',mimeType:'text/csv',buffer:Buffer.from('id,latitude,longitude,kind,status\na,37,-6,camera,active')});
+ await expect(page.locator('.import-dialog')).not.toBeVisible();await expect(page.getByTestId('record-count')).toHaveText('2');
+ await page.getByRole('button',{name:'Import',exact:true}).click();
+ await expect(page.getByLabel('Original template record ID (optional)',{exact:true})).toHaveValue('');
+ await expect(page.getByTestId('saved-import-policies')).toContainText(id);await expect(page.getByTestId('saved-import-policies')).toContainText('Camera');
+ await expect(page.getByRole('dialog')).toContainText('Blank keeps the saved policies');
+ await page.getByLabel('Source namespace',{exact:true}).fill('other');await expect(page.getByTestId('saved-import-policies')).not.toContainText(id);
+ await page.getByLabel('Source namespace',{exact:true}).fill('example');await expect(page.getByTestId('saved-import-policies')).toContainText(id);
+ await page.getByLabel('Import file',{exact:true}).setInputFiles({name:'b.csv',mimeType:'text/csv',buffer:Buffer.from('id,latitude,longitude,kind,status\nb,38,-5,camera,active')});
+ await expect(page.locator('.import-dialog')).not.toBeVisible();await expect(page.getByTestId('record-count')).toHaveText('3');
+ await page.getByRole('button',{name:'PL',exact:true}).click();await page.getByRole('button',{name:'Importuj',exact:true}).click();
+ await expect(page.getByTestId('saved-import-policies')).toContainText('Fotoradar');await expect(page.getByRole('dialog')).toContainText('Puste pole zachowuje zapisane reguły');
+});

@@ -90,3 +90,14 @@ test('inactive bound observations are retained and flagged, without deleting the
  const changed=await reconcile(original,batch([{status:'inactive',originalProperties:{status:'inactive'}}]));
  assert.equal(changed.project.records[1].deleted,false);assert.ok(changed.project.ingestion.observations[0].codes.includes('NOT_ACTIVE'));
 });
+test('category transitions never automatically resurrect a deleted or retained source identity after reopen',async()=>{
+ for(const deleted of [false,true]){
+  let p=(await reconcile(await base(),batch())).project;
+  if(deleted)p=applyEdit(p,{kind:'delete',id:'new:1'});
+  p=(await reconcile(p,batch([{kind:'section',geometry:{type:'LineString',coordinates:[[19,52],[20,53]]}}]))).project;
+  p=await loadProject(await serializeProject(p));
+  const result=await reconcile(p,batch([{geometry:{type:'Point',coordinates:[24,54]}}]));
+  assert.equal(result.summary.added,0);assert.equal(result.project.records.length,2);assert.equal(result.project.records[1].deleted,deleted);
+  assert.equal(result.project.ingestion.observations[0].disposition,'reference');assert.equal(result.project.ingestion.bindings.length,0);
+ }
+});

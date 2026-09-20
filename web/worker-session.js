@@ -14,7 +14,7 @@ export function createWorkerSession(){
     if(cached?.revision===history.revision)return cached;
     const view=await projectView(history.current);
     cached={revision:history.revision,view,canUndo:history.canUndo,canRedo:history.canRedo,
-      modified:isProjectModified(history.current),references:referenceView(history.current),projectJson:await serializeProject(history.current)};
+      modified:isProjectModified(history.current),references:referenceView(history.current),importPolicies:structuredClone(history.current.ingestion.policies),projectJson:await serializeProject(history.current)};
     return cached;
   }
   async function execute({kind,payload={},sessionId:id}){
