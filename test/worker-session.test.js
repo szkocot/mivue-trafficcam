@@ -3,6 +3,33 @@ import assert from 'node:assert/strict';
 import { makeFixture } from './helpers/fixture.js';
 import { createWorkerSession } from '../web/worker-session.js';
 import { createWorkerClient } from '../web/worker-client.js';
+import { makeImportBatch } from './helpers/import-fixture.js';
+test('worker imports are atomic, revision-fenced, repeatable, persistent and separately exported',async()=>{
+ const worker=createWorkerSession();let n=0;
+ const req=(kind,payload={},sessionId='imports')=>worker.handle({sessionId,requestId:++n,kind,payload});
+ const opened=(await req('open-bin',{bytes:makeFixture([{}]).bytes})).result;
+ const batch=makeImportBatch();
+ const imported=await req('import',{batch,expectedRevision:0});assert.equal(imported.ok,true);
+ const s=imported.result.snapshot;assert.equal(s.revision,1);assert.equal(s.references.length,1);assert.equal(s.modified,true);
+ const noop=await req('import',{batch:{...batch,retrievedAt:'2026-09-21T12:00:00Z'},expectedRevision:1});
+ assert.equal(noop.result.snapshot.revision,1);assert.equal(noop.result.snapshot.projectJson,s.projectJson);
+ assert.equal((await req('import',{batch,expectedRevision:0})).error.code,'STALE_IMPORT');
+ assert.equal((await req('import',{batch,expectedRevision:1},'old')).ok,false);
+ assert.equal((await req('import',{batch:{...batch,observations:[{}]},expectedRevision:1})).ok,false);
+ assert.equal((await req('snapshot')).result.projectJson,s.projectJson);
+ const refs=JSON.parse((await req('export-references')).result.text);assert.equal(refs.features.length,1);assert.equal(refs.features[0].properties.encoded,false);
+ assert.equal(JSON.parse((await req('export',{format:'geojson'})).result.text).features.length,1);
+ const undo=(await req('undo')).result;assert.equal(undo.references.length,0);assert.equal(undo.modified,false);
+ assert.equal((await req('redo')).result.projectJson,s.projectJson);
+ assert.equal((await req('open-project',{text:s.projectJson})).result.references[0].speedKmh,50);
+ const parsed=await req('parse-import',{format:'csv',text:'id,latitude,longitude,kind\nb,51,20,camera',source:batch.source,retrievedAt:batch.retrievedAt,expectedRevision:0});
+ assert.equal(parsed.ok,true);assert.equal(parsed.result.observations[0].sourceId,'b');
+ assert.equal((await req('snapshot')).result.revision,0);
+ const policy=await req('import-policy',{policy:{namespace:'example',kind:'camera',templateId:opened.view.records[0].id},expectedRevision:0});
+ assert.equal(policy.result.revision,1);
+ const resolved=await req('import-resolve',{resolution:{namespace:'example',sourceId:'a',action:'add-distinct'},expectedRevision:1});
+ assert.equal(resolved.result.references[0].encoded,true);assert.equal(resolved.result.view.records.length,2);
+});
 test('worker opens, serializes edits, exports, resets and builds byte-identical source',async()=>{
  const worker=createWorkerSession();let n=0;
  const request=(kind,payload={})=>worker.handle({sessionId:'a',requestId:++n,kind,payload});
@@ -38,4 +65,10 @@ test('client rejects abandoned work and ignores late replies from previous docum
  const validation=client.validateSource(new Uint8Array());const validator=workers[2];
  validator.onmessage({data:{...validator.sent,ok:true,result:'hash'}});assert.equal(await validation,'hash');
  assert.equal(client.snapshot.projectJson,'new');client.close();
+});
+test('client tracks import snapshots nested with summaries',async()=>{
+ let w;const client=createWorkerClient({workerFactory:()=>w={postMessage(m){this.sent=m;},terminate(){}}});
+ const open=client.open('open-bin',{});w.onmessage({data:{...w.sent,ok:true,result:{revision:0,projectJson:'before'}}});await open;
+ const pending=client.request('import',{});w.onmessage({data:{...w.sent,ok:true,result:{snapshot:{revision:1,projectJson:'imported'},summary:{added:0}}}});
+ await pending;assert.equal(client.snapshot.projectJson,'imported');client.close();
 });

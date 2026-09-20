@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createProject} from '../src/project.js';
+import {reconcile,resolveImport} from '../src/reconcile.js';
+import {projectView} from '../src/project-view.js';
+import {makeFixture} from './helpers/fixture.js';
+import {makeImportBatch} from './helpers/import-fixture.js';
+const view=await import('../src/import-view.js').catch(()=>({}));
+test('reference projection retains attribution, distinguishes binding/deletion, and uses independent export',async()=>{
+ assert.equal(typeof view.referenceView,'function');
+ let p=(await reconcile(await createProject(makeFixture([{}]).bytes),makeImportBatch())).project;
+ const refs=view.referenceView(p);assert.equal(refs[0].id,'import:["example","a"]');assert.equal(refs[0].encoded,false);
+ assert.equal(refs[0].attribution,'Example owner');assert.equal(refs[0].speedKmh,50);
+ assert.equal(JSON.parse(view.exportReferences(p)).features[0].properties.encoded,false);
+ p=await resolveImport(p,{namespace:'example',sourceId:'a',action:'bind',recordId:p.records[0].id});
+ assert.equal(view.referenceView(p)[0].encoded,true);
+ assert.equal((await projectView(p)).records[0].sourceObservations[0].sourceId,'a');
+ p={...p,records:p.records.map(r=>({...r,deleted:true}))};
+ assert.equal(view.referenceView(p)[0].encoded,false);
+ assert.equal(view.referenceView(p)[0].encodingStatus,'deleted');
+});

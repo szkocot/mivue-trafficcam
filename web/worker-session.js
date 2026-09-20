@@ -2,6 +2,11 @@ import { createProject,loadProject,serializeProject } from '../src/project.js';
 import { createHistory } from '../src/history.js';
 import { projectView,exportView } from '../src/project-view.js';
 import { buildProject } from '../src/encoder.js';
+import { isProjectModified } from '../src/ingestion-state.js';
+import { referenceView,exportReferences } from '../src/import-view.js';
+import { reconcile,setImportPolicy,resolveImport } from '../src/reconcile.js';
+import { parseCsv } from '../src/import-csv.js';
+import { parseGeoJson } from '../src/import-geojson.js';
 
 export function createWorkerSession(){
   let history=null,sessionId=null,queue=Promise.resolve(),cached=null;
@@ -9,7 +14,7 @@ export function createWorkerSession(){
     if(cached?.revision===history.revision)return cached;
     const view=await projectView(history.current);
     cached={revision:history.revision,view,canUndo:history.canUndo,canRedo:history.canRedo,
-      modified:view.records.some(r=>r.changed),projectJson:await serializeProject(history.current)};
+      modified:isProjectModified(history.current),references:referenceView(history.current),projectJson:await serializeProject(history.current)};
     return cached;
   }
   async function execute({kind,payload={},sessionId:id}){
@@ -19,6 +24,21 @@ export function createWorkerSession(){
       history=createHistory(p);sessionId=id;cached=null;return snapshot();
     }
     if(!history || id!==sessionId)throw Object.assign(new Error('No active document'),{code:'NO_DOCUMENT'});
+    if(['import','parse-import','import-policy','import-resolve'].includes(kind)){
+      if(payload.expectedRevision!==history.revision)throw Object.assign(new Error('Import revision changed'),{code:'STALE_IMPORT'});
+      if(kind==='parse-import'){
+        const parser=payload.format==='csv'?parseCsv:payload.format==='geojson'?parseGeoJson:null;
+        if(!parser)throw Object.assign(new Error('Unsupported import format'),{code:'INVALID_IMPORT'});
+        return parser(payload.text,payload.source,payload.retrievedAt);
+      }
+      if(kind==='import'){
+        const result=await reconcile(history.current,payload.batch);history.commit(result.project);
+        return {snapshot:await snapshot(),summary:result.summary};
+      }
+      history.commit(kind==='import-policy'?setImportPolicy(history.current,payload.policy):await resolveImport(history.current,payload.resolution));
+      return snapshot();
+    }
+    if(kind==='export-references')return {revision:history.revision,text:exportReferences(history.current),mime:'application/geo+json',filename:'mivue-references.geojson'};
     if(kind==='apply')history.apply(payload.operation);
     else if(kind==='undo')history.undo();
     else if(kind==='redo')history.redo();

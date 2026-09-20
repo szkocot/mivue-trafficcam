@@ -1,4 +1,5 @@
 import { validateProject } from './project.js';
+import { referenceView } from './import-view.js';
 
 export const hasPosition = r => Number.isFinite(r.latitude) && Number.isFinite(r.longitude)
   && Math.abs(r.latitude) <= 90 && Math.abs(r.longitude) <= 180;
@@ -6,6 +7,11 @@ export const hasPosition = r => Number.isFinite(r.latitude) && Number.isFinite(r
 /** A view of an editable draft, deliberately independent of binary build eligibility. */
 export async function projectView(project) {
   const { baseline, originals, entries } = await validateProject(project);
+  const sourcesByRecord=new Map();
+  for(const o of referenceView(project))if(o.recordId){
+    if(!sourcesByRecord.has(o.recordId))sourcesByRecord.set(o.recordId,[]);
+    sourcesByRecord.get(o.recordId).push(o);
+  }
   const byOffset = new Map();
   for (const d of baseline.diagnostics) {
     if (!byOffset.has(d.offset)) byOffset.set(d.offset, []);
@@ -23,7 +29,7 @@ export async function projectView(project) {
       changed:entry.sourceOffset === null || entry.deleted || Boolean(e.linkResolution)
         || ('latitude' in e && e.latitude !== original.latitude) || ('longitude' in e && e.longitude !== original.longitude)
         || (e.rawBytes16To19?.some((b,i)=>b !== original.rawBytes16To19[i]) ?? false),
-      provenance:structuredClone(entry.provenance), diagnostics:[...(byOffset.get(entry.sourceOffset) ?? [])] };
+      provenance:structuredClone(entry.provenance),sourceObservations:sourcesByRecord.get(entry.id)??[], diagnostics:[...(byOffset.get(entry.sourceOffset) ?? [])] };
     const warn = code => r.diagnostics.push({code,scope:'current',recordId:r.id});
     if (!entry.deleted) {
       if (!hasPosition(r)) warn('INVALID_COORDINATE');

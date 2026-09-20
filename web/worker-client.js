@@ -17,7 +17,8 @@ export function createWorkerClient({workerFactory=()=>new Worker(new URL('./work
         if(m.sessionId!==sessionId || id!==sessionId)return;
         const p=requests.get(m.requestId);if(!p)return;requests.delete(m.requestId);
         if(m.ok){
-          if(m.result?.projectJson && (!snapshot || snapshot.sessionId!==id || m.result.revision>=snapshot.revision))snapshot={...m.result,sessionId:id};
+          const next=m.result?.snapshot??m.result;
+          if(next?.projectJson && (!snapshot || snapshot.sessionId!==id || next.revision>=snapshot.revision))snapshot={...next,sessionId:id};
           p.resolve(m.result);
         }else p.reject(Object.assign(new Error(m.error.message),m.error));
       };
