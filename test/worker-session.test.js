@@ -72,3 +72,11 @@ test('client tracks import snapshots nested with summaries',async()=>{
  const pending=client.request('import',{});w.onmessage({data:{...w.sent,ok:true,result:{snapshot:{revision:1,projectJson:'imported'},summary:{added:0}}}});
  await pending;assert.equal(client.snapshot.projectJson,'imported');client.close();
 });
+test('initial template selection and batch commit form one undo transaction',async()=>{
+ const worker=createWorkerSession();let n=0;const req=(kind,payload={})=>worker.handle({sessionId:'policy',requestId:++n,kind,payload});
+ const p=(await req('open-bin',{bytes:makeFixture([{}]).bytes})).result;
+ const batch=makeImportBatch(),policy={namespace:'example',kind:'camera',templateId:p.view.records[0].id};
+ const imported=await req('import',{batch,policies:[policy],expectedRevision:0});
+ assert.equal(imported.ok,true);assert.equal(imported.result.snapshot.view.records.length,2);assert.equal(imported.result.snapshot.revision,1);
+ assert.equal((await req('undo')).result.references.length,0);
+});

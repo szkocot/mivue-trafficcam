@@ -1,3 +1,4 @@
+import {metadataRows,speedLabel,safeSourceUrl} from '../src/source-metadata.js';
 export function parseCoordinate(text,limit){
  const value=text.trim();if(!/^[+-]?\d+(?:[.,]\d+)?$/.test(value))throw Error('invalidCoordinate');
  const n=Number(value.replace(',','.'));if(!Number.isFinite(n)||Math.abs(n)>limit)throw Error('invalidCoordinate');return n;
@@ -6,7 +7,7 @@ export function parseRawBytes(text){
  if(!/^\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*\d+\s*$/.test(text))throw Error('invalidBytes');
  const bytes=text.split(',').map(Number);if(bytes.some(n=>!Number.isInteger(n)||n<0||n>255))throw Error('invalidBytes');return bytes;
 }
-export function createDetails(element,{onApply,onOperation,onPick,t}){
+export function createDetails(element,{onApply,onOperation,onPick,onResolve,t}){
  let record=null,dirty=false,fields={},error;
  const el=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
  function input(parent,key,value){const label=el('label',t(key)),field=el('input');field.value=value??'';field.oninput=()=>{dirty=true;};label.append(field);parent.append(label);fields[key]=field;return field;}
@@ -29,6 +30,27 @@ export function createDetails(element,{onApply,onOperation,onPick,t}){
  function render(values){
   element.replaceChildren();fields={};if(!record){element.append(el('p',t('select')));return;}
   element.append(el('h2',t('details')));const id=el('p',record.id);id.dataset.testid='selected-id';element.append(id);
+  const refs=record.reference?[record]:record.sourceObservations??[];
+  element.append(el('p',speedLabel(refs,t)));
+  for(const ref of refs){
+   const section=el('section');section.className='source-metadata';
+   for(const [label,value] of metadataRows(ref,t)){section.append(el('strong',label),el('pre',value));}
+   for(const url of new Set([ref.url,ref.sourceUrl].map(safeSourceUrl).filter(Boolean))){const link=el('a',t('sourceLink'));link.href=url;link.target='_blank';link.rel='noopener noreferrer';section.append(link);}
+   element.append(section);
+  }
+  if(record.reference){
+   for(const code of record.codes??[])element.append(el('p',t(code)));
+   if(!record.recordId&&onResolve){
+    const resolution=action=>({namespace:record.namespace,sourceId:record.sourceId,action});
+    button(element,'keepReference',()=>onResolve(resolution('reference')));
+    if(record.geometry.type==='Point'&&['camera','red-light'].includes(record.kind)){
+     const label=el('label',t('bindRecord')),target=el('input');label.append(target);element.append(label);
+     button(element,'bindReference',()=>onResolve({...resolution('bind'),recordId:target.value.trim()}));
+     button(element,'distinctReference',()=>onResolve(resolution('add-distinct')));
+    }
+   }
+   return;
+  }
   input(element,'latitude',record.latitude);input(element,'longitude',record.longitude);
   button(element,'apply',apply).id='apply';button(element,'cancel',()=>{dirty=false;render();onPick(false);});button(element,'pick',()=>onPick(true));
   error=el('p');error.className='error';error.setAttribute('role','alert');element.append(error);
@@ -46,7 +68,7 @@ export function createDetails(element,{onApply,onOperation,onPick,t}){
   if(values)for(const [key,value] of Object.entries(values))if(fields[key])fields[key].value=value;
  }
  return {select(r){record=r;dirty=false;render();},hasDraft:()=>dirty,apply,discardDraft(){dirty=false;render();onPick(false);},
-  setPickedLocation(lat,lon){if(record){fields.latitude.value=lat.toFixed(7);fields.longitude.value=lon.toFixed(7);dirty=true;}},
+  setPickedLocation(lat,lon){if(record&&!record.reference){fields.latitude.value=lat.toFixed(7);fields.longitude.value=lon.toFixed(7);dirty=true;}},
   setLanguage(){const values=Object.fromEntries(Object.entries(fields).map(([k,v])=>[k,v.value]));render(values);},
   setBusy(v){for(const e of element.querySelectorAll('input,button')){if(v){e.dataset.wasDisabled=String(e.disabled);e.disabled=true;}else if('wasDisabled'in e.dataset){e.disabled=e.dataset.wasDisabled==='true';delete e.dataset.wasDisabled;}}}
  };

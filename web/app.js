@@ -10,10 +10,14 @@ import { createDetails } from './details.js';
 import { createExportDialog } from './export-dialog.js';
 import { downloadBlob,releaseDownloads } from './downloads.js';
 import { createLocation } from './location.js';
+import { createImportDialog } from './import-dialog.js';
+import { renderImportResults } from './import-results.js';
+import { createMetadataOptions } from './metadata-options.js';
 const $=id=>document.getElementById(id);
 let preference;try{preference=localStorage;}catch{}
 const i18n=createI18n({storage:preference}),t=(key,params)=>i18n.t(key,params),client=createWorkerClient();
 let state=null,selectedId=null,page=1,bounds=null,source=null,sourceInfo=null,sourceStatus='checking',saveStatus='notSaved',operation='ready',intent=0,recovery=null,recoveryBlocked=false,busy=false;
+let referencePage=1,importSummary=null;
 const unavailable={getCache:async()=>null,getWorking:async()=>null,putCache:async()=>{throw Error('STORAGE_UNAVAILABLE');},putWorking:async()=>{throw Error('STORAGE_UNAVAILABLE');}};
 let store=unavailable,cache,resolveStorage;
 const storageReady=new Promise(resolve=>{resolveStorage=resolve;});
@@ -37,9 +41,24 @@ function renderLocation(){
  }
  $('location-status').textContent=message;
 }
-const details=createDetails($('details'),{onApply:operation=>mutate('apply',{operation}),onOperation:async operation=>{if(await guardDraft())await mutate('apply',{operation});},onPick:value=>map.setPickMode(value),t});
+const details=createDetails($('details'),{onApply:operation=>mutate('apply',{operation}),onOperation:async operation=>{if(await guardDraft())await mutate('apply',{operation});},onResolve:resolution=>mutate('import-resolve',{resolution,expectedRevision:state.revision}),onPick:value=>map.setPickMode(value),t});
 const exportElement=document.createElement('dialog');document.body.append(exportElement);
 const exportsUI=createExportDialog(exportElement,{client,getIdentity:()=>({sessionId:client.sessionId,revision:state?.revision}),t,onSelect:select,onBusy:setBusy});
+const metadataOptions=createMetadataOptions({storage:preference,t,onChange:values=>map.setDisplayOptions(values)});
+let importIdentity=null;
+const importsUI=createImportDialog({t,storage:preference,onImport:async(payload,isCurrent,committing)=>{
+ const identity=importIdentity,ticket=intent;
+ if(!identity||identity.sessionId!==client.sessionId||identity.revision!==state?.revision)throw Object.assign(Error('Stale import'),{code:'STALE_IMPORT'});
+ setBusy(true);
+ try{
+  const batch=await client.request('parse-import',{...payload,expectedRevision:identity.revision});
+  if(!isCurrent()||ticket!==intent)return;
+  committing();
+  const result=await client.request('import',{batch,policies:payload.policies,expectedRevision:identity.revision});
+  if(ticket!==intent)return;
+  importSummary=result.summary;accept(result.snapshot,{save:result.snapshot.revision!==state.revision,preserveSelection:true});
+ }finally{if(ticket===intent){busy=false;details.setBusy(false);render();}}
+}});
 function setBusy(value){busy=value;operation=value?'busy':'ready';details.setBusy(value);render();}
 function choice(message,options){
  return new Promise(resolve=>{
@@ -69,12 +88,15 @@ function recover(){if(recovery)downloadBlob({bytes:JSON.stringify(recovery,null,
 function translate(){
  document.documentElement.lang=i18n.language;
  map.setLanguage(t);
+ metadataOptions.setLanguage();
  for(const el of document.querySelectorAll('[data-i18n]'))el.textContent=t(el.dataset.i18n);
  $('file').setAttribute('aria-label',t('open'));$('map').setAttribute('aria-label',t('map'));
  $('pl').setAttribute('aria-pressed',i18n.language==='pl');$('en').setAttribute('aria-pressed',i18n.language==='en');
  $('tile-status').textContent=t('tileFailure');$('recovery').textContent=t(recoveryBlocked&&!recovery?'workingReadFailed':'recovery');details.setLanguage();renderLocation();render();
 }
 function filtered(){return state?filterView(state.view,{query:$('search').value,viewport:$('viewport').checked?bounds:null,warningsOnly:$('warnings').checked,changedOnly:$('changed').checked,showDeleted:$('deleted').checked,typeRaw:$('type').value}):[];}
+function references(){return (state?.references??[]).filter(r=>!r.encoded).map(r=>({...r,reference:true,longitude:r.geometry.type==='Point'?r.geometry.coordinates[0]:r.geometry.coordinates[0][0],latitude:r.geometry.type==='Point'?r.geometry.coordinates[1]:r.geometry.coordinates[0][1]}));}
+function findRecord(id){return state?.view.records.find(r=>r.id===id)??references().find(r=>r.id===id);}
 function render(){
  const records=filtered();$('record-count').textContent=state?.view.records.filter(r=>!r.deleted).length??0;
  $('result-count').textContent=records.length;$('changes').textContent=state?.view.records.filter(r=>r.changed).length??0;
@@ -85,24 +107,29 @@ function render(){
  $('filename').textContent=state?.view.source.name??'MiVue 955W · EU';$('use-source').disabled=!source||busy;
  $('operation-cancel').hidden=!busy;
  $('save').disabled=!state;$('exports').disabled=!state||busy;
+ $('import').disabled=!state||busy;
  $('undo').disabled=!state?.canUndo||busy;$('redo').disabled=!state?.canRedo||busy;$('discard').disabled=!state||busy;
  renderRecordList($('record-list'),{records,page,selectedId,onSelect:select,onPage:p=>{page=p;render();},t});
+ const refs=references();
+ renderRecordList($('reference-list'),{records:refs,page:referencePage,selectedId,onSelect:select,onPage:p=>{referencePage=p;render();},t,reference:true});
+ renderImportResults($('import-summary'),importSummary,{t});map.setReferenceLayers(refs);
  map.render(records,selectedId);
 }
 async function select(id){
  if(busy || !await guardDraft())return;
  selectedId=id;const records=filtered(),index=records.findIndex(r=>r.id===id);if(index>=0)page=Math.floor(index/100)+1;
- const record=state.view.records.find(r=>r.id===id);map.center(record);
+ const record=findRecord(id);if(!record)return;map.center(record);
  details.select(record);render();
 }
 function accept(result,{save=true,preserveSelection=false}={}){
  state=result;if(!preserveSelection){selectedId=null;page=1;}exportsUI.invalidate();map.setPickMode(false);
- details.select(result.view.records.find(r=>r.id===selectedId)??null);
+ details.select(findRecord(selectedId)??null);importsUI.sync(result);
  if(save)autosave.save({sessionId:client.sessionId,revision:result.revision,projectJson:result.projectJson,sourceInfo}).catch(()=>{});
  render();
 }
 async function open(kind,payload,{ticket=++intent,save=true,info=null}={}){
  locationController.clear();
+ importSummary=null;referencePage=1;
  const previous=state;setBusy(true);autosave.begin(`opening:${ticket}`);
  try{
   const result=await client.open(kind,payload);if(ticket!==intent)return;
@@ -147,6 +174,7 @@ async function check(options){if(!cache)return;const result=await cache.check(op
 $('check').onclick=()=>check();$('force-source').onclick=()=>check({force:true});$('source-cancel').onclick=()=>cache?.cancel();
 $('use-source').onclick=async()=>{if(source&&await guardReplace())await open('open-bin',{bytes:source.bytes,name:'Speedcam_Data_FEU.bin'},{info:source.source}).catch(()=>{});};
 $('save').onclick=saveProject;$('exports').onclick=()=>exportsUI.open();$('recover').onclick=recover;
+$('import').onclick=async()=>{if(!busy&&state&&await guardDraft()){importIdentity={sessionId:client.sessionId,revision:state.revision};importsUI.open(state);}};
 for(const kind of ['undo','redo'])$(kind).onclick=async()=>{if(await guardDraft())await mutate(kind);};
 $('discard').onclick=async()=>{if(!busy&&confirm(t('discardConfirm')))await mutate('reset');};
 window.addEventListener('beforeunload',event=>{if(details.hasDraft()||['saving','saveFailed'].includes(saveStatus)){event.preventDefault();event.returnValue='';}});

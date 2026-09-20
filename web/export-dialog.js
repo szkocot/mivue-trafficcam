@@ -11,6 +11,7 @@ export function createExportDialog(element,{client,getIdentity,t,onSelect=()=>{}
   for(const [key,format] of [['project','project'],['dataJson','json'],['geojson','geojson'],['csv','csv']])add(key,async()=>{
    const identity=getIdentity();try{const result=await client.request('export',{format});if(same(identity,getIdentity()))downloadBlob({bytes:result.text,mime:result.mime,filename:result.filename});}catch(e){showError(e);}
   });
+  add('referenceExport',async()=>{const identity=getIdentity();try{const result=await client.request('export-references');if(same(identity,getIdentity()))downloadBlob({bytes:result.text,mime:result.mime,filename:result.filename});}catch(e){showError(e);}});
   function showError(e){error.hidden=false;error.replaceChildren(el('p',t(e.code??'failed')));const details=el('details');details.append(el('summary',t('technical')),el('pre',e.message??''));error.append(details);
    const recordIds=new Set([e.recordId,...(e.issues??[]).map(issue=>issue.recordId)].filter(Boolean));
    for(const id of recordIds){const b=el('button',id);b.onclick=()=>{element.close();onSelect(id);};error.append(b);}}

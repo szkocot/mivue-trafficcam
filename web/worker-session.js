@@ -32,7 +32,16 @@ export function createWorkerSession(){
         return parser(payload.text,payload.source,payload.retrievedAt);
       }
       if(kind==='import'){
-        const result=await reconcile(history.current,payload.batch);history.commit(result.project);
+        let candidate=history.current;
+        if(payload.policies?.length){
+          if(!Array.isArray(payload.policies)||payload.policies.length>2)throw Object.assign(new Error('Invalid policies'),{code:'INVALID_IMPORT'});
+          candidate=(await reconcile(candidate,{...payload.batch,observations:[]})).project;
+          for(const policy of payload.policies){
+            if(policy.namespace!==payload.batch.source.namespace)throw Object.assign(new Error('Policy namespace mismatch'),{code:'INVALID_IMPORT'});
+            candidate=setImportPolicy(candidate,policy);
+          }
+        }
+        const result=await reconcile(candidate,payload.batch);history.commit(result.project);
         return {snapshot:await snapshot(),summary:result.summary};
       }
       history.commit(kind==='import-policy'?setImportPolicy(history.current,payload.policy):await resolveImport(history.current,payload.resolution));

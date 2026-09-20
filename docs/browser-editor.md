@@ -36,3 +36,24 @@ Choose **Locate me / Moja lokalizacja** above the map to request a single browse
 Use **Cancel location request** while waiting, or **Clear location** to remove the fix. Retry is always explicit. Failed retries retain the previous fix, labelled as such. Opening another file or reloading clears location. HTTPS or a trusted localhost preview is required; denied/unavailable location does not prevent manual map use.
 
 Location is held in memory only, not included in saved projects, autosave, exports, URLs or application logs. Browser/OS location providers may process the position, and centring the map requests tiles for that area. Clear does not revoke browser permission; use browser settings for that. No tracking, reverse geocoding or navigation is provided.
+
+## Importing source observations
+
+Open a BIN/project first. Choose **Import / Importuj**, enter a stable source namespace and attribution (remembered locally), and select CSV or GeoJSON. File selection starts a validated, automatic merge. IDs identify updates within that namespace; proximity only suggests duplicates. Invalid batches change nothing. Undo reverses the whole import. Manual coordinate edits and deletions stay protected, including after project save/reopen.
+
+Example CSV (UTF-8, decimal dots):
+
+```csv
+id,latitude,longitude,kind,status,speed,speed_unit,name
+camera-a,52.1,19.1,camera,active,50,km/h,Example camera
+```
+
+GeoJSON FeatureCollection accepts Point and section LineString geometries, WGS84 longitude/latitude, Feature.id (or properties.id), and the same property fields. A supplied speed requires units; omitted values remain unknown. Extra properties survive as metadata. Limits: 20 MiB, 100,000 features, 1,000 vertices per section, 64 KiB metadata per feature, 256 characters per ID/namespace.
+
+No template means reference-only. To enable automatic BIN additions for a supported kind, copy the ID of an original non-linked raw-type 1/3/5 record into the template field and acknowledge its unverified raw fields. That source/kind policy persists. Only active points can be added; source speed, direction and labels are never converted into raw bytes. Possible duplicates remain references unless explicitly associated with an existing record or added as distinct using a configured policy. Association alone does not move existing coordinates. Sections never generate new MiVue endpoint links.
+
+Purple markers/lines and the separate reference table represent unencoded observations; bound observations appear in their BIN record's details instead of duplicate markers. Source geometry and inferred BIN links are not verified road routes. The reference table has its own 100-row pagination. Existing filters apply to BIN records, not source observations. **Reference GeoJSON** exports all source observations separately, with attribution and encoding status; regular exports retain their active-BIN-record scope. Displayed speed is source-reported, not proof of device encoding.
+
+Speed-limit and metadata label switches are independent, off by default, remembered locally and absent from project history. Individual visible points can show labels; aggregates cannot. Collision suppression caps labels at 200 per frame. Selected details always include available source data, original units and unknown values. Source links are restricted to HTTP(S); all source strings are rendered as text.
+
+Live CANARD import is disabled with a documented CORS blocker; the four enforcement/control-point categories remain planned. See [access evidence](source-access.md). No proxy or live-video source is supplied.

@@ -1,8 +1,8 @@
 import { mkdir,copyFile,readdir,unlink } from 'node:fs/promises';
 import { dirname,resolve } from 'node:path';
 const root=resolve(import.meta.dirname,'..'),dist=resolve(root,'dist');
-const core=['parser','spatial','project','encoder','sources','project-view','history','view-filter','ingestion-state','import-normalize','import-view','import-csv','import-geojson','import-spatial','reconcile'];
-const web=['app','map','record-list','i18n','storage','source-cache','autosave','worker','worker-session','worker-client','details','downloads','export-dialog','location'];
+const core=['parser','spatial','project','encoder','sources','project-view','history','view-filter','ingestion-state','import-normalize','import-view','import-csv','import-geojson','import-spatial','reconcile','source-metadata'];
+const web=['app','map','record-list','i18n','storage','source-cache','autosave','worker','worker-session','worker-client','details','downloads','export-dialog','location','import-dialog','import-results','import-sources','metadata-options'];
 const files=[['web/index.html','index.html'],['web/styles.css','web/styles.css'],
  ...core.map(n=>[`src/${n}.js`,`src/${n}.js`]),...web.map(n=>[`web/${n}.js`,`web/${n}.js`]),
  ...['en','pl'].map(n=>[`web/locales/${n}.js`,`web/locales/${n}.js`]),
