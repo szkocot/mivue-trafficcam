@@ -1,6 +1,6 @@
 # CANARD public-array inventory — 2026-09-20
 
-This is an observed schema, not an official API contract. No dataset has been republished. The approved four-category snapshot cannot yet pass its completeness gate: the PK value contains no usable records. See [reuse/access assessment](source-access.md) and [review configuration](../config/canard-review.json).
+This is an observed schema, not an official API contract. No dataset has been republished. The user approved three usable categories with PK explicitly unavailable; the exact known PK placeholder maps to null and any change requires schema review. See [reuse/access assessment](source-access.md) and [review configuration](../config/canard-review.json).
 
 ## Evidence
 
@@ -33,10 +33,10 @@ No speed limit, operational status, direction, place name or live-video feed is 
 
 The public client calls `LZString.decompressFromBase64` on every category, including PK. With the observed literal `[{}]`, the pinned decoder returns an empty string; the client's feature reader only parses nonempty decoded input. This explains an absent layer but does not establish an authoritative empty dataset. Interpreting the literal as JSON instead gives one object with no ID or coordinates—also unusable.
 
-Do not invent an ID, copy a synthetic control point, or label this as verified zero records. Production configuration leaves PK descriptors/count null and `publicationApproved:false`. Continuing to publication requires either usable PK evidence or user approval of a revised design that explicitly publishes the three available categories and labels PK unavailable. No contact with GITD has been made.
+Do not invent an ID, copy a synthetic control point, or label this as verified zero records. Production configuration leaves PK descriptors/count null and `publicationApproved:false` pending initial candidate review. The user approved the revised three-category design; actual PK ingestion remains gated on usable evidence. No contact with GITD has been made.
 
 ## Decoder and retrieval
 
-Pinned dependency: [lz-string 1.5.0](https://github.com/pieroxy/lz-string/tree/1.5.0), MIT, copyright pieroxy. Exact package integrity is locked in `package-lock.json`. Its upstream `_decompress` has no incremental output-size limit. Research decoded known local inputs in a memory-limited process; unattended decoding must first gain the bounded wrapper required by Task 2. Installing the dependency does not satisfy that gate.
+Pinned dependency: [lz-string 1.5.0](https://github.com/pieroxy/lz-string/tree/1.5.0), MIT, copyright pieroxy. Exact package integrity is locked in `package-lock.json`. Its upstream `_decompress` has no incremental output-size limit. The production adapter instead uses `src/canard-decode.js`, an attributed adaptation with incremental output/dictionary budgets, strict compressed-input validation and a final UTF-8 byte limit. Tests cover Unicode, truncated streams and expansion bombs; the inspected live capture normalizes to 806 records without running downloaded scripts. The upstream package is used to build test fixtures.
 
 The tested Node retrieval boundary uses identified public GETs with no credentials, strict same-resource HTTPS redirects, 20 MiB response bounds, 30-second request timeouts, a 120-second total budget, at most two transient retries and Retry-After handling. It extracts/hash-checks no dataset itself: its private result feeds a future, separately gated adapter/publisher. No response HTML is shipped by the website build.

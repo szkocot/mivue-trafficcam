@@ -1,7 +1,8 @@
 {
   "version": 1,
   "publicationApproved": false,
-  "publicationBlockers": ["PK_UNAVAILABLE", "INITIAL_CANDIDATE_NOT_REVIEWED"],
+  "publicationBlockers": ["INITIAL_CANDIDATE_NOT_REVIEWED"],
+  "unavailableCategoryPolicy": {"PK":{"exactLiteral":"[{}]","count":null,"userApproved":true}},
   "termsSha256": "1f6e8f2f7daf6edbd2654668b1af4d7fb82d8c47ac703cc9fb087115a541f3da",
   "robotsSha256": "1a64ba72fb329dda8e1b4cada84d07776d28b86e3a4fc4df7e4d6688195b77bf",
   "fieldsByCategory": {
@@ -47,7 +48,7 @@
       "RL":"ed7ff17695824b8576181a61f26f827818092c56d21664c72933787c16d213b7"
     }
   },
-  "decoder": {"package":"lz-string","version":"1.5.0","licence":"MIT","productionBoundedDecodingImplemented":false},
+  "decoder": {"package":"lz-string","version":"1.5.0","licence":"MIT","productionBoundedDecodingImplemented":true},
   "notices": {
     "attribution":"GITD / CANARD",
     "sourceUrl":"https://www.canard.gitd.gov.pl/cms/en/mapa-urzadzen",

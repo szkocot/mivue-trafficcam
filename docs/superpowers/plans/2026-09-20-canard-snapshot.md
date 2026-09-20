@@ -12,6 +12,8 @@
 
 ## Global Constraints
 
+- User-approved coverage amendment: PP/OPP/RL are usable; exact upstream PK string `[{}]` maps to null/unavailable, never `[]` or zero. Require the PK property and stop for review if its value changes. Task 2 fixtures contain three records and PK null; Task 3 snapshot coverage and manifest counts retain PK null; Task 6 displays the unavailable category in PL/EN. This supersedes original four-usable-layer wording below.
+
 - “Bulk object-detail requests are disabled in this increment.”
 - “Newly encountered fields or changed schema/terms stop publication for review rather than being copied blindly.”
 - “Use a 30-second request timeout, at most two retries for transient transport/5xx failures, and backoff.”

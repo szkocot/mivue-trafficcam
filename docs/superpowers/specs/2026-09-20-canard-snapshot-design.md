@@ -4,6 +4,10 @@ Date: 2026-09-20. Status: written spec and plan approved; native implementation 
 
 ## Intent and scope
 
+### Approved coverage amendment
+
+The user approved proceeding with PP, OPP and RL after the PK finding. This amendment supersedes the original requirement for four usable arrays: require all four source properties, but accept only the exact reviewed PK placeholder string `[{}]` as **unavailable**, represented by null (not an empty array or zero count). Missing PK, a changed placeholder or newly populated PK data stops publication for schema review. The manifest and UI must disclose `PK: null` / control-point data unavailable. No PK observations are invented. All other legal, identity, validation and release gates remain in force.
+
 Make CANARD's public enforcement-camera information available in the bilingual MiVue 955W toolbox without requiring browsers to fetch CANARD directly. Cover point speed cameras, section enforcement (OPP), red-light cameras and control points. Preserve as much verified, legally reusable metadata as possible. Download a snapshot once, then only when its content changes. Merge through the existing import engine without overwriting manual edits or resurrecting deleted records.
 
 This increment provides the public-map snapshot pipeline, same-origin browser cache, source integration, attribution and tests. Additional device-detail enrichment remains a gated follow-up within the CANARD roadmap. Country filtering, other websites, firmware research, new OPP BIN encoding and hardware compatibility certification are not part of this increment. Existing Mio loading remains separate and unchanged.
