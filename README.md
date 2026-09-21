@@ -10,6 +10,8 @@ The intended scope includes fixed speed cameras and section-based average-speed 
 
 ## Status
 
+Country-export task 5 adds PL/EN export-only country selection, uncertainty decisions, linked-endpoint acknowledgement, 100-row previews, boundary retry/cancellation and scoped downloads. **Full project backups are never country-filtered.** Reports retain boundary and source notices. Nine new browser cases cover downloads, immutable backups, both link directions, cancellation, stale responses and keyboard/mobile use. Verification: 234 Node tests pass (one private-sample skip), 60 browser tests pass (two skips), static build and diff checks pass. This is still a feature-branch implementation; real-data performance, final review and release verification remain pending. Points 3, 4 and 6 remain open.
+
 The [remaining-work checklist](docs/todo.md) tracks CANARD activation, country selection, additional sources/metadata, binary research, MiVue 955W testing and PL/EN/browser polish. The user authorized points 1–4 and 6 on 2026-09-20, including CANARD publication; hardware testing remains out of scope.
 
 Country exports: the design and [six-task implementation plan](docs/superpowers/plans/2026-09-20-country-export.md) are approved for native execution. Task 1 adds pinned, public-domain country boundaries and fail-closed artifact validation (213 Node tests pass, one private-sample skip). [Boundary evidence](docs/country-boundaries.md). Classification, export selection and UI are still in progress on the feature branch; no country-export feature is released yet. Full backups, complete linked OPP sections, attribution and existing BIN safeguards remain required.

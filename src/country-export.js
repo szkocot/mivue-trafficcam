@@ -47,7 +47,7 @@ export function createCountryExportController({loadData}){
  return {invalidate,
   async preview(args){
    current=null;const start=epoch,ctx=await context(args);checkSignal(args.signal);if(start!==epoch)countryFail('COUNTRY_PREVIEW_STALE');
-   const preview=selectCountries({...ctx,options:args.options});preview.boundaryNotice=structuredClone(data.notice);
+   const preview=selectCountries({...ctx,options:args.options});preview.boundaryNotice=structuredClone(data.notice);preview.sourceNotices=projectNotices(args.project);
    const token=crypto.randomUUID();current={sessionId:args.sessionId,revision:args.revision,generation:args.generation,token,options:structuredClone(args.options)};
    return {revision:args.revision,generation:args.generation,token,preview};
   },

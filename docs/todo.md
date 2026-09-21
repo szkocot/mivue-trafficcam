@@ -25,6 +25,8 @@ Task 3 pure selection engine implemented/tested: whole linked components in eith
 
 Task 4 scoped exports/worker integration tested (234 Node pass/one private skip): immutable project/history, reparsed reduced synthetic BINs, unchanged safety blockers, attribution, stale-token rejection and cancellation. UI and real-data release verification remain pending.
 
+Task 5 PL/EN UI implemented on the feature branch: export-only country scope, explicit uncertainty decisions, endpoint acknowledgement, paginated previews, cancellation/retry and stale-download guards. Verification: 234 Node pass/one skip, 60 browser pass/two skips, build/diff checks pass. Real-data benchmarks, final review and release checks remain pending; boxes below stay open until that gate.
+
 - [ ] Let users select one or more countries for a reduced export, separately from map display filters.
 - [x] Use a versioned boundary dataset with verified reuse terms and attribution — pinned Natural Earth 5.1.1; see [evidence](country-boundaries.md).
 - [ ] Define handling for border points, unknown/invalid coordinates and cross-border OPP before implementation.

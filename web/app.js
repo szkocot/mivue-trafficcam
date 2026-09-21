@@ -128,6 +128,7 @@ async function guardReplace(){
 }
 function recover(){if(recovery)downloadBlob({bytes:JSON.stringify(recovery,null,2),mime:'application/json',filename:'mivue-recovery.json'});}
 function translate(){
+ exportsUI.invalidate();
  document.documentElement.lang=i18n.language;
  map.setLanguage(t);
  metadataOptions.setLanguage();

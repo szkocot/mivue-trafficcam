@@ -1,4 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {createCountryExportController} from '../src/country-export.js';
 import {createProject,serializeProject,applyEdit} from '../src/project.js';
 import {parseDatabase} from '../src/parser.js';
@@ -45,8 +46,11 @@ test('invalid coordinates remain exportable as diagnostics but not a country BIN
 test('reference scope preserves geometry and attribution without changing backup',async()=>{
  const project=await createProject(makeFixture([{}]).bytes),batch=makeImportBatch();
  batch.observations[0].geometry={type:'Point',coordinates:[-7,37]};
- const imported=(await reconcile(project,batch)).project,before=await serializeProject(imported),c=await controller(),p=await prepare(imported,c);
+ const imported=(await reconcile(project,batch)).project;
+ imported.ingestion.sources[0].notices=JSON.parse(await readFile(new URL('../config/canard-review.json',import.meta.url),'utf8')).notices;
+ const before=await serializeProject(imported),c=await controller(),p=await prepare(imported,c);
  const args={project:imported,sessionId:'x',revision:0,generation:1,token:p.token};
+ assert.ok(p.preview.sourceNotices.length>0,'preview companion includes source notices before any export');
  const result=JSON.parse((await c.export({...args,format:'references'})).text);
  assert.equal(result.features.length,1);assert.deepEqual(result.features[0].geometry.coordinates,[-7,37]);assert.equal(result.features[0].properties.attribution,batch.source.attribution);
  assert.equal(result.exportSelection.boundaryNotice.licence,'Public domain');

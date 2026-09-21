@@ -41,7 +41,7 @@ test('deleted link target blocks binary but not project/data exports; report loc
  await page.getByTestId('record-row').nth(1).getByRole('button').click();await page.getByRole('button',{name:'Delete record',exact:true}).click();
  await page.getByRole('button',{name:'Export',exact:true}).click();await page.getByRole('button',{name:'Prepare binary',exact:true}).click();
  await expect(page.getByTestId('export-error')).toBeVisible();await expect(page.getByRole('button',{name:'Download validated binary',exact:true})).toBeDisabled();
- for(const label of ['Project JSON','Data JSON','GeoJSON','CSV']){const event=page.waitForEvent('download');await page.getByRole('button',{name:label,exact:true}).click();expect((await event).suggestedFilename()).toBeTruthy();}
+ for(const label of ['Full project backup — not country-filtered','Data JSON','GeoJSON','CSV']){const event=page.waitForEvent('download');await page.getByRole('button',{name:label,exact:true}).click();expect((await event).suggestedFilename()).toBeTruthy();}
  await page.getByRole('button',{name:'Close',exact:true}).click();await page.getByRole('button',{name:'PL',exact:true}).click();
  await page.getByRole('button',{name:'Eksportuj',exact:true}).click();await expect(page.getByText('Zgodność z urządzeniem: niesprawdzona. Używasz na własne ryzyko.',{exact:true})).toBeVisible();
 });
