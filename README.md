@@ -6,9 +6,11 @@ The intended scope includes fixed speed cameras and section-based average-speed 
 
 ## Website
 
-**[Open MiVue TrafficCam](https://szkocot.github.io/mivue-trafficcam/)** — published and live-browser verified on 2026-09-20. PL/EN, official database loading, local file editing/export, CSV/GeoJSON imports and hosted CANARD imports are available. CANARD contains 499 point-speed, 138 OPP and 169 red-light observations; control-point data is unavailable. Daily gated updates are enabled. Country filtering is not yet available. [Deployment workflow and safety notes](docs/deployment.md). **Use at your own risk; MiVue 955W device acceptance is untested.**
+**[Open MiVue TrafficCam](https://szkocot.github.io/mivue-trafficcam/)** — country exports published and live-browser verified on 2026-09-21. PL/EN, official database loading, local editing/export, CSV/GeoJSON imports and hosted CANARD imports are available. In **Export → Selected countries**, preview and review uncertainty/linked endpoints before downloading. Full project backups remain unfiltered; existing BIN safety blockers remain active. CANARD contains 499 point-speed, 138 OPP and 169 red-light observations; control-point data is unavailable. Daily gated updates are enabled. [Deployment workflow and safety notes](docs/deployment.md). **Use at your own risk; MiVue 955W device acceptance is untested.**
 
 ## Status
+
+**Released:** [Pages run 35622164123](https://github.com/szkocot/mivue-trafficcam/actions/runs/35622164123) deployed source `c8f3f99` with accepted CANARD data `3597190`. Local merged checks: 237 Node / 62 browser tests pass; CI: 236 Node / 60 browser pass (private sample and opt-in live-source checks skipped). Fresh public Chromium verified a reparsed reduced BIN, unchanged full backup, linked-endpoint acknowledgement, unsafe-BIN blocking, boundary/source notices, cache reuse, Polish controls and private-file 404s, without page errors. Backlog points 3, 4 and 6 remain open; data filenames still use stable dataset IDs. The notes below are historical task milestones, superseded by this release status.
 
 Country-export branch merged into `main` on 2026-09-21. Merged verification passes: 237 Node tests, 62 Chromium tests (one opt-in live-source skip), build and diff checks. Push/Pages verification is in progress; earlier feature-branch notes below are historical.
 

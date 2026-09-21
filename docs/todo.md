@@ -17,6 +17,8 @@ Published coverage: 499 point-speed, 138 OPP and 169 red-light observations. Con
 
 ## 2. Country selection — implementation
 
+Released and public-browser verified on 2026-09-21: [deployment 35622164123](https://github.com/szkocot/mivue-trafficcam/actions/runs/35622164123), source `c8f3f99`, accepted data `3597190`. All implementation/release boxes below are complete; subsequent paragraphs retain historical milestones. Deferred minor: ISO-friendly filenames. Points 3, 4 and 6 remain open.
+
 Merged into `main` on 2026-09-21 with 237 Node and 62 browser tests passing. Push/deployment verification is in progress.
 
 Implementation and independent review fixes are complete on `feat/country-export`: 237 Node / 62 browser tests pass, one opt-in live-source skip. Decision-only cancellation preserves completed classifications; review rows disclose coordinates, candidate countries, names and linked IDs. Deferred minor: filenames use stable dataset IDs rather than available ISO codes. Integration and public deployment verification remain pending; the historical task milestones below are retained as evidence.
@@ -38,7 +40,7 @@ Task 5 PL/EN UI implemented on the feature branch: export-only country scope, ex
 - [x] Define handling for border points, unknown/invalid coordinates and cross-border OPP before implementation.
 - [x] Preview kept, excluded and unresolved records; preserve linked OPP endpoints and the original project for recovery.
 - [x] Build and reparse the reduced BIN, or explain why unresolved links/header semantics prevent a safe build. Do not bypass existing encoder safeguards.
-- [ ] Integrate and deploy the country-export branch; verify the public artifact and fresh-browser workflows.
+- [x] Integrate and deploy the country-export branch; verify the public artifact and fresh-browser workflows.
 
 See [country-selection requirements](roadmap.md#shared-project-model).
 

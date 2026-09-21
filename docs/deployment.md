@@ -2,6 +2,14 @@
 
 Target: https://szkocot.github.io/mivue-trafficcam/
 
+## Country-export release — 2026-09-21
+
+[Run 35622164123](https://github.com/szkocot/mivue-trafficcam/actions/runs/35622164123) successfully deployed at 16:00:09 UTC. Source: `c8f3f99a4670da6662e9e735705f1d82ce8e8f81`; accepted CANARD data: `359719099d49e96bb4cb98fee0f3bc3a8213eb4b`; boundary SHA-256: `7c06a47b9d0eebf1e568a0492924a910832f77bf566dac82037c609d73c9802c`.
+
+CI passed 236 Node tests and 60 browser tests; the private sample and opt-in live-source checks were skipped. Local merged verification passed all 237 Node tests and 62 browser tests with only live-source skipped. Both build and deploy jobs succeeded; optional data-update jobs were correctly skipped for this code deploy.
+
+Fresh public Chromium verified the boundary hash/notice, reduced synthetic BIN reparse, unchanged backup, explicit border review, linked extras, blocked unknown-link BIN with usable GeoJSON, same-session boundary reuse, PL/EN and private sample/firmware/repository URLs returning 404. No page errors occurred. An initial smoke attempt during publication timed out waiting for the backup download; the post-deployment fresh runs passed. Own-risk/device and other-browser limitations remain. Earlier pending-release notes below are historical.
+
 Country-export post-review gate: both important findings fixed with RED→GREEN regressions; 237 Node and 62 Chromium tests pass, one opt-in live-source skip. Branch is ready for an integration decision; no merge, push or country-export deployment has been performed. The lower test counts below are earlier milestones.
 
 2026-09-21 status: the first observed scheduled CANARD run, [35581370719](https://github.com/szkocot/mivue-trafficcam/actions/runs/35581370719), completed successfully, including its deploy job (09:08:17 UTC), from source `9581acd7c73460685fefd4efc53f2dfad6d40af7`. This supersedes the earlier “first scheduled execution unobserved” milestone below. It does **not** include the country-export feature branch.
