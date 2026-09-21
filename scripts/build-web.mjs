@@ -8,6 +8,7 @@ const core=['parser','spatial','project','encoder','sources','project-view','his
 const web=['app','map','record-list','i18n','storage','source-cache','autosave','worker','worker-session','worker-client','details','downloads','export-dialog','location','import-dialog','import-results','import-sources','metadata-options','canard-cache','canard-sync'];
 const files=[['web/index.html','index.html'],['web/styles.css','web/styles.css'],
  ['src/country-data.js','src/country-data.js'],
+ ['src/country-classifier.js','src/country-classifier.js'],['web/country-cache.js','web/country-cache.js'],
  ...core.map(n=>[`src/${n}.js`,`src/${n}.js`]),...web.map(n=>[`web/${n}.js`,`web/${n}.js`]),
  ...['en','pl'].map(n=>[`web/locales/${n}.js`,`web/locales/${n}.js`]),
  ...['leaflet.js','leaflet.css','images/layers.png','images/layers-2x.png','images/marker-icon.png','images/marker-icon-2x.png','images/marker-shadow.png'].map(n=>[`node_modules/leaflet/dist/${n}`,`vendor/${n}`]),
