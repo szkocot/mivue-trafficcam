@@ -10,3 +10,7 @@ export async function packCountryData(countries){
  const manifest={schemaVersion:1,release:'5.1.1',path:'data/countries/countries.json',sha256:hash(body),byteLength:body.length,featureCount:countries.length,positionCount,sourceUrl:'https://example.test/countries',sourceCommit:'a'.repeat(40),sourceArchiveSha256:'b'.repeat(64),sourceGeoJsonSha256:'c'.repeat(64),noticePath:'data/countries/NOTICE.json',noticeSha256:hash(noticeBytes)};
  return {bytes:body,manifest,noticeBytes};
 }
+export function selectionFixture(){
+ const record=(id,typeRaw,linkTargetId=null)=>({id,typeRaw,linkTargetId,linkResolution:null,originalLinkRaw:linkTargetId?100:0,deleted:false,latitude:1,longitude:1,diagnostics:[]});
+ return {view:{records:[record('a',964,'b'),record('b',9128),record('c',1)]},references:[],classifications:new Map([['a',{status:'assigned',countryIds:['AA']}],['b',{status:'assigned',countryIds:['BB']}],['c',{status:'assigned',countryIds:['AA']}]]),boundary:{release:'5.1.1',sha256:'a'.repeat(64)},countryIds:['AA','BB']};
+}
