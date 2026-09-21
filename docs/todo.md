@@ -23,6 +23,8 @@ Task 2 classifier/lazy cache implemented: synthetic border/holes/islands/overlap
 
 Task 3 pure selection engine implemented/tested: whole linked components in either direction, no deleted-target resurrection, uncertainty review and whole source sections. Full suite226 pass/one private skip. Export integration and UI still pending.
 
+Task 4 scoped exports/worker integration tested (234 Node pass/one private skip): immutable project/history, reparsed reduced synthetic BINs, unchanged safety blockers, attribution, stale-token rejection and cancellation. UI and real-data release verification remain pending.
+
 - [ ] Let users select one or more countries for a reduced export, separately from map display filters.
 - [x] Use a versioned boundary dataset with verified reuse terms and attribution — pinned Natural Earth 5.1.1; see [evidence](country-boundaries.md).
 - [ ] Define handling for border points, unknown/invalid coordinates and cross-border OPP before implementation.

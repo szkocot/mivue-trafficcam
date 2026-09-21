@@ -9,9 +9,19 @@ import { referenceView,exportReferences } from '../src/import-view.js';
 import { reconcile,setImportPolicy,resolveImport } from '../src/reconcile.js';
 import { parseCsv } from '../src/import-csv.js';
 import { parseGeoJson } from '../src/import-geojson.js';
+import {createCountryExportController} from '../src/country-export.js';
+import {createCountryCache} from './country-cache.js';
+import {countryFail} from '../src/country-data.js';
 
-export function createWorkerSession(){
+export function createWorkerSession({loadCountryData}={}){
   let history=null,sessionId=null,queue=Promise.resolve(),cached=null;
+  const countryCache=createCountryCache({baseUrl:new URL('../',import.meta.url)}),loadCountries=loadCountryData??(opts=>countryCache.load(opts));
+  const countries=createCountryExportController({loadData:loadCountries});let activeCountry=null,cancelledThrough=-1;
+  function cancelCountry({sessionId:id,generation}){
+    if(id!==sessionId||!Number.isSafeInteger(generation)||generation<0)return false;
+    cancelledThrough=Math.max(cancelledThrough,generation);
+    if(activeCountry&&activeCountry.generation<=generation)activeCountry.controller.abort();countries.invalidate();return true;
+  }
   async function snapshot(){
     if(cached?.revision===history.revision)return cached;
     const view=await projectView(history.current);
@@ -29,6 +39,25 @@ export function createWorkerSession(){
       history=createHistory(p);sessionId=id;cached=null;return snapshot();
     }
     if(!history || id!==sessionId)throw Object.assign(new Error('No active document'),{code:'NO_DOCUMENT'});
+    if(['country-list','country-preview','country-export'].includes(kind)){
+      const allowed=kind==='country-list'?['generation']:kind==='country-preview'?['expectedRevision','generation','options']:['expectedRevision','generation','token','format'];
+      if(!payload||typeof payload!=='object'||Object.keys(payload).length!==allowed.length||!allowed.every(k=>Object.hasOwn(payload,k))||!Number.isSafeInteger(payload.generation)||payload.generation<0)countryFail('COUNTRY_DECISION_INVALID');
+      if(kind!=='country-list'&&payload.expectedRevision!==history.revision)countryFail('COUNTRY_PREVIEW_STALE');
+      if(payload.generation<=cancelledThrough)countryFail('COUNTRY_CANCELLED');
+      const controller=new AbortController();activeCountry={controller,generation:payload.generation};
+      try{
+        if(kind==='country-list'){
+          const data=await loadCountries({signal:controller.signal});if(controller.signal.aborted)countryFail('COUNTRY_CANCELLED');
+          return {generation:payload.generation,countries:data.dataset.countries.map(({id,iso2,names})=>({id,iso2,names})),boundary:{release:data.manifest.release,sha256:data.manifest.sha256},notice:data.notice};
+        }
+        const args={project:history.current,sessionId,revision:history.revision,generation:payload.generation,signal:controller.signal};
+        return kind==='country-preview'?await countries.preview({...args,options:payload.options}):await countries.export({...args,token:payload.token,format:payload.format});
+      }finally{activeCountry=null;}
+    }
+    if(['export','export-references','build'].includes(kind)){
+      const allowed=kind==='export'?['format']:[];
+      if(Object.keys(payload).some(k=>!allowed.includes(k)))countryFail('COUNTRY_DECISION_INVALID');
+    }
     if(['import-canard','source-sync'].includes(kind)){
       if(payload.expectedRevision!==history.revision)throw Object.assign(new Error('Import revision changed'),{code:'STALE_IMPORT'});
       let candidate=history.current,summary;
@@ -86,10 +115,14 @@ export function createWorkerSession(){
     }else if(kind!=='snapshot')throw Object.assign(new Error('Unknown worker request'),{code:'INVALID_REQUEST'});
     return snapshot();
   }
-  return {handle(request){
+  return {cancelCountry,handle(request){
     const result=queue.then(async()=>{
       const identity={sessionId:request.sessionId,requestId:request.requestId};
-      try{return {...identity,ok:true,result:await execute(request)};}
+      try{
+        const oldHistory=history,oldRevision=history?.revision,result=await execute(request);
+        if(history!==oldHistory||history?.revision!==oldRevision){countries.invalidate();if(history!==oldHistory)cancelledThrough=-1;}
+        return {...identity,ok:true,result};
+      }
       catch(e){return {...identity,ok:false,error:{code:e.code??'OPERATION_FAILED',message:e.message,recordId:e.recordId,issues:e.issues}};}
     });
     queue=result.catch(()=>{});return result;
