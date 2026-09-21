@@ -10,6 +10,8 @@ The intended scope includes fixed speed cameras and section-based average-speed 
 
 ## Status
 
+Country-export task 6 local checks (2026-09-21): **236 Node and 62 browser tests pass**, including the private sample; only the opt-in live-source browser test is skipped. Real 52,935-record classification takes about 2.0 s; browser preview about 3.5 s with at most 100 rows. Full sample rebuild is byte-identical. Static builds with and without accepted CANARD data pass; built boundary hash/notices are validated. Independent review and integration/deployment remain pending; this is not a public release claim.
+
 Country-export task 5 adds PL/EN export-only country selection, uncertainty decisions, linked-endpoint acknowledgement, 100-row previews, boundary retry/cancellation and scoped downloads. **Full project backups are never country-filtered.** Reports retain boundary and source notices. Nine new browser cases cover downloads, immutable backups, both link directions, cancellation, stale responses and keyboard/mobile use. Verification: 234 Node tests pass (one private-sample skip), 60 browser tests pass (two skips), static build and diff checks pass. This is still a feature-branch implementation; real-data performance, final review and release verification remain pending. Points 3, 4 and 6 remain open.
 
 The [remaining-work checklist](docs/todo.md) tracks CANARD activation, country selection, additional sources/metadata, binary research, MiVue 955W testing and PL/EN/browser polish. The user authorized points 1–4 and 6 on 2026-09-20, including CANARD publication; hardware testing remains out of scope.

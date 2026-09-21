@@ -29,3 +29,15 @@ test('full local sample: bounded DOM, responsive worker, byte-identical build',a
  await testInfo.attach('timings',{body:JSON.stringify({loadMs,editMs,buildMs,frames}),contentType:'application/json'});
  console.log(`Sample measurements: load ${loadMs} ms; edit ${editMs} ms; build ${buildMs} ms; ${frames} animation frames during load.`);
 });
+test('real country boundaries classify the local sample with bounded preview and cancellation',async({page})=>{
+ test.skip(!existsSync('Speedcam_Data_FEU.bin'),'Local proprietary sample absent');test.setTimeout(120000);
+ await stubNetwork(page);await page.goto('/mivue-trafficcam/');await page.getByLabel('Open file',{exact:true}).setInputFiles('Speedcam_Data_FEU.bin');await expect(page.getByTestId('record-count')).toHaveText('52935',{timeout:30000});
+ await page.getByRole('button',{name:'Export',exact:true}).click();await page.getByLabel('Export scope',{exact:true}).selectOption('countries');
+ const countries=page.getByLabel('Countries',{exact:true});await expect(countries.locator('option')).toHaveCount(258,{timeout:30000});
+ const poland=await countries.locator('option').filter({hasText:'Poland (PL)'}).getAttribute('value');await countries.selectOption(poland);
+ await page.getByRole('button',{name:'Preview selection',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'Cancel',exact:true}).click();await expect(page.getByRole('button',{name:'Download selection report / notices',exact:true})).toBeDisabled();
+ const started=Date.now();await page.getByRole('button',{name:'Preview selection',exact:true}).click();await expect(page.getByTestId('country-preview')).toContainText('Included:',{timeout:60000});
+ await page.getByLabel('Preview group',{exact:true}).selectOption('kept');const rows=await page.getByTestId('country-preview-row').count();expect(rows).toBeLessThanOrEqual(100);expect(rows).toBeGreaterThan(0);
+ console.log(`Real country preview: ${Date.now()-started} ms; ${rows} DOM rows.`);
+ await page.getByRole('button',{name:'GeoJSON',exact:true}).click();await expect(page.getByTestId('export-error')).toBeVisible();
+});

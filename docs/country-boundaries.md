@@ -13,3 +13,11 @@ Normalized artifact: 258 features, 548,471 positions, 12,419,617 bytes; SHA-256 
 Task 1 verification: seven new validation/conversion/build tests, full suite 213 pass/one private-sample skip, static build and diff checks pass. Tests cover altered bytes/notices/counts, unsafe fields, duplicate IDs/ISO, invalid rings/coordinates, resource caps, deterministic conversion and symlink rejection. Country selection/classifier/UI remain subsequent tasks; this is not a released feature.
 
 Task 2: planar longitude-unwrapped polygon membership with holes and explicit polar closure; spherical shortest-segment distance for the 1,000 m review band (radius 6,371,008.8 m). Latitude buckets and expanded segment envelopes narrow searches without treating boxes as membership. Duplicate vertices use point distance. These calculations do not improve source boundary accuracy. Batch classification yields every 256 points and supports cancellation. Lazy same-origin loads enforce stream size/hash limits and evict failed requests for retry. Seven new tests pass, with full suite 220 pass/one private skip; real-data performance and public UI verification remain Task 6 work.
+
+## Local performance verification (2026-09-21)
+
+Read-only `node scripts/countries/benchmark.mjs --synthetic 100000` ran twice: 1,773/1,783 ms classification, 511/491 ms validation/indexing. Both runs counted 32,857 assigned, 535 border-review and 66,608 unassigned points. The deterministic global lattice includes oceans; unassigned is not a failure count.
+
+The private 52,935-record sample took 2,024 ms classification and 487 ms validation/indexing: 50,973 assigned, 1,901 border-review, 61 unassigned, zero invalid. No sample coordinates or bytes are emitted by the benchmark. Early-abort and repeatability tests pass. Timings are local observations, not performance guarantees.
+
+Real Chromium country preview after cancellation took 3,488 ms and rendered 100 rows. Unresolved points correctly blocked a scoped export. Full-sample reconstruction remained byte-identical (849 ms browser build); the sample is not published. Final review and public release verification remain pending.

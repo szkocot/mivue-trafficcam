@@ -17,6 +17,8 @@ Published coverage: 499 point-speed, 138 OPP and 169 red-light observations. Con
 
 ## 2. Country selection — implementation
 
+Task 6 local performance/release-candidate checks pass: 236 Node tests, 62 browser tests (one opt-in live-source skip), real-sample classification/cancellation, byte-identical full rebuild and both CANARD/no-CANARD builds. Independent review and deployment remain pending.
+
 Design and [six-task implementation plan](superpowers/plans/2026-09-20-country-export.md) approved for native execution. Task 1 boundary artifacts/validation are implemented and tested on the feature branch; classifier, selection, exports and UI remain in progress. Points 3, 4 and 6 remain open, not superseded by this increment.
 
 Task 2 classifier/lazy cache implemented: synthetic border/holes/islands/overlap/dateline/polar and cancellation/retry tests; 220 Node pass/one private-sample skip. Selection and UI remain unfinished.
