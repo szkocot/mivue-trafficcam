@@ -10,6 +10,8 @@ The intended scope includes fixed speed cameras and section-based average-speed 
 
 ## Status
 
+Country-export branch merged into `main` on 2026-09-21. Merged verification passes: 237 Node tests, 62 Chromium tests (one opt-in live-source skip), build and diff checks. Push/Pages verification is in progress; earlier feature-branch notes below are historical.
+
 **Country-export implementation is ready for integration, not deployed.** Independent review found two important issues; both are regression-tested and fixed: decisions reuse revision-keyed classifications, and uncertain/linked rows show locations, country names and linked record IDs. Final local verification: **237 Node tests and 62 Chromium tests pass** (one opt-in live-source skip), including private-sample byte-identical rebuilding. Both static builds pass. One minor remains: scoped data filenames use stable dataset IDs even where ISO codes exist. README/TODO are updated; integration/public verification and backlog points 3, 4 and 6 remain open. Hardware acceptance is untested.
 
 The first observed scheduled CANARD run [35581370719](https://github.com/szkocot/mivue-trafficcam/actions/runs/35581370719) successfully deployed on 2026-09-21. Earlier milestone notes saying its first scheduled execution was unobserved are historical. This run does not include the country-export branch.

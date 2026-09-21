@@ -17,6 +17,8 @@ Published coverage: 499 point-speed, 138 OPP and 169 red-light observations. Con
 
 ## 2. Country selection — implementation
 
+Merged into `main` on 2026-09-21 with 237 Node and 62 browser tests passing. Push/deployment verification is in progress.
+
 Implementation and independent review fixes are complete on `feat/country-export`: 237 Node / 62 browser tests pass, one opt-in live-source skip. Decision-only cancellation preserves completed classifications; review rows disclose coordinates, candidate countries, names and linked IDs. Deferred minor: filenames use stable dataset IDs rather than available ISO codes. Integration and public deployment verification remain pending; the historical task milestones below are retained as evidence.
 
 Task 6 local performance/release-candidate checks pass: 236 Node tests, 62 browser tests (one opt-in live-source skip), real-sample classification/cancellation, byte-identical full rebuild and both CANARD/no-CANARD builds. Independent review and deployment remain pending.
