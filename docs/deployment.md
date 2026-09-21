@@ -2,6 +2,12 @@
 
 Target: https://szkocot.github.io/mivue-trafficcam/
 
+Country-export post-review gate: both important findings fixed with RED→GREEN regressions; 237 Node and 62 Chromium tests pass, one opt-in live-source skip. Branch is ready for an integration decision; no merge, push or country-export deployment has been performed. The lower test counts below are earlier milestones.
+
+2026-09-21 status: the first observed scheduled CANARD run, [35581370719](https://github.com/szkocot/mivue-trafficcam/actions/runs/35581370719), completed successfully, including its deploy job (09:08:17 UTC), from source `9581acd7c73460685fefd4efc53f2dfad6d40af7`. This supersedes the earlier “first scheduled execution unobserved” milestone below. It does **not** include the country-export feature branch.
+
+Country-export release candidate: 236 Node and 62 local Chromium tests pass, including the private sample; one live-source test is skipped. Both no-CANARD and accepted-CANARD builds pass. The allowlist includes three public-domain Natural Earth files (12.4 MB geometry, fetched lazily in country mode), never the private sample or firmware. Boundary SHA-256: `7c06a47b9d0eebf1e568a0492924a910832f77bf566dac82037c609d73c9802c`. Independent review, integration and public smoke verification remain pending; no country-export deployment is claimed.
+
 The user explicitly requested deployment of the current experimental version on 2026-09-20, ahead of the unfinished live CANARD connector and country-filtering increments. This changes the earlier wait-until-all-features release sequencing, not the stated feature limitations. MiVue 955W device acceptance remains unverified; use at your own risk.
 
 GitHub Pages uses the Actions publishing source. `.github/workflows/pages.yml` runs on non-documentation pushes to `main` or manual dispatch. It installs locked dependencies, runs Node tests and Chromium browser tests, rebuilds the allowlisted static assets, then publishes only `dist/`. Deployment requires the build job to succeed. Official GitHub actions are pinned to commit IDs. Only the deployment job can write Pages and request its OIDC deployment token.

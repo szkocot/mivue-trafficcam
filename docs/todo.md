@@ -13,9 +13,11 @@ The existing baseline includes decoding/rebuilding the researched BIN layout, th
 - [x] In a fresh browser on the public site, verify PL/EN, import/edit/save/reopen/export, notices and reload without an unchanged snapshot-body download.
 - [x] Confirm sample BIN, firmware and private research files remain absent from the public artifact; record the deployment evidence.
 
-Published coverage: 499 point-speed, 138 OPP and 169 red-light observations. Control-point data is unavailable, not a verified zero. Daily gated checks are enabled; the first scheduled run has not yet been observed. See [release evidence](deployment.md), [access assessment](source-access.md) and [field inventory](canard-field-inventory.md). Reuse safeguards are not legal certification.
+Published coverage: 499 point-speed, 138 OPP and 169 red-light observations. Control-point data is unavailable, not a verified zero. Daily gated checks are enabled; the first observed scheduled run, [35581370719](https://github.com/szkocot/mivue-trafficcam/actions/runs/35581370719), successfully prepared, published, built and deployed on 2026-09-21. See [release evidence](deployment.md), [access assessment](source-access.md) and [field inventory](canard-field-inventory.md). Reuse safeguards are not legal certification.
 
 ## 2. Country selection — implementation
+
+Implementation and independent review fixes are complete on `feat/country-export`: 237 Node / 62 browser tests pass, one opt-in live-source skip. Decision-only cancellation preserves completed classifications; review rows disclose coordinates, candidate countries, names and linked IDs. Deferred minor: filenames use stable dataset IDs rather than available ISO codes. Integration and public deployment verification remain pending; the historical task milestones below are retained as evidence.
 
 Task 6 local performance/release-candidate checks pass: 236 Node tests, 62 browser tests (one opt-in live-source skip), real-sample classification/cancellation, byte-identical full rebuild and both CANARD/no-CANARD builds. Independent review and deployment remain pending.
 
@@ -29,11 +31,12 @@ Task 4 scoped exports/worker integration tested (234 Node pass/one private skip)
 
 Task 5 PL/EN UI implemented on the feature branch: export-only country scope, explicit uncertainty decisions, endpoint acknowledgement, paginated previews, cancellation/retry and stale-download guards. Verification: 234 Node pass/one skip, 60 browser pass/two skips, build/diff checks pass. Real-data benchmarks, final review and release checks remain pending; boxes below stay open until that gate.
 
-- [ ] Let users select one or more countries for a reduced export, separately from map display filters.
+- [x] Let users select one or more countries for a reduced export, separately from map display filters.
 - [x] Use a versioned boundary dataset with verified reuse terms and attribution — pinned Natural Earth 5.1.1; see [evidence](country-boundaries.md).
-- [ ] Define handling for border points, unknown/invalid coordinates and cross-border OPP before implementation.
-- [ ] Preview kept, excluded and unresolved records; preserve linked OPP endpoints and the original project for recovery.
-- [ ] Build and reparse the reduced BIN, or explain why unresolved links/header semantics prevent a safe build. Do not bypass existing encoder safeguards.
+- [x] Define handling for border points, unknown/invalid coordinates and cross-border OPP before implementation.
+- [x] Preview kept, excluded and unresolved records; preserve linked OPP endpoints and the original project for recovery.
+- [x] Build and reparse the reduced BIN, or explain why unresolved links/header semantics prevent a safe build. Do not bypass existing encoder safeguards.
+- [ ] Integrate and deploy the country-export branch; verify the public artifact and fresh-browser workflows.
 
 See [country-selection requirements](roadmap.md#shared-project-model).
 

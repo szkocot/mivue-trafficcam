@@ -51,6 +51,7 @@ test('narrow keyboard selection paginates and Polish reopening clears prepared d
 });
 test('border review blocks scoped export until explicit decision; full backup remains usable',async({page})=>{
  await start(page,[{}],[boxCountry('AA',-7,36,-6,38)]);await page.getByRole('button',{name:'Export',exact:true}).click();await select(page);
+ await expect(page.getByTestId('country-preview-row').first()).toContainText('37, -7');await expect(page.getByTestId('country-preview-row').first()).toContainText('AA');
  await page.getByRole('button',{name:'GeoJSON',exact:true}).click();await expect(page.getByTestId('export-error')).toContainText('Review');
  await page.getByRole('button',{name:'Keep',exact:true}).click();await expect(page.getByTestId('country-preview')).toContainText('Unresolved: 0');
  expect(JSON.parse((await download(page,'GeoJSON')).toString()).features).toHaveLength(1);
@@ -58,6 +59,7 @@ test('border review blocks scoped export until explicit decision; full backup re
 test('linked outside endpoint needs acknowledgement; opaque links still block BIN only',async({page})=>{
  await start(page,[{typeRaw:964,linkTo:1},{typeRaw:9128,longitudeRaw:-654}]);await page.getByRole('button',{name:'Export',exact:true}).click();await select(page,['BB']);
  await expect(page.getByTestId('country-preview')).toContainText('Linked extras: 1');await page.getByLabel('I accept the listed outside-country or uncertain linked endpoints').check();
+ await expect(page.getByRole('button',{name:'Download selection report / notices',exact:true})).toBeEnabled();await page.getByLabel('Preview group',{exact:true}).selectOption('extras');await expect(page.getByTestId('country-preview-row').first()).toContainText('Triggered by: source:');await expect(page.getByTestId('country-preview-row').first()).toContainText('37,');await expect(page.getByTestId('country-preview-row').first()).toContainText('Linked section members:');
  expect(JSON.parse((await download(page,'GeoJSON')).toString()).features).toHaveLength(2);
  await page.getByRole('button',{name:'Close',exact:true}).click();
  await openFixture(page,[{typeRaw:964,linkRaw:123},{longitudeRaw:-654}]);await page.getByRole('button',{name:'Export',exact:true}).click();await select(page);

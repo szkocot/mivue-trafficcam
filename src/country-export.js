@@ -6,6 +6,17 @@ import {referenceView} from './import-view.js';
 import {projectNotices} from './source-notices.js';
 import {buildProject,BuildError} from './encoder.js';
 const checkSignal=signal=>{if(signal?.aborted)countryFail('COUNTRY_CANCELLED');};
+function describeReview(preview,ctx){
+ const records=new Map(ctx.view.records.map(r=>[r.id,r])),references=new Map(ctx.references.map(r=>[r.id,r]));
+ const componentById=new Map();for(const c of preview.components)if(c.recordIds.length>1)for(const id of c.recordIds)componentById.set(id,c.recordIds);
+ const ids=new Set([...preview.reviewItems,...preview.linkedExtras].map(r=>r.id));
+ preview.reviewContext=[...ids].map(id=>{
+  const record=records.get(id),reference=references.get(id),section=reference?.geometry?.type==='LineString';
+  const xy=reference?.geometry?.coordinates,positions=record?[[record.longitude,record.latitude]]:section?[xy[0],xy.at(-1)]:[xy??[]];
+  return {id,name:reference?.name??null,componentIds:componentById.get(id)??[],positions:positions.map(([longitude,latitude],index)=>({longitude,latitude,
+   classification:ctx.classifications.get(section?`${id}:${index?'end':'start'}`:id)??null}))};
+ });return preview;
+}
 export async function exportCountrySelection({project,preview,format}){
  if(!preview.ready)countryFail(preview.records.unresolvedIds.length+preview.references.unresolvedIds.length?'COUNTRY_REVIEW_REQUIRED':'COUNTRY_EXTRAS_ACK_REQUIRED');
  if(!['bin','json','geojson','csv','references'].includes(format))countryFail('COUNTRY_DECISION_INVALID');
@@ -30,7 +41,8 @@ export async function exportCountrySelection({project,preview,format}){
 }
 export function createCountryExportController({loadData}){
  let classifier=null,data=null,cached=null,current=null,epoch=0;
- const invalidate=()=>{epoch++;cached=null;current=null;};
+ const cancel=()=>{epoch++;current=null;};
+ const invalidate=()=>{cancel();cached=null;};
  async function context(args){
   const {project,sessionId,revision,signal}=args,start=epoch;checkSignal(signal);
   if(!data){const loaded=await loadData({signal});checkSignal(signal);if(start!==epoch)countryFail('COUNTRY_PREVIEW_STALE');data=loaded;classifier=createCountryClassifier(data);}
@@ -44,17 +56,17 @@ export function createCountryExportController({loadData}){
    cached={sessionId,revision,view,references,classifications,boundary:classifier.boundary,countryIds:classifier.countries.map(c=>c.id)};
   }return cached;
  }
- return {invalidate,
+ return {invalidate,cancel,
   async preview(args){
    current=null;const start=epoch,ctx=await context(args);checkSignal(args.signal);if(start!==epoch)countryFail('COUNTRY_PREVIEW_STALE');
-   const preview=selectCountries({...ctx,options:args.options});preview.boundaryNotice=structuredClone(data.notice);preview.sourceNotices=projectNotices(args.project);
+   const preview=describeReview(selectCountries({...ctx,options:args.options}),ctx);preview.boundaryNotice=structuredClone(data.notice);preview.sourceNotices=projectNotices(args.project);
    const token=crypto.randomUUID();current={sessionId:args.sessionId,revision:args.revision,generation:args.generation,token,options:structuredClone(args.options)};
    return {revision:args.revision,generation:args.generation,token,preview};
   },
   async export(args){
    const matches=()=>current&&['sessionId','revision','generation','token'].every(k=>current[k]===args[k]);
    if(!matches())countryFail('COUNTRY_PREVIEW_STALE');const start=epoch,ctx=await context(args);checkSignal(args.signal);if(start!==epoch||!matches())countryFail('COUNTRY_PREVIEW_STALE');
-   const preview=selectCountries({...ctx,options:current.options});preview.boundaryNotice=structuredClone(data.notice);
+   const preview=describeReview(selectCountries({...ctx,options:current.options}),ctx);preview.boundaryNotice=structuredClone(data.notice);
    const result=await exportCountrySelection({project:args.project,preview,format:args.format});checkSignal(args.signal);if(start!==epoch||!matches())countryFail('COUNTRY_PREVIEW_STALE');
    return {...result,revision:args.revision,generation:args.generation,token:args.token};
   }};

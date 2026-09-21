@@ -20,7 +20,7 @@ export function createWorkerSession({loadCountryData}={}){
   function cancelCountry({sessionId:id,generation}){
     if(id!==sessionId||!Number.isSafeInteger(generation)||generation<0)return false;
     cancelledThrough=Math.max(cancelledThrough,generation);
-    if(activeCountry&&activeCountry.generation<=generation)activeCountry.controller.abort();countries.invalidate();return true;
+    if(activeCountry&&activeCountry.generation<=generation)activeCountry.controller.abort();countries.cancel();return true;
   }
   async function snapshot(){
     if(cached?.revision===history.revision)return cached;

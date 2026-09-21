@@ -33,6 +33,9 @@ export function createCountryExportControls(element,{client,getIdentity,t,onInva
  }
  function decide(items,value){for(const item of items){if(item.componentId)componentDecisions[item.componentId]=value;else decisions[item.id]=value;}acknowledgeExtras=false;runPreview();}
  function renderPreview(){
+  const contexts=new Map(prepared.preview.reviewContext.map(r=>[r.id,r])),countryById=new Map(data.countries.map(c=>[c.id,c]));
+  const lang=document.documentElement.lang==='pl'?'pl':'en';
+  const countryName=id=>{const c=countryById.get(id);return c?`${c.names[lang]} (${c.iso2??c.id})`:id;};
   const p=prepared.preview;preview.replaceChildren(el('p',t('countryCounts',{included:p.records.keptIds.length,excluded:p.records.excludedIds.length,unresolved:p.records.unresolvedIds.length,extras:p.linkedExtras.length})),el('p',t('countryReferenceCounts',{included:p.references.keptIds.length,excluded:p.references.excludedIds.length,unresolved:p.references.unresolvedIds.length})),el('p',`${t('countryBinScope')}: ${selected.join(',')} · Speedcam_Data_FEU.bin`));
   if(p.linkedExtras.length){const input=el('input');input.type='checkbox';input.checked=acknowledgeExtras;input.onchange=()=>{acknowledgeExtras=input.checked;runPreview();};preview.append(label('countryAcceptExtras',input));}
   for(const category of ['border','unassigned','invalid','assigned']){const items=p.reviewItems.filter(r=>r.classification.status===category);if(!items.length)continue;for(const value of ['keep','exclude'])preview.append(button(t('countryBulk',{action:t(`country_${value}`),category:t(`country_${category}`),count:items.length}),()=>decide(items,value)));}
@@ -43,6 +46,12 @@ export function createCountryExportControls(element,{client,getIdentity,t,onInva
    const list=group.value==='review'?p.reviewItems:group.value==='extras'?p.linkedExtras:[...(group.value==='kept'?p.records.keptIds:p.records.excludedIds),...(group.value==='kept'?p.references.keptIds:p.references.excludedIds)].map(id=>({id}));
    page=Math.max(0,Math.min(page,Math.max(0,Math.ceil(list.length/100)-1)));rows.replaceChildren();
    for(const item of list.slice(page*100,page*100+100)){const row=el('div');row.dataset.testid='country-preview-row';row.append(el('span',item.id));if(item.reason)row.append(el('p',t(item.reason)));
+    const context=contexts.get(item.id);
+    if(context){if(context.name)row.append(el('p',context.name));for(const pos of context.positions){
+     row.append(el('p',`${t('countryPosition')}: ${Number.isFinite(pos.latitude)?pos.latitude:'?'}, ${Number.isFinite(pos.longitude)?pos.longitude:'?'}`));
+     row.append(el('p',`${t('countryCandidates')}: ${pos.classification?.countryIds.map(countryName).join(', ')||t('countryNoMatch')}`));
+    }if(context.componentIds.length)row.append(el('p',`${t('countryComponent')}: ${context.componentIds.join(', ')}`));}
+    if(item.triggerIds?.length)row.append(el('p',`${t('countryTriggers')}: ${item.triggerIds.join(', ')}`));
     if(item.classification){row.append(el('span',` · ${t(`country_${item.classification.status}`)}`));for(const value of ['keep','exclude'])row.append(button(t(item.componentId?`country_component_${value}`:`country_${value}`),()=>decide([item],value)));}rows.append(row);
    }position.textContent=`${page+1} / ${Math.max(1,Math.ceil(list.length/100))}`;prev.disabled=page===0;next.disabled=(page+1)*100>=list.length;
   }group.onchange=()=>{page=0;draw();};draw();

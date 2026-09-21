@@ -32,3 +32,17 @@ test('boundary failure does not prevent full backup or a later successful retry'
  assert.equal((await req('country-list',{generation:1})).ok,false);assert.equal((await req('export',{format:'project'})).result.text,opened.projectJson);fail=false;
  assert.equal((await req('country-preview',{expectedRevision:0,generation:2,options})).ok,true);
 });
+test('decision-only cancellation reuses completed classifications; edits evict them',async()=>{
+ const {worker,req}=await setup();await req('open-bin',{bytes:makeFixture(Array.from({length:600},()=>({}))).bytes});
+ const original=globalThis.setTimeout;let yields=0;
+ globalThis.setTimeout=(fn,ms,...args)=>{if(ms===0)yields++;return original(fn,ms,...args);};
+ try{
+  const preview=async(generation,expectedRevision=0)=>{const r=await req('country-preview',{generation,expectedRevision,options});assert.equal(r.ok,true);return r.result;};
+  const first=await preview(1);assert.equal(yields,2);yields=0;
+  worker.cancelCountry({sessionId:'country',generation:1});
+  assert.equal((await req('country-export',{generation:1,expectedRevision:0,token:first.token,format:'json'})).ok,false);
+  await preview(2);assert.equal(yields,0,'same-revision decision does not repeat classification');
+  const state=(await req('snapshot')).result;await req('apply',{operation:{kind:'update',id:state.view.records[0].id,changes:{latitude:37.1}}});
+  await preview(3,1);assert.equal(yields,2,'changed coordinates are reclassified');
+ }finally{globalThis.setTimeout=original;}
+});
