@@ -10,6 +10,8 @@ The intended scope includes fixed speed cameras and section-based average-speed 
 
 ## Status
 
+**Returning to this project?** Start with the [TODO and handoff](docs/todo.md), updated 2026-09-29. It separates completed CANARD/country-export work from remaining source enrichment, binary research and PL/EN/browser polish, and includes a ready-to-paste resume prompt. Its verification dates are historical; no new live-service check is implied.
+
 **Released:** [Pages run 35622164123](https://github.com/szkocot/mivue-trafficcam/actions/runs/35622164123) deployed source `c8f3f99` with accepted CANARD data `3597190`. Local merged checks: 237 Node / 62 browser tests pass; CI: 236 Node / 60 browser pass (private sample and opt-in live-source checks skipped). Fresh public Chromium verified a reparsed reduced BIN, unchanged full backup, linked-endpoint acknowledgement, unsafe-BIN blocking, boundary/source notices, cache reuse, Polish controls and private-file 404s, without page errors. Backlog points 3, 4 and 6 remain open; data filenames still use stable dataset IDs. The notes below are historical task milestones, superseded by this release status.
 
 Country-export branch merged into `main` on 2026-09-21. Merged verification passes: 237 Node tests, 62 Chromium tests (one opt-in live-source skip), build and diff checks. Push/Pages verification is in progress; earlier feature-branch notes below are historical.

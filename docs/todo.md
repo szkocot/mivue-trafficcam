@@ -1,6 +1,28 @@
 # Remaining work
 
-Recorded 2026-09-20 from the agreed follow-up list. The subsequent user request authorized implementing points 1–4 and 6, including point 1 publication. This is not a claim that every feature is implemented. CANARD activation is complete; country selection is next. Binary research may be needed before some reduced BIN builds can succeed.
+Handoff updated **2026-09-29** from the agreed follow-up list. The user authorized implementing points **1–4 and 6**. Points **1 and 2 are completed and deployed**; points **3, 4 and 6 remain open**. Point 5 requires separate user/device testing. Binary research may be needed before some reduced BIN builds can succeed.
+
+Last verified release: **2026-09-21**, source `c8f3f99`, with release documentation committed as `281285b` on `main`. That release passed 237 local Node tests and 62 Chromium tests (one opt-in live-source skip). These are recorded results, not a fresh test or live-service check on the handoff date. The merged country-export branch/worktree was removed; do not recreate its completed implementation.
+
+## Resume here
+
+Suggested order (not a new scope approval):
+
+1. **Point 6 — polish:** actionable PL/EN import errors, persistent Mio cache warnings, then Firefox/WebKit coverage. Track physical mobile testing separately.
+2. **Point 3 — sources:** assess permitted CANARD enrichment and OSM/other source access before choosing an adapter to implement.
+3. **Point 4 — binary research:** investigate header/link blockers and verify field meanings before enabling more encoding controls.
+4. **Country-export minor:** use reviewed ISO codes in data filenames, falling back to stable dataset IDs. Keep the device BIN filename unchanged.
+5. **Point 5 — hardware:** only when the user is ready to test the MiVue 955W safely.
+
+Before implementation, inspect `git status`, recent commits and this checklist; check for changes since the recorded release. Agree the next bounded increment, run relevant baseline tests, and preserve unrelated user edits. Update this list and README after each task. Keep merge/push/deployment decisions explicit; this handoff request itself authorizes documentation only.
+
+Copy/paste to resume:
+
+> Continue the MiVue TrafficCam project in /Users/szymonkocot/Projects/mivue-trafficcam. Read docs/todo.md and README.md first, and check the current working tree. CANARD publication and country exports are already completed and deployed. Resume with point 6: actionable Polish/English import errors and persistent Mio cache warnings, followed by browser coverage. Keep points 3 and 4 on the backlog. Preserve full backups and BIN safety checks, add regression tests, and update README/TODO after each task. Do not assume device acceptance or legal permission for new sources.
+
+Useful references: [deployment evidence](deployment.md), [browser verification](browser-verification.md), [CANARD access assessment](source-access.md), [CANARD field inventory](canard-field-inventory.md), [binary research](binary-format.md), [firmware research](firmware-research.md), [country boundaries](country-boundaries.md).
+
+## Completed baseline
 
 The existing baseline includes decoding/rebuilding the researched BIN layout, the PL/EN map editor, CSV/GeoJSON imports, source metadata display, browser location and startup caching. Hosted CANARD implementation and review fixes are merged, pushed and deployed with the reviewed dataset.
 
@@ -17,23 +39,9 @@ Published coverage: 499 point-speed, 138 OPP and 169 red-light observations. Con
 
 ## 2. Country selection — implementation
 
-Released and public-browser verified on 2026-09-21: [deployment 35622164123](https://github.com/szkocot/mivue-trafficcam/actions/runs/35622164123), source `c8f3f99`, accepted data `3597190`. All implementation/release boxes below are complete; subsequent paragraphs retain historical milestones. Deferred minor: ISO-friendly filenames. Points 3, 4 and 6 remain open.
+Released and public-browser verified on 2026-09-21: [deployment 35622164123](https://github.com/szkocot/mivue-trafficcam/actions/runs/35622164123), source `c8f3f99`, accepted data `3597190`. The [six-task country-export plan](superpowers/plans/2026-09-20-country-export.md) is complete, including review fixes, integration and public verification. Its internal task numbers are separate from this backlog's numbered points.
 
-Merged into `main` on 2026-09-21 with 237 Node and 62 browser tests passing. Push/deployment verification is in progress.
-
-Implementation and independent review fixes are complete on `feat/country-export`: 237 Node / 62 browser tests pass, one opt-in live-source skip. Decision-only cancellation preserves completed classifications; review rows disclose coordinates, candidate countries, names and linked IDs. Deferred minor: filenames use stable dataset IDs rather than available ISO codes. Integration and public deployment verification remain pending; the historical task milestones below are retained as evidence.
-
-Task 6 local performance/release-candidate checks pass: 236 Node tests, 62 browser tests (one opt-in live-source skip), real-sample classification/cancellation, byte-identical full rebuild and both CANARD/no-CANARD builds. Independent review and deployment remain pending.
-
-Design and [six-task implementation plan](superpowers/plans/2026-09-20-country-export.md) approved for native execution. Task 1 boundary artifacts/validation are implemented and tested on the feature branch; classifier, selection, exports and UI remain in progress. Points 3, 4 and 6 remain open, not superseded by this increment.
-
-Task 2 classifier/lazy cache implemented: synthetic border/holes/islands/overlap/dateline/polar and cancellation/retry tests; 220 Node pass/one private-sample skip. Selection and UI remain unfinished.
-
-Task 3 pure selection engine implemented/tested: whole linked components in either direction, no deleted-target resurrection, uncertainty review and whole source sections. Full suite226 pass/one private skip. Export integration and UI still pending.
-
-Task 4 scoped exports/worker integration tested (234 Node pass/one private skip): immutable project/history, reparsed reduced synthetic BINs, unchanged safety blockers, attribution, stale-token rejection and cancellation. UI and real-data release verification remain pending.
-
-Task 5 PL/EN UI implemented on the feature branch: export-only country scope, explicit uncertainty decisions, endpoint acknowledgement, paginated previews, cancellation/retry and stale-download guards. Verification: 234 Node pass/one skip, 60 browser pass/two skips, build/diff checks pass. Real-data benchmarks, final review and release checks remain pending; boxes below stay open until that gate.
+Decision-only cancellation preserves completed classifications; review rows disclose coordinates, candidate countries, names and linked IDs. Full backups remain unfiltered. Unknown headers/links can still block reduced BINs; there is no force-build bypass or guarantee that a Poland-only BIN will work on the 955W.
 
 - [x] Let users select one or more countries for a reduced export, separately from map display filters.
 - [x] Use a versioned boundary dataset with verified reuse terms and attribution — pinned Natural Earth 5.1.1; see [evidence](country-boundaries.md).
@@ -43,6 +51,8 @@ Task 5 PL/EN UI implemented on the feature branch: export-only country scope, ex
 - [x] Integrate and deploy the country-export branch; verify the public artifact and fresh-browser workflows.
 
 See [country-selection requirements](roadmap.md#shared-project-model).
+
+- [ ] Deferred minor: use reviewed ISO codes in scoped data filenames where available, with stable dataset-ID fallback. Retain `Speedcam_Data_FEU.bin` for device output and stable IDs in reports.
 
 ## 3. Additional sources and richer metadata — research and implementation
 
