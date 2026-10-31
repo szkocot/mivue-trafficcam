@@ -4,10 +4,11 @@ Updated **2026-10-31** after the user authorized all programmatic TODO work and 
 
 ## Resume here
 
-1. Use [browser/device acceptance](user-acceptance.md) to test your actual browser/phone and MiVue 955W. Keep the original database, full project and recovery backup.
-2. Return observations with model/firmware, source/output SHA-256, record IDs and exact symptoms. Automated structural validity is not device acceptance.
-3. Continue semantic BIN controls only when the firmware-reader trace or controlled tests establish the remaining flag/header/endpoint meanings. Keep existing build blockers.
-4. CANARD detail enrichment needs verified units, direction/status semantics, cross-category/identity evidence, notices and an unattended-access arrangement. PK coordinates remain unavailable. Additional named providers require their own access/identity assessment.
+1. Complete the CANARD-versus-Mio consistency/import audit in section 3a, alongside the manual checks below.
+2. Use [browser/device acceptance](user-acceptance.md) to test your actual browser/phone and MiVue 955W. Keep the original database, full project and recovery backup.
+3. Return observations with model/firmware, source/output SHA-256, record IDs and exact symptoms. Automated structural validity is not device acceptance.
+4. Continue semantic BIN controls only when the firmware-reader trace or controlled tests establish the remaining flag/header/endpoint meanings. Keep existing build blockers.
+5. CANARD detail enrichment needs verified units, direction/status semantics, cross-category/identity evidence, notices and an unattended-access arrangement. PK coordinates remain unavailable. Additional named providers require their own access/identity assessment.
 
 ## Verification and preservation
 
@@ -45,6 +46,17 @@ The previous code release `3972fa5` deployed in [run 41245309208](https://github
 - [ ] Other providers: no additional concrete dataset supplied; require a named reusable source and verified access/schema/identity before adding an adapter.
 
 [Source research and exact blockers](source-research-2026-10-31.md). Missing speed/direction/status stays unknown; source metadata is distinct from BIN-encoded values.
+
+## 3a. Verify CANARD cameras and OPP against Mio — new follow-up
+
+- [ ] Pin the CANARD snapshot and original Mio BIN by retrieval/check date, counts and SHA-256 so the comparison is reproducible.
+- [ ] Verify importer correctness first: every CANARD source ID, category, coordinate/OPP geometry, original metadata and notice must survive import, project save/reopen and reference export exactly. Report omissions, duplicates, changed coordinates and wrong bindings separately.
+- [ ] Compare CANARD point-speed and red-light observations with nearby Mio records using decoded WGS84 coordinates. Reuse proximity candidates (initially the existing 100 m suggestion radius), report exact distances and review ambiguous or unmatched records. Proximity alone must not establish identity or silently merge records; do not invent semantic names for unverified Mio type codes.
+- [ ] Compare each CANARD OPP's two endpoints with linked Mio endpoint pairs, considering both endpoint orientations. Check pair completeness, endpoint distances, link integrity and reversed/swapped or one-sided matches.
+- [ ] Verify complete OPP ranges, not only point proximity: compare the paired start/end positions, coordinate extents, straight-line span and source-reported length/road/direction where available. Flag materially shorter/longer or shifted ranges, partial overlap, split/merged/extended sections and a near endpoint paired with the wrong far endpoint. Establish section identity and acceptable endpoint/range tolerances explicitly before declaring a range verified. Straight connectors are not road routes; actual road distance/coverage requires route evidence, and unknown direction/role semantics stay unknown.
+- [ ] Verify any explicit bindings or generated BIN additions against the intended Mio records, including stored coordinates, preserved raw fields, manual edits/deletions and duplicate protection. CANARD OPP remains reference-only unless supported encoding has separately been verified; absence from BIN alone is not proof of an import failure.
+- [ ] Produce a review report and map/table evidence for matched, ambiguous, CANARD-only and Mio-only records, split by source category, with IDs, positions, candidate distances and both dataset versions. Separate genuine importer defects from independent coverage, timing, rounding, planned/inactive status or source-data differences. Mio includes non-CANARD providers, and CANARD can contain records absent from Mio: source-only coverage is legitimate, not an automatic failure, and equal counts or a one-to-one cross-source match must not be required.
+- [ ] Add regression fixtures for confirmed import/binding errors and record reviewed discrepancy counts before declaring the comparison successful. Cross-source agreement supports consistency; it does not establish completeness or device alert behavior.
 
 ## 4. Binary research — verified extension completed, semantics remain open
 
