@@ -19,6 +19,6 @@
 
 ## Verification
 
-256 Node tests pass with both private variants;201 browser checks pass across three engines,3opt-in skips;3live Mio tests pass. Both allowlisted build modes pass. Independent review found no actionable issues. OSM/source and firmware-semantic blockers are explicit in the TODO; manual acceptance remains user work.
+256 Node tests pass with both private variants;201 browser checks pass across three engines, three opt-in skips; three live Mio tests pass. Both allowlisted build modes pass. Independent review found no actionable issues. OSM/source and firmware-semantic blockers are explicit in the TODO; manual acceptance remains user work.
 
-Released as39ecdbe in successful run41246260899; Linux CI254Node+195browser pass, with expected private/live skips. Fresh public smoke passed22×22,OSM/licence, exact full BIN hash, Poland filename and private-file exclusions with zero page errors. Optional real OSM acquisition timed out; no live-dataset claim.
+Released as 39ecdbe in successful run 41246260899; Linux CI: 254 Node and 195 browser tests pass, with expected private/live skips. Fresh public smoke passed 22×22 support, OSM/licence display, exact full BIN hash, Poland filename and private-file exclusions with zero page errors. Optional real OSM acquisition timed out; no live-dataset claim.
