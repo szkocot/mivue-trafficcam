@@ -1,3 +1,4 @@
+import {OSM_SOURCE} from '../src/import-osm.js';
 import {listImportSources} from './import-sources.js';
 export function createImportDialog({onImport,onCanard,getCanard=()=>null,onCancel,t,storage}){
  const dialog=document.createElement('dialog');dialog.className='import-dialog';document.body.append(dialog);
@@ -5,7 +6,7 @@ export function createImportDialog({onImport,onCanard,getCanard=()=>null,onCance
  try{const saved=JSON.parse(storage?.getItem('mivue-import-source')??'null');if(saved&&typeof saved.namespace==='string'&&typeof saved.attribution==='string')remembered=saved;}catch{}
  const el=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
  function describeIssue(issue){
-  const reasons=['DUPLICATE_ID','CSV_QUOTE','CONFLICTING_ID','INPUT_LIMIT','COUNT_LIMIT','METADATA_LIMIT','METADATA_DEPTH'];
+  const reasons=['DUPLICATE_ID','CSV_QUOTE','CONFLICTING_ID','INPUT_LIMIT','COUNT_LIMIT','METADATA_LIMIT','METADATA_DEPTH','OSM_UNSUPPORTED_GEOMETRY','OSM_NO_CAMERAS'];
   const fields=['header','columns','json','features','feature','crs','coordinates','latitude','longitude','geometry','kind','status','id','namespace','attribution','speed','speed_unit','direction'];
   const key=reasons.includes(issue.code)?`importReason_${issue.code}`:`importInvalid_${fields.includes(issue.field)?issue.field:'value'}`;
   const location=issue.index>=0&&issue.code!=='COUNT_LIMIT'?(issue.code==='CSV_QUOTE'?'importIssueCsv':'importIssue'):'importIssueFile';
@@ -34,14 +35,18 @@ export function createImportDialog({onImport,onCanard,getCanard=()=>null,onCance
   }
   fields.namespace.oninput=showPolicies;showPolicies();
   function select(key,choices){const label=el('label',t(key)),input=el('select');input.setAttribute('aria-label',t(key));for(const [value,name] of choices){const option=el('option',t(name));option.value=value;input.append(option);}label.append(input);dialog.append(label);fields[key]=input;return input;}
-  select('importFormat',[['csv','importCsv'],['geojson','importGeojson']]);
+  const formatSelect=select('importFormat',[['csv','importCsv'],['geojson','importGeojson'],['osm','importOsm']]);
+  let localSource=null;
+  function sourceFields(){const osm=formatSelect.value==='osm';if(osm&&!localSource)localSource={namespace:fields.namespace.value,attribution:fields.attribution.value};for(const key of ['namespace','attribution']){if(osm)fields[key].value=OSM_SOURCE[key];else if(localSource)fields[key].value=localSource[key];fields[key].disabled=osm;}if(!osm)localSource=null;showPolicies();}
+  formatSelect.onchange=sourceFields;
+  dialog.append(el('p',t('importOsmHelp')));
   field('templateId');select('templateKind',[['camera','kind_camera'],['red-light','kind_red-light']]);field('templateAck','checkbox');dialog.append(el('p',t('templateHint')));
   const file=field('importFile','file');file.accept='.csv,.geojson,.json';
   const error=el('p');error.setAttribute('role','alert');dialog.append(error);
   const button=el('button',t('cancel'));button.onclick=cancel;dialog.append(button);
   file.onchange=async()=>{
    const selected=file.files[0];if(!selected)return;const current=++token;error.textContent='';
-   const source={namespace:fields.namespace.value,attribution:fields.attribution.value,url:null},templateId=fields.templateId.value.trim();
+   const source=fields.importFormat.value==='osm'?{...OSM_SOURCE}:{namespace:fields.namespace.value,attribution:fields.attribution.value,url:null},templateId=fields.templateId.value.trim();
    const policies=[];
    if(templateId){const record=snapshot?.view.records.find(r=>r.id===templateId);
     if(!fields.templateAck.checked||!record||record.originalSourceOffset===null||![1,3,5].includes(record.typeRaw)||record.originalLinkRaw!==0){error.textContent=t('templateRequiredAck');file.value='';return;}
@@ -52,10 +57,10 @@ export function createImportDialog({onImport,onCanard,getCanard=()=>null,onCance
    try{
     const text=await selected.text();if(current!==token)return;
     await onImport({text,format,source,retrievedAt:new Date().toISOString(),policies},()=>current===token,()=>{committing=true;button.disabled=true;});
-    if(current!==token)return;remembered={namespace:source.namespace,attribution:source.attribution};try{storage?.setItem('mivue-import-source',JSON.stringify(remembered));}catch{}
+    if(current!==token)return;if(format!=='osm'){remembered={namespace:source.namespace,attribution:source.attribution};try{storage?.setItem('mivue-import-source',JSON.stringify(remembered));}catch{}}
     dialog.close();
    }catch(e){if(current===token){error.textContent=t(e.code==='STALE_IMPORT'?'STALE_IMPORT':'importFailed');for(const issue of (e.issues??[]).slice(0,10))error.textContent+=' '+describeIssue(issue);}}
-   finally{if(current===token){committing=false;for(const input of Object.values(fields))input.disabled=false;file.value='';button.disabled=false;}}
+   finally{if(current===token){committing=false;for(const input of Object.values(fields))input.disabled=false;if(formatSelect.value==='osm'){fields.namespace.disabled=true;fields.attribution.disabled=true;}file.value='';button.disabled=false;}}
   };
  }
  return {open(s){snapshot=s;render();dialog.showModal();},sync(s){snapshot=s;},destroy(){token++;dialog.remove();}};

@@ -144,7 +144,7 @@ jobs:
           node-version: '26'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium firefox webkit
       - name: Unit and artifact-safety tests
         run: npm test
       - name: Browser regression tests

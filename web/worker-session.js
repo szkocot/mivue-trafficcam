@@ -9,6 +9,7 @@ import { referenceView,exportReferences } from '../src/import-view.js';
 import { reconcile,setImportPolicy,resolveImport } from '../src/reconcile.js';
 import { parseCsv } from '../src/import-csv.js';
 import { parseGeoJson } from '../src/import-geojson.js';
+import { parseOsmJson } from '../src/import-osm.js';
 import {createCountryExportController} from '../src/country-export.js';
 import {createCountryCache} from './country-cache.js';
 import {countryFail} from '../src/country-data.js';
@@ -78,7 +79,7 @@ export function createWorkerSession({loadCountryData}={}){
     if(['import','parse-import','import-policy','import-resolve'].includes(kind)){
       if(payload.expectedRevision!==history.revision)throw Object.assign(new Error('Import revision changed'),{code:'STALE_IMPORT'});
       if(kind==='parse-import'){
-        const parser=payload.format==='csv'?parseCsv:payload.format==='geojson'?parseGeoJson:null;
+        const parser=payload.format==='csv'?parseCsv:payload.format==='geojson'?parseGeoJson:payload.format==='osm'?parseOsmJson:null;
         if(!parser)throw Object.assign(new Error('Unsupported import format'),{code:'INVALID_IMPORT'});
         return parser(payload.text,payload.source,payload.retrievedAt);
       }

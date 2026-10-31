@@ -66,7 +66,7 @@ Prepare the website and deployment configuration without including the user's sa
 
 ## Current next increment
 
-Use the [remaining-work checklist](todo.md) for the current actionable backlog. The map/editor, local ingestion, browser location and hosted CANARD snapshot are deployed and public-browser verified. Daily gated CANARD checks are enabled. Country selection is next; additional source/detail adapters, binary-field research and browser/translation polish remain requested work. Physical 955W validation is a separate user/device task. See the deployment record for exact source/data commits and limitations.
+The [remaining-work checklist](todo.md) is the current ledger. Automated desktop-engine checks, supported source imports and the verified binary variants are implemented; the next user step is [manual browser/device acceptance](user-acceptance.md). CANARD detail enrichment/control points and complete binary semantic controls remain evidence-dependent. Earlier delivery-sequence and source notes above describe the original approved roadmap, not current feature availability.
 
 Update `README.md` after every task, recording actual progress and limitations without presenting planned features as implemented.
 

@@ -12,20 +12,20 @@ export function encodeCoordinate(n) {
 }
 
 /** Direct comparisons avoid normalized-floor errors at fractional boundaries. */
-export function axisIndex(n, min, max) {
-  let low = 0, high = 60;
+export function axisIndex(n, min, max, divisions = 60) {
+  let low = 0, high = divisions;
   while (low + 1 < high) {
     const middle = Math.floor((low + high) / 2);
-    if (n < min + (max - min) * middle / 60) high = middle;
+    if (n < min + (max - min) * middle / divisions) high = middle;
     else low = middle;
   }
   return low;
 }
-export function locate(latitude, longitude, bounds) {
+export function locate(latitude, longitude, bounds, cellWidth = 20) {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)
     || latitude < bounds.latitudeMin || latitude > bounds.latitudeMax
     || longitude < bounds.longitudeMin || longitude > bounds.longitudeMax) return null;
-  const x = axisIndex(latitude, bounds.latitudeMin, bounds.latitudeMax);
-  const y = axisIndex(longitude, bounds.longitudeMin, bounds.longitudeMax);
-  return { regionIndex: Math.floor(x / 20) * 3 + Math.floor(y / 20), cellIndex: (x % 20) * 20 + y % 20 };
+  const x = axisIndex(latitude, bounds.latitudeMin, bounds.latitudeMax, 3 * cellWidth);
+  const y = axisIndex(longitude, bounds.longitudeMin, bounds.longitudeMax, 3 * cellWidth);
+  return { regionIndex: Math.floor(x / cellWidth) * 3 + Math.floor(y / cellWidth), cellIndex: (x % cellWidth) * cellWidth + y % cellWidth };
 }

@@ -65,3 +65,14 @@ test('notice-only refresh preserves sync and manual records; bound active record
  assert.equal(projectNotices(applyEdit(p,{kind:'delete',id:recordId}),{encodedOnly:true}).length,0);
  assert.equal((await req('build')).result.notices[0].transformation,notices.transformation);
 });
+test('OSM imports carry immutable licence notices in references and bound binary contributions',async()=>{
+ const {parseOsmJson}=await import('../src/import-osm.js');
+ const {reconcile,resolveImport}=await import('../src/reconcile.js');
+ let p=await createProject(makeFixture([{}]).bytes);
+ const batch=parseOsmJson(JSON.stringify({elements:[{type:'node',id:1,lat:52,lon:21,tags:{highway:'speed_camera'}}]}),null,retrievedAt);
+ p=(await reconcile(p,batch)).project;
+ assert.equal(projectNotices(p)[0].licenceLabel,'ODbL 1.0');assert.equal(projectNotices(p,{encodedOnly:true}).length,0);
+ p=await resolveImport(p,{namespace:'openstreetmap',sourceId:'node/1',action:'bind',recordId:p.records[0].id});
+ assert.equal(projectNotices(p,{encodedOnly:true})[0].licenceUrl,'https://opendatacommons.org/licenses/odbl/1-0/');
+ assert.deepEqual(projectNotices(await loadProject(await serializeProject(p))),projectNotices(p));
+});

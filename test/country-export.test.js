@@ -57,3 +57,15 @@ test('reference scope preserves geometry and attribution without changing backup
  const csv=await c.export({...args,format:'csv'});assert.ok(csv.text.includes('source:'));assert.deepEqual(csv.selectionReport.records.keptIds,p.preview.records.keptIds);
  assert.equal(await serializeProject(imported),before);
 });
+test('country data filenames prefer reviewed ISO codes and retain stable-ID fallback and reports',async()=>{
+ const e=await packCountryData([{...boxCountry('ne:1',-7.2,36.8,-6.95,37.3),iso2:'PL'},
+  {...boxCountry('ne:2',-6.94,36.8,-6.7,37.3),iso2:null}]);
+ const c=createCountryExportController({loadData:()=>validateCountryData(e.bytes,e.manifest,e.noticeBytes)}),project=await createProject(makeFixture([{}]).bytes);
+ const p=await prepare(project,c,{...options,countryIds:['ne:2','ne:1']}),args={project,sessionId:'x',revision:0,generation:1,token:p.token};
+ for(const format of ['json','geojson','csv','references']){
+  const result=await c.export({...args,format});
+  assert.equal(result.filename,`mivue-${format==='references'?'references':'records'}-PL-ne_2.${format==='references'?'geojson':format}`);
+  assert.deepEqual(result.selectionReport.options.countryIds,['ne:1','ne:2']);
+ }
+ assert.equal((await c.export({...args,format:'bin'})).filename,'Speedcam_Data_FEU.bin');
+});

@@ -20,8 +20,9 @@ const equal = (a, b) => {
 export function reconstructDatabase(parsed) {
   try {
     const { regions, cells, records } = parsed;
+    const cellCount = parsed.header.cellDimensions.rows * parsed.header.cellDimensions.columns;
     if (regions.length !== 9) fail('INVALID_PARSED_DATA', 'Expected nine regions');
-    const size = 72 + 90 + regions.filter(r => r.count > 0).length * 1600 + cells.length * 10 + records.length * 28;
+    const size = 72 + 90 + regions.filter(r => r.count > 0).length * cellCount * 4 + cells.length * 10 + records.length * 28;
     if (!Number.isSafeInteger(size) || size > 0xffffffff) fail('SIZE_OVERFLOW', 'Binary length exceeds uint32');
     const output = new Uint8Array(size), view = new DataView(output.buffer);
     let cursor = 0, ci = 0, ri = 0;
@@ -39,9 +40,9 @@ export function reconstructDatabase(parsed) {
         if (region.cellOffsets.length) fail('INVALID_PARSED_DATA', 'Empty region has cell pointers');
         continue;
       }
-      if (region.cellOffsets.length !== 400 || cursor + 1600 > size) fail('INVALID_PARSED_DATA', 'Bad cell table');
+      if (region.cellOffsets.length !== cellCount || cursor + cellCount * 4 > size) fail('INVALID_PARSED_DATA', 'Bad cell table');
       for (const offset of region.cellOffsets) { view.setUint32(cursor, offset, true); cursor += 4; }
-      for (let j = 0; j < 400; j++) {
+      for (let j = 0; j < cellCount; j++) {
         const cell = cells[ci++]; write(cell.offset, cell.rawHex, 10);
         if (!Number.isInteger(cell.count) || cell.count < 0 || cell.count > 65535) fail('INVALID_PARSED_DATA', 'Bad cell count');
         for (let k = 0; k < cell.count; k++) {
@@ -58,7 +59,7 @@ export function reconstructDatabase(parsed) {
   }
 }
 
-function nodeBytes(existing, count, regionIndex, cellIndex, bounds) {
+function nodeBytes(existing, count, regionIndex, cellIndex, bounds, cellWidth) {
   const bytes = existing ? hexToBytes(existing.rawHex) : new Uint8Array(10), v = new DataView(bytes.buffer);
   v.setUint16(0, count, true);
   if (!existing) {
@@ -66,9 +67,9 @@ function nodeBytes(existing, count, regionIndex, cellIndex, bounds) {
     const lonSpan = (bounds.longitudeMax - bounds.longitudeMin) / 3;
     const latStart = bounds.latitudeMin + Math.floor(regionIndex / 3) * latSpan;
     const lonStart = bounds.longitudeMin + (regionIndex % 3) * lonSpan;
-    const lat = latStart + Math.floor(cellIndex / 20) * latSpan / 20;
-    const lon = lonStart + (cellIndex % 20) * lonSpan / 20;
-    [lat, lon, lat + latSpan / 20, lon + lonSpan / 20].forEach((n, i) => v.setInt16(2 + i * 2, Math.trunc(n), true));
+    const lat = latStart + Math.floor(cellIndex / cellWidth) * latSpan / cellWidth;
+    const lon = lonStart + (cellIndex % cellWidth) * lonSpan / cellWidth;
+    [lat, lon, lat + latSpan / cellWidth, lon + lonSpan / cellWidth].forEach((n, i) => v.setInt16(2 + i * 2, Math.trunc(n), true));
   }
   return bytes;
 }
@@ -79,10 +80,11 @@ export async function buildProject(project) {
   project = structuredClone(project);
   const { baseline, originals } = await validateProject(project);
   const originalBytes = reconstructDatabase(baseline), bounds = baseline.header.bounds;
+  const cellWidth = baseline.header.cellDimensions.rows, cellCount = cellWidth * cellWidth;
   const entries = new Map(project.records.map(r => [r.id, r]));
   const ordered = [...baseline.records.map(r => entries.get(`source:${r.offset}`)),
     ...project.records.filter(r => r.sourceOffset === null).sort((a, b) => Number(a.id.slice(4)) - Number(b.id.slice(4)))];
-  const groups = Array.from({ length: 9 }, () => Array.from({ length: 400 }, () => []));
+  const groups = Array.from({ length: 9 }, () => Array.from({ length: cellCount }, () => []));
   const active = new Map(), changedRecordIds = [];
   for (const entry of ordered) {
     if (entry.deleted) { if (entry.sourceOffset !== null) changedRecordIds.push(entry.id); continue; }
@@ -99,7 +101,7 @@ export async function buildProject(project) {
     }
     if (entry.edits.rawBytes16To19) bytes.set(entry.edits.rawBytes16To19, 16);
     const latitude = decodeCoordinate(v.getFloat64(0, true)), longitude = decodeCoordinate(v.getFloat64(8, true));
-    const position = (coordinateChanged || entry.sourceOffset === null) ? locate(latitude, longitude, bounds)
+    const position = (coordinateChanged || entry.sourceOffset === null) ? locate(latitude, longitude, bounds, cellWidth)
       : { regionIndex: original.regionIndex, cellIndex: original.cellIndex };
     if (!position) fail('INVALID_COORDINATE', 'Edited coordinate is outside database bounds', entry.id);
     const row = { entry, original, bytes, ...position, latitude, longitude, offset: 0 };
@@ -112,8 +114,8 @@ export async function buildProject(project) {
   for (let i = 0; i < 9; i++) {
     regionOffsets[i] = size; size += 10; cellOffsets[i] = [];
     if (!counts[i]) continue;
-    size += 1600;
-    for (let j = 0; j < 400; j++) {
+    size += cellCount * 4;
+    for (let j = 0; j < cellCount; j++) {
       cellOffsets[i][j] = size; size += 10;
       for (const row of groups[i][j]) { row.offset = size; size += 28; }
     }
@@ -122,7 +124,7 @@ export async function buildProject(project) {
   const layoutChanged = size !== originalBytes.length || active.size !== baseline.records.length
     || [...active.values()].some(r => r.offset !== r.entry.sourceOffset || r.regionIndex !== r.original.regionIndex || r.cellIndex !== r.original.cellIndex);
   if (layoutChanged && counts.findIndex(n => n > 0) !== baseline.regions.findIndex(r => r.count > 0))
-    fail('UNKNOWN_HEADER_DEPENDENCY', 'Changing the first populated region requires research of header offset 20');
+    fail('UNKNOWN_HEADER_DEPENDENCY', 'Changing the first populated region requires verification of all header/layout consumers');
   if (layoutChanged && baseline.diagnostics.some(d => ['INVALID_COORDINATE', 'CELL_MISMATCH'].includes(d.code)
     && active.has(`source:${d.offset}`) && !('latitude' in active.get(`source:${d.offset}`).entry.edits || 'longitude' in active.get(`source:${d.offset}`).entry.edits)))
     fail('INVALID_COORDINATE', 'Resolve invalid/misplaced coordinates before changing layout');
@@ -147,11 +149,11 @@ export async function buildProject(project) {
   const oldCells = new Map(baseline.cells.map(c => [`${c.regionIndex}:${c.index}`, c]));
   for (let i = 0; i < 9; i++) {
     const p = regionOffsets[i]; v.setUint32(36 + i * 4, p, true);
-    output.set(nodeBytes(baseline.regions[i], counts[i], i, null, bounds), p);
+    output.set(nodeBytes(baseline.regions[i], counts[i], i, null, bounds, cellWidth), p);
     if (!counts[i]) continue;
-    for (let j = 0; j < 400; j++) {
+    for (let j = 0; j < cellCount; j++) {
       const q = cellOffsets[i][j]; v.setUint32(p + 10 + j * 4, q, true);
-      output.set(nodeBytes(oldCells.get(`${i}:${j}`), groups[i][j].length, i, j, bounds), q);
+      output.set(nodeBytes(oldCells.get(`${i}:${j}`), groups[i][j].length, i, j, bounds, cellWidth), q);
       for (const row of groups[i][j]) output.set(row.bytes, row.offset);
     }
   }

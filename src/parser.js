@@ -16,7 +16,7 @@ const jsonNumber = n => Number.isFinite(n) ? n : String(n);
 const validRaw = n => Number.isFinite(n) && Math.abs(n % 100) < 60;
 
 /**
- * Parse the researched 3×3 / 20×20 layout without changing the input.
+ * Parse the researched 3×3 / 20×20 and 22×22 layouts without changing the input.
  * All returned arrays/objects own their data; no input views are retained.
  * @param {Uint8Array} bytes File bytes (including sliced Node Buffers).
  * @returns {object} Schema-v1 header, regions, cells, records, diagnostics and summary.
@@ -59,14 +59,15 @@ export function parseDatabase(bytes) {
   };
   span(0, 36);
   const bounds = { longitudeMin: i16(0), latitudeMin: i16(2), longitudeMax: i16(4), latitudeMax: i16(6) };
-  if (u16(8) !== 20 || u16(10) !== 20 || u16(12) !== 3 || u16(14) !== 3)
-    fail('UNSUPPORTED_GRID', 8, 'Only the researched 3×3 / 20×20 grid is supported');
+  const cellWidth = u16(8), cellCount = cellWidth * cellWidth, tableBytes = cellCount * 4;
+  if (![20, 22].includes(cellWidth) || u16(10) !== cellWidth || u16(12) !== 3 || u16(14) !== 3)
+    fail('UNSUPPORTED_GRID', 8, 'Only the researched 3×3 / 20×20 or 22×22 grids are supported');
   if (bounds.latitudeMin < -90 || bounds.latitudeMax > 90
     || bounds.longitudeMin < -180 || bounds.longitudeMax > 180
     || bounds.latitudeMin >= bounds.latitudeMax || bounds.longitudeMin >= bounds.longitudeMax)
     fail('INVALID_BOUNDS', 0, 'Invalid global geographic bounds');
   const header = { rawHex: raw(0, 36), bounds,
-    cellDimensions: { rows: 20, columns: 20 }, regionDimensions: { rows: 3, columns: 3 },
+    cellDimensions: { rows: cellWidth, columns: cellWidth }, regionDimensions: { rows: 3, columns: 3 },
     unknown16Hex: raw(16, 4), unknown20: u32(20),
     versionCandidate: String.fromCharCode(...bytes.subarray(24, 36)) };
   const regionOffsets = pointers(36, 9, 72, bytes.length);
@@ -82,12 +83,12 @@ export function parseDatabase(bytes) {
       latitude = longitude = null;
       warn('INVALID_COORDINATE', offset, 'Invalid degrees-and-minutes coordinate');
     } else {
-      const x = axisIndex(latitude, bounds.latitudeMin, bounds.latitudeMax);
-      const y = axisIndex(longitude, bounds.longitudeMin, bounds.longitudeMax);
+      const x = axisIndex(latitude, bounds.latitudeMin, bounds.latitudeMax, 3 * cellWidth);
+      const y = axisIndex(longitude, bounds.longitudeMin, bounds.longitudeMax, 3 * cellWidth);
       if (latitude < bounds.latitudeMin || latitude > bounds.latitudeMax
         || longitude < bounds.longitudeMin || longitude > bounds.longitudeMax
-        || Math.floor(x / 20) * 3 + Math.floor(y / 20) !== regionIndex
-        || (x % 20) * 20 + y % 20 !== cellIndex)
+        || Math.floor(x / cellWidth) * 3 + Math.floor(y / cellWidth) !== regionIndex
+        || (x % cellWidth) * cellWidth + y % cellWidth !== cellIndex)
         warn('CELL_MISMATCH', offset, 'Coordinate does not belong to its indexed cell');
     }
     return { offset, regionIndex, cellIndex, rawHex: raw(offset, 28),
@@ -101,10 +102,10 @@ export function parseDatabase(bytes) {
     const region = { index: i, ...node(p), cellOffsets: [] };
     regions.push(region);
     if (!region.count) { exactSpan(p, end, 10); continue; }
-    if (end - p < 1610) fail('SPAN_MISMATCH', p, 'Region cannot contain its cell table');
-    region.cellOffsets = pointers(p + 10, 400, p + 1610, end);
+    if (end - p < (10 + tableBytes)) fail('SPAN_MISMATCH', p, 'Region cannot contain its cell table');
+    region.cellOffsets = pointers(p + 10, cellCount, p + (10 + tableBytes), end);
     let count = 0;
-    for (let j = 0; j < 400; j++) {
+    for (let j = 0; j < cellCount; j++) {
       const q = region.cellOffsets[j], cellEnd = region.cellOffsets[j + 1] ?? end;
       if (cellEnd - q < 10) fail('SPAN_MISMATCH', q, 'Cell header overlaps next cell');
       const cell = { regionIndex: i, index: j, ...node(q) };

@@ -1,6 +1,6 @@
 # Initial binary-format investigation
 
-These findings describe one local sample, not a general MiVue specification. Structural observations are distinguished from inferred field meanings. No device testing or encoding has been performed.
+The original tables below describe the July sample, not a general MiVue specification. Current supported variants, exact round-trip evidence and the firmware-reader findings are in [the 2026-10-31 follow-up](binary-research-2026-10-31.md). Structural/static observations remain distinct from device acceptance; no physical device test is claimed.
 
 ## Sample identity
 
@@ -134,4 +134,4 @@ Read-only inspection used `file`, `xxd`, `shasum -a 256`, and Python's standard-
 
 The parser and encoder now perform byte-identical reconstruction of this sample, with raw-field preservation and malformed-input validation. Project builds support validated edits and understood link relocation, with explicit blocks on unresolved layout changes. Device compatibility and successful installation remain untested.
 
-Static inspection of the supplied 955W firmware found a second database with a 22×22 cell grid and the same 28-byte record structure; see [firmware research](firmware-research.md). Its header offset 20 is 72 although its first populated region starts at 82, disproving the simple first-populated-region-pointer hypothesis. This field remains opaque. The production codec still only accepts 20×20.
+Static inspection of the supplied 955W firmware found a second database with a 22×22 cell grid and the same 28-byte record structure; see [firmware research](firmware-research.md). Its header offset 20 is 72 although its first populated region starts at 82, disproving the simple first-populated-region-pointer hypothesis. This field remains opaque. The production codec now supports both researched 20×20 and 22×22 variants; see [2026-10-31 research](binary-research-2026-10-31.md).

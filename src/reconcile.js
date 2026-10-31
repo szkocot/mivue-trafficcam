@@ -2,6 +2,7 @@ import { inspectProject,applyImportTransaction,bytesToHex } from './project.js';
 import { upgradeProject } from './ingestion-state.js';
 import { normalizeBatch,identity,jsonCopy,requireImport } from './import-normalize.js';
 import { createProximityIndex } from './import-spatial.js';
+import {OSM_SOURCE} from './import-osm.js';
 
 const key=o=>identity(o.namespace,o.sourceId);
 const equal=(a,b)=>JSON.stringify(jsonCopy(a))===JSON.stringify(jsonCopy(b));
@@ -29,9 +30,12 @@ export async function reconcile(project,input){
  for(const o of batch.observations){
   const k=identity(namespace,o.sourceId),old=oldObservations.get(k),next={...o,namespace,retrievedAt:batch.retrievedAt,disposition:old?.disposition??'auto',codes:[]};
   if(old){
+   // OSM node exports carry complete current tags; absent tags must clear stale source metadata.
+   if(namespace!==OSM_SOURCE.namespace){
    for(const field of ['name','direction','url'])if(next[field]===null)next[field]=old[field];
    if(next.speedKmh===null){next.speedKmh=old.speedKmh;next.originalSpeed=old.originalSpeed;}
    if(!Object.hasOwn(o.originalProperties,'status')&&next.status==='unknown')next.status=old.status;
+   }
    next.originalProperties={...old.originalProperties,...next.originalProperties};
   }
   observations.set(k,next);incoming.push(next);

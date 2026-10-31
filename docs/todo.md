@@ -1,97 +1,78 @@
 # Remaining work
 
-Handoff updated **2026-10-31** from the agreed follow-up list. The user authorized implementing points **1–4 and 6**. Points **1 and 2 are completed and deployed**; points **3, 4 and 6 remain open**. Point 5 requires separate user/device testing. Binary research may be needed before some reduced BIN builds can succeed.
-
-Last verified release: **2026-09-21**, source `c8f3f99`, with release documentation committed as `281285b` on `main`. That release passed 237 local Node tests and 62 Chromium tests (one opt-in live-source skip). These are recorded results, not a fresh test or live-service check on the handoff date. The merged country-export branch/worktree was removed; do not recreate its completed implementation.
+Updated **2026-10-31** after the user authorized all programmatic TODO work and subagents. The completed programmatic increment covers browser engines, local OSM camera-node imports, verified 22×22 binary support, ISO export filenames and repeated lossless round trips. Physical browser/device testing and the evidence-dependent items below remain open.
 
 ## Resume here
 
-Suggested order (not a new scope approval):
+1. Use [browser/device acceptance](user-acceptance.md) to test your actual browser/phone and MiVue 955W. Keep the original database, full project and recovery backup.
+2. Return observations with model/firmware, source/output SHA-256, record IDs and exact symptoms. Automated structural validity is not device acceptance.
+3. Continue semantic BIN controls only when the firmware-reader trace or controlled tests establish the remaining flag/header/endpoint meanings. Keep existing build blockers.
+4. CANARD detail enrichment needs verified units, direction/status semantics, cross-category/identity evidence, notices and an unattended-access arrangement. PK coordinates remain unavailable. Additional named providers require their own access/identity assessment.
 
-1. **Point 6 — browser coverage:** Firefox/WebKit coverage next. Actionable PL/EN import errors and persistent Mio cache warnings are implemented locally; see verification below. Track physical mobile testing separately.
-2. **Point 3 — sources:** assess permitted CANARD enrichment and OSM/other source access before choosing an adapter to implement.
-3. **Point 4 — binary research:** investigate header/link blockers and verify field meanings before enabling more encoding controls.
-4. **Country-export minor:** use reviewed ISO codes in data filenames, falling back to stable dataset IDs. Keep the device BIN filename unchanged.
-5. **Point 5 — hardware:** only when the user is ready to test the MiVue 955W safely.
+## Verification and preservation
 
-Before implementation, inspect `git status`, recent commits and this checklist; check for changes since the recorded release. Agree the next bounded increment, run relevant baseline tests, and preserve unrelated user edits. Update this list and README after each task. Keep merge/push/deployment decisions explicit; this handoff request itself authorizes documentation only.
+- **256 Node tests pass, zero skips**, with both private official and firmware databases present. The preview-server artifact test requires a local listening port; sandboxed Node attempts crashed natively, while the unrestricted integrated run passed.
+- **201 deterministic browser tests pass** across Chromium, Firefox and WebKit; three opt-in live checks are skipped in that command. The separate live Mio run passes **all three engines**, each with one GET, one HEAD and no second body download.
+- Repeated BIN → parsed JSON → reconstruction → project save/reopen → BIN cycles preserve every byte, SHA-256, record and diagnostic for the 53,338-record official file and 51,790-record firmware file. Synthetic 20×20/22×22 fixtures exercise every raw byte, unknown types/references and unusual numeric encodings.
+- CSV/GeoJSON/OSM selected observation identities, geometry, original metadata, units, normalized fields, attribution and timestamps survive project save/reopen and deterministic reference export. This preserves supported data, not the source file's whitespace/quoting/envelope or unrelated OSM elements. Full project JSON is the reopenable backup; data exports are projections.
+- The current hosted CANARD snapshot validates at **811 observations** (506 PP, 136 OPP, 169 RL, PK unavailable); its 401,881 bytes, SHA-256 `f7f136127a9b32a8ce3470af84bc8d27dbefad9d2abd83e4d280ef6523754d87`, and canonical JSON parse/re-export match exactly.
+- Independent implementation review found no actionable issues. Build/diff checks and release verification are recorded in [deployment](deployment.md) and [browser evidence](cross-browser-verification.md).
 
-Copy/paste to resume:
+## 1. CANARD publication — completed
 
-> Continue the MiVue TrafficCam project in /Users/szymonkocot/Projects/mivue-trafficcam. Read docs/todo.md and README.md first, and check the current working tree. CANARD publication and country exports are already completed and deployed. The PL/EN import-error and Mio-cache-warning fixes are implemented locally; verify/integrate that increment before continuing point 6 with Firefox/WebKit coverage. Keep points 3 and 4 on the backlog. Preserve full backups and BIN safety checks, add regression tests, and update README/TODO after each task. Do not assume device acceptance or legal permission for new sources.
+- [x] Publish reviewed snapshots with attribution and fail-closed terms/schema/count/identity gates.
+- [x] Enable and observe daily gated checks; verify accepted source/data deployments.
+- [x] Confirm current manifest/snapshot hash, counts and freshness, cache reuse, PL/EN and private-file exclusions.
 
-Useful references: [deployment evidence](deployment.md), [browser verification](browser-verification.md), [CANARD access assessment](source-access.md), [CANARD field inventory](canard-field-inventory.md), [binary research](binary-format.md), [firmware research](firmware-research.md), [country boundaries](country-boundaries.md).
+The previous code release `3972fa5` deployed in [run 41245309208](https://github.com/szkocot/mivue-trafficcam/actions/runs/41245309208). Fresh public Chromium loaded 53,338 official records, exercised PL/EN errors and persistent cache warnings, saw private-file 404s and no page errors. Later release evidence belongs in deployment.md. Publication safeguards are not a blanket permission for arbitrary new services.
 
-## Completed baseline
+## 2. Country selection — completed
 
-The existing baseline includes decoding/rebuilding the researched BIN layout, the PL/EN map editor, CSV/GeoJSON imports, source metadata display, browser location and startup caching. Hosted CANARD implementation and review fixes are merged, pushed and deployed with the reviewed dataset.
+- [x] Versioned/hash-verified boundaries, uncertainty decisions, linked-endpoint integrity, bounded previews and scoped exports.
+- [x] Keep full backups unfiltered and preserve existing invalid-coordinate/link/header BIN blockers.
+- [x] Use reviewed ISO codes in scoped data filenames with stable dataset-ID fallback. Device output remains `Speedcam_Data_FEU.bin`; report IDs remain stable dataset IDs.
 
-## 1. Activate CANARD data — release work
+## 3. Sources and metadata — supported increment completed, evidence blockers remain
 
-- [x] Obtain explicit approval to publish the reviewed dataset and enable daily updates — user requested implementation of point 1 on 2026-09-20.
-- [x] Recheck the release gates and publish the exact approved candidate with attribution; fresh validation reproduced the reviewed digest.
-- [x] Enable the repository publication variable only after the review record permits publication.
-- [x] Verify the Actions result, deployed source/data commits, manifest hash and counts — run `35529021193`, source `f95ea5f`, data `7bb196e`.
-- [x] In a fresh browser on the public site, verify PL/EN, import/edit/save/reopen/export, notices and reload without an unchanged snapshot-body download.
-- [x] Confirm sample BIN, firmware and private research files remain absent from the public artifact; record the deployment evidence.
+- [x] Recheck CANARD map/client/robots and one public detail response; record exact hashes, field schema and semantic limits.
+- [x] Assess OSM access, ODbL attribution and typed stable identities; implement local OSM/Overpass JSON camera-node imports, including proposed/disused lifecycle tags.
+- [x] Preserve original element metadata/units/IDs/import times, OSM notices and manual edits/deletions. Reimport clears obsolete OSM source metadata without changing manually owned BIN coordinates.
+- [x] Test repeats, malformed input, conflicts/bindings, original metadata, notice retention, project persistence and PL/EN errors across all three engines.
+- [ ] Hosted CANARD detail enrichment: current access works, but one sample does not establish units, conditional/vehicle-class limits, direction/status semantics, all category schemas, stable updates, notices or permitted unattended volume.
+- [ ] PK/control-point coordinates: current public array remains `[{}]`, not an authoritative empty dataset.
+- [ ] OSM enforcement ways/relations: explicitly rejected until supported role/geometry semantics are implemented; no road-route inference. Only selected camera nodes are imported.
+- [ ] Other providers: no additional concrete dataset supplied; require a named reusable source and verified access/schema/identity before adding an adapter.
 
-Published coverage: 499 point-speed, 138 OPP and 169 red-light observations. Control-point data is unavailable, not a verified zero. Daily gated checks are enabled; the first observed scheduled run, [35581370719](https://github.com/szkocot/mivue-trafficcam/actions/runs/35581370719), successfully prepared, published, built and deployed on 2026-09-21. See [release evidence](deployment.md), [access assessment](source-access.md) and [field inventory](canard-field-inventory.md). Reuse safeguards are not legal certification.
+[Source research and exact blockers](source-research-2026-10-31.md). Missing speed/direction/status stays unknown; source metadata is distinct from BIN-encoded values.
 
-## 2. Country selection — implementation
+## 4. Binary research — verified extension completed, semantics remain open
 
-Released and public-browser verified on 2026-09-21: [deployment 35622164123](https://github.com/szkocot/mivue-trafficcam/actions/runs/35622164123), source `c8f3f99`, accepted data `3597190`. The [six-task country-export plan](superpowers/plans/2026-09-20-country-export.md) is complete, including review fixes, integration and public verification. Its internal task numbers are separate from this backlog's numbered points.
+- [x] Re-extract and verify the supplied firmware database privately with CRC, lengths, SHA-256 and manifest MD5 checks.
+- [x] Support the verified 3×3 region / **20×20 and 22×22** cell layouts across parser, spatial indexing, reconstruction and edited builds; reject other/nonsquare dimensions.
+- [x] Compare raw fields, candidate endpoint links, header variants and bearing hypotheses quantitatively; retain all opaque bytes. Trace the real ARM/Thumb firmware reader: header word 20 participates in displayed version text; byte 17 is doubled in the observed direction branch; recorded links use a direct absolute seek. Full alias/state/units semantics remain unproved.
+- [x] Repeated exact-byte/hash reconstruction and project persistence for both real variants and adversarial synthetic raw fields.
+- [ ] Establish complete speed/direction/type-flag, endpoint-role and opaque-header mappings from reader evidence and controlled device observations before adding semantic controls.
+- [ ] Resolve anomalous links safely: no universal arithmetic repair is supported. Keep unresolved references in unchanged output; block unsafe address-space changes.
 
-Decision-only cancellation preserves completed classifications; review rows disclose coordinates, candidate countries, names and linked IDs. Full backups remain unfiltered. Unknown headers/links can still block reduced BINs; there is no force-build bypass or guarantee that a Poland-only BIN will work on the 955W.
+[Binary follow-up and reader trace](binary-research-2026-10-31.md). Proprietary downloads/extracted bytes remain untracked and absent from public assets. Firmware inspection is not installation or device acceptance.
 
-- [x] Let users select one or more countries for a reduced export, separately from map display filters.
-- [x] Use a versioned boundary dataset with verified reuse terms and attribution — pinned Natural Earth 5.1.1; see [evidence](country-boundaries.md).
-- [x] Define handling for border points, unknown/invalid coordinates and cross-border OPP before implementation.
-- [x] Preview kept, excluded and unresolved records; preserve linked OPP endpoints and the original project for recovery.
-- [x] Build and reparse the reduced BIN, or explain why unresolved links/header semantics prevent a safe build. Do not bypass existing encoder safeguards.
-- [x] Integrate and deploy the country-export branch; verify the public artifact and fresh-browser workflows.
+## 5. MiVue 955W — user's physical testing
 
-See [country-selection requirements](roadmap.md#shared-project-model).
+- [x] Prepare browser/device procedure with original-file backups, unchanged rebuild first, recovery requirements and result template.
+- [ ] Record your actual model, firmware, generated dataset, input/output hashes and installation/restart result.
+- [ ] Verify point-camera/OPP alerts and displayed limits/direction safely; record failures separately from parser success.
 
-- [ ] Deferred minor: use reviewed ISO codes in scoped data filenames where available, with stable dataset-ID fallback. Retain `Speedcam_Data_FEU.bin` for device output and stable IDs in reports.
+Use [the acceptance checklist](user-acceptance.md). Confirm model-specific installation and restoration instructions before replacing a device file. Generated files remain experimental and use-at-own-risk.
 
-## 3. Additional sources and richer metadata — research and implementation
+## 6. PL/EN and browsers — programmatic coverage completed
 
-- [ ] Add OSM and other website adapters only after checking access, reuse terms, attribution and stable identity.
-- [ ] Investigate permitted CANARD detail enrichment for speed limits, direction, status and place information; public map arrays do not supply these fields.
-- [ ] Obtain usable control-point evidence before implementing that category; do not invent coordinates or treat the placeholder as an empty authoritative dataset.
-- [ ] Preserve source IDs, original metadata, units and retrieval times; protect manual edits/deletions and avoid automatic proximity-only merges.
-- [ ] Test repeated imports, conflicts, malformed input and notice retention. Keep absent values unknown and source-reported values distinct from BIN-encoded fields.
-
-Traffic-camera coverage here means enforcement locations. No live-video feeds or permission for bulk detail scraping are assumed.
-
-## 4. Complete binary-field research — research and implementation
-
-- [ ] Verify speed-limit, direction and record-type/flag meanings using documented evidence rather than guesses.
-- [ ] Investigate remaining header/layout dependencies and anomalous references that block structural edits.
-- [ ] Complete directional OPP/endpoints and supported encoding mappings; endpoint connectors must not be presented as verified road routes.
-- [ ] Use the supplied firmware as supporting research where useful, without redistributing proprietary files or treating firmware inspection as device validation.
-- [ ] Add fixtures and regression tests for each verified mapping, retaining unknown raw bytes and byte-identical unchanged reconstruction.
-
-See [binary-format notes](binary-format.md).
-
-## 5. MiVue 955W validation — user/device testing
-
-- [ ] Prepare a documented test procedure with original-file backups and a recovery path.
-- [ ] Record the device model, firmware version and generated dataset used for each test.
-- [ ] Confirm the device accepts the generated file and verify point-camera and OPP alert behavior, including any newly verified speed/direction encoding.
-- [ ] Document observed results and limitations separately from parser/encoder test success. Test safely; do not encourage speeding or driver interaction with the app.
-
-Device acceptance remains unverified. All generated files remain experimental and use-at-own-risk.
-
-## 6. PL/EN polish and browser coverage — implementation and testing
-
-- [x] Translate technical import codes such as `DUPLICATE_ID` and `CSV_QUOTE` into actionable PL/EN messages.
-- [x] Keep Mio cache persistence warnings visible instead of immediately replacing them with a ready/unchanged message. This is the older Mio-cache issue, not the corrected CANARD warning behavior.
-- [ ] Exercise Firefox, Safari/WebKit and physical mobile browsers: file handling, storage/recovery, map/editor, downloads and browser GPS permissions.
-- [ ] Record supported/tested environments and remaining limitations; do not infer physical-device behavior from Chromium tests.
-
-Local increment (2026-10-31): import failures now explain repairs in PL/EN, retain schema field names and distinguish data-record indices from CSV records including the header. File-wide errors omit record numbering. Mio cache warnings remain alongside operation status until a successful cache write. Regression tests cover failed writes/reads, offline status, recovery, duplicate IDs, malformed quotes, headers and JSON, unchanged projects and successful retry. Verification: **239 Node tests and 65 Chromium tests pass**, one opt-in live-source browser skip; the separate opt-in live Mio browser test also passes (one GET, one HEAD, no repeat download). Build and diff checks pass. Independent review found and verified the correction of a CSV record-limit location error. The newer 53,338-record official file passes unchanged rebuilding and browser country-preview checks; both inspected private-file hashes remain pinned. Live verification passed before the user-authorized commit/push; deployment is not yet verified.
+- [x] Actionable PL/EN import errors with accurate record/file context.
+- [x] Persistent Mio cache warnings until storage recovers.
+- [x] Chromium, Firefox and WebKit projects, CI engine installation, file chooser, imports, editing, storage/recovery, map, downloads and emulated location checks.
+- [x] Fix actual WebKit hidden-file-input pointer interception and test the visible file chooser.
+- [x] Record versions, supported/tested environments, live endpoint behavior and limitations.
+- [ ] Actual Safari/phone downloads/share destinations, physical GPS accuracy and OS permission prompts: user testing remains separate.
 
 ## Completion rules
 
-Mark an item complete only with recorded evidence. Update this checklist and README after each task, preserve the own-risk warning, and distinguish implementation, source publication, website deployment and physical-device validation. See the [roadmap](roadmap.md) for the broader scope and [verification record](browser-verification.md) for results already obtained.
+Mark items complete only with evidence. Never turn a research hypothesis into a verified binary control, an unavailable source into zero records, a projected export into a full backup, or an engine test into hardware acceptance. Update this ledger, README and evidence when manual results or new authoritative data arrive.

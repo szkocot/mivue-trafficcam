@@ -56,6 +56,18 @@ Purple markers/lines and the separate reference table represent unencoded observ
 
 Speed-limit and metadata label switches are independent, off by default, remembered locally and absent from project history. Individual visible points can show labels; aggregates cannot. Collision suppression caps labels at 200 per frame. Selected details always include available source data, original units and unknown values. Source links are restricted to HTTP(S); all source strings are rendered as text.
 
-Direct browser access to CANARD remains blocked by CORS. The hosted-snapshot implementation instead reads a validated same-origin dataset when one is published (publication is currently pending). Importing it opts the project into startup synchronization; the checkbox disables future automatic merges. Updates wait for unapplied forms/recovery, and Undo is respected for the rest of the session; use Reapply to intentionally apply that version again. Reload checks the manifest once, without redownloading unchanged snapshot bytes. Failed checks retain the last valid copy with a warning; withdrawal clears the separate cache but does not delete your saved project.
+Direct browser access to CANARD remains blocked by CORS. The hosted-snapshot implementation instead reads a validated same-origin dataset when one is published (publication and daily gated updates are enabled). Importing it opts the project into startup synchronization; the checkbox disables future automatic merges. Updates wait for unapplied forms/recovery, and Undo is respected for the rest of the session; use Reapply to intentionally apply that version again. Reload checks the manifest once, without redownloading unchanged snapshot bytes. Failed checks retain the last valid copy with a warning; withdrawal clears the separate cache but does not delete your saved project.
 
 Coverage is point-speed cameras, OPP endpoints and red-light enforcement. Control-point data is explicitly unavailable, not zero. Unknown speed/status/direction remain unknown and OPP lines are not road routes. The source panel shows retrieval/check times and attribution. When a CANARD observation is associated with a BIN record, keep the downloadable source notices alongside distributed BIN/CSV exports; project/reference exports embed notices. No proxy, bulk detail scraping or live-video source is supplied. See [access evidence](source-access.md).
+
+## Local OpenStreetMap JSON
+
+Choose **OpenStreetMap JSON (camera nodes)** in Import after opening a BIN/project. The namespace and attribution fill automatically. Select a local OSM/Overpass JSON export containing `elements`, for example:
+
+```json
+{"elements":[{"type":"node","id":123,"lat":52,"lon":21,"tags":{"highway":"speed_camera","maxspeed":"30 mph","direction":"90","name":"Example"}}]}
+```
+
+Only speed-camera nodes with coordinates are supported. Ordinary cameras have unknown operational status and remain references; proposed/disused tags retain planned/inactive status. Numeric speed limits retain original units, bearings remain camera-facing metadata, and other tags survive unchanged. Enforcement relations and camera ways produce an actionable error; export camera nodes separately. There is no automatic API download, route inference or speed/direction BIN encoding. The retrieval time is local import time, not file freshness. Reimporting a node clears stale source limits/bearings when its current tags no longer supply them, while manual BIN edits remain protected.
+
+Keep the OpenStreetMap contributors / ODbL licence notice when sharing derived outputs; reference exports embed it and the existing notice download covers associated BIN records. See [supported fields, research and limits](source-research-2026-10-31.md).

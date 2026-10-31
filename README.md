@@ -6,15 +6,19 @@ The intended scope includes fixed speed cameras and section-based average-speed 
 
 ## Website
 
-**[Open MiVue TrafficCam](https://szkocot.github.io/mivue-trafficcam/)** — country exports published and live-browser verified on 2026-09-21. PL/EN, official database loading, local editing/export, CSV/GeoJSON imports and hosted CANARD imports are available. In **Export → Selected countries**, preview and review uncertainty/linked endpoints before downloading. Full project backups remain unfiltered; existing BIN safety blockers remain active. CANARD contains 499 point-speed, 138 OPP and 169 red-light observations; control-point data is unavailable. Daily gated updates are enabled. [Deployment workflow and safety notes](docs/deployment.md). **Use at your own risk; MiVue 955W device acceptance is untested.**
+**[Open MiVue TrafficCam](https://szkocot.github.io/mivue-trafficcam/)** — country exports published and live-browser verified on 2026-09-21. PL/EN, official database loading, local editing/export, CSV/GeoJSON imports and hosted CANARD imports are available. In **Export → Selected countries**, preview and review uncertainty/linked endpoints before downloading. Full project backups remain unfiltered; existing BIN safety blockers remain active. On 2026-10-31 CANARD contains 506 point-speed, 136 OPP and 169 red-light observations; control-point data is unavailable. Daily gated updates are enabled. [Deployment workflow and safety notes](docs/deployment.md). **Use at your own risk; MiVue 955W device acceptance is untested.**
 
 ## Status
 
-**Local changes, 2026-10-31:** actionable PL/EN import errors and persistent Mio cache warnings are implemented with regression coverage. The latest downloaded official file contains 53,338 records (embedded version candidate `202609010125`); unchanged reconstruction remains byte-identical, with 13 candidate-link warnings. Both the July and September private samples have pinned test expectations. Verification: **239 Node tests and 65 Chromium tests pass**, with one optional live-source browser skip; the separate opt-in live Mio test also passes (one GET, one HEAD, no repeat download). Build and diff checks pass. This increment is not deployed; Firefox/WebKit and hardware checks remain open.
+**Programmatic TODO increment, 2026-10-31:** local attributed OSM camera-node imports; verified 20×20 and 22×22 BIN support; ISO country-export filenames; Chromium/Firefox/WebKit coverage and the WebKit file-input fix. **256 Node tests, 201 deterministic browser tests and all three live Mio browser checks pass**. Repeated parse/JSON/project/rebuild cycles preserve both available real BIN files byte-for-byte and by SHA-256; imported observation metadata survives project/reference export. [Evidence and remaining blockers](docs/todo.md). [Your browser/device test procedure](docs/user-acceptance.md). Unknown header/link/flag semantics remain guarded; physical MiVue acceptance is untested.
 
 **Returning to this project?** Start with the [TODO and handoff](docs/todo.md), updated 2026-10-31. It separates completed CANARD/country-export work from remaining source enrichment, binary research and PL/EN/browser polish, and includes a ready-to-paste resume prompt. Its verification dates are historical; no new live-service check is implied.
 
 **Released:** [Pages run 35622164123](https://github.com/szkocot/mivue-trafficcam/actions/runs/35622164123) deployed source `c8f3f99` with accepted CANARD data `3597190`. Local merged checks: 237 Node / 62 browser tests pass; CI: 236 Node / 60 browser pass (private sample and opt-in live-source checks skipped). Fresh public Chromium verified a reparsed reduced BIN, unchanged full backup, linked-endpoint acknowledgement, unsafe-BIN blocking, boundary/source notices, cache reuse, Polish controls and private-file 404s, without page errors. Backlog points 3, 4 and 6 remain open; data filenames still use stable dataset IDs. The notes below are historical task milestones, superseded by this release status.
+
+### Historical milestones
+
+The following task-by-task notes are historical; the current TODO/evidence above supersede their pending-work statements.
 
 Country-export branch merged into `main` on 2026-09-21. Merged verification passes: 237 Node tests, 62 Chromium tests (one opt-in live-source skip), build and diff checks. Push/Pages verification is in progress; earlier feature-branch notes below are historical.
 
@@ -89,7 +93,7 @@ npm test
 
 Exports go to stdout; warnings go to stderr. To save an export, redirect stdout to a new file under a local `exports/` directory, which is ignored by Git. Never redirect output onto the source binary. The CLI itself only reads the input.
 
-Exit codes are 0 for successful parsing (including warnings), 1 for malformed/unsupported input or I/O failures, and 2 for invalid command syntax. Only the researched 3×3 regional / 20×20 cell layout is supported; this is not a device-compatibility guarantee.
+Exit codes are 0 for successful parsing (including warnings), 1 for malformed/unsupported input or I/O failures, and 2 for invalid command syntax. Only the researched 3×3 regional / 20×20 and 22×22 cell layouts are supported; this is not a device-compatibility guarantee.
 
 JSON includes metadata, offsets, complete record hex, decoded coordinates, raw fields, and diagnostics. GeoJSON contains points with longitude-first coordinates; invalid coordinates have null geometry. Speed units, heading encoding, camera types, and OPP endpoint roles remain unverified, so exports retain raw values and do not draw section lines. Nonfinite raw coordinate numbers are represented as strings, with exact bytes retained in hex.
 

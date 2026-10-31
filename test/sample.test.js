@@ -6,6 +6,7 @@ import { parseDatabase } from '../src/parser.js';
 import { serializeJson, serializeGeoJson } from '../src/export.js';
 import { reconstructDatabase, buildProject } from '../src/encoder.js';
 import { createProject } from '../src/project.js';
+import { assertBinaryRoundTrips } from './helpers/binary-roundtrip.js';
 import { sampleExpectations } from './helpers/local-sample.js';
 
 test('local research sample matches documented counts and anomalies', async t => {
@@ -28,5 +29,6 @@ test('local research sample matches documented counts and anomalies', async t =>
   assert.deepEqual(Buffer.from(rebuilt.bytes), bytes);
   assert.equal(rebuilt.report.layoutChanged, false);
   assert.equal(rebuilt.report.warnings.length, 13);
+  await assertBinaryRoundTrips(bytes);
   assert.equal(hash(bytes), before); assert.equal(hash(await readFile(path)), before);
 });

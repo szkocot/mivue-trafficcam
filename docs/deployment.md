@@ -1,5 +1,12 @@
 # GitHub Pages deployment
 
+## Programmatic TODO release — 2026-10-31
+
+Release preparation: 256 Node tests pass with both private databases and no skips; 201 three-engine deterministic browser tests pass with three live-test skips; all three separate live Mio tests pass. No-CANARD and accepted-CANARD allowlisted builds pass; private input data remains excluded. Independent review found no actionable issues. New supported behavior: attributed local OSM node imports, 20×20/22×22 structures, ISO export filenames, Firefox/WebKit CI and the WebKit input-hit fix. Full BIN and project/parsed-JSON round trips are byte-identical; source observation preservation is semantic, not original-source-text reconstruction.
+
+The prior `3972fa5` release [41245309208](https://github.com/szkocot/mivue-trafficcam/actions/runs/41245309208) succeeded. A fresh public Chromium check loaded the current53,338-record Mio file, verified PL/EN actionable errors and persistent cache warnings, private-file404s and no page errors. The current accepted hosted CANARD manifest validates811 observations (PP506/OPP136/RL169, PKnull), SHA-256 `f7f136127a9b32a8ce3470af84bc8d27dbefad9d2abd83e4d280ef6523754d87`; canonical JSON parse/re-export is exact. Final new-code deployment evidence follows below after release verification.
+
+
 Target: https://szkocot.github.io/mivue-trafficcam/
 
 ## Country-export release — 2026-09-21
@@ -18,7 +25,7 @@ Country-export release candidate: 236 Node and 62 local Chromium tests pass, inc
 
 The user explicitly requested deployment of the current experimental version on 2026-09-20, ahead of the unfinished live CANARD connector and country-filtering increments. This changes the earlier wait-until-all-features release sequencing, not the stated feature limitations. MiVue 955W device acceptance remains unverified; use at your own risk.
 
-GitHub Pages uses the Actions publishing source. `.github/workflows/pages.yml` runs on non-documentation pushes to `main` or manual dispatch. It installs locked dependencies, runs Node tests and Chromium browser tests, rebuilds the allowlisted static assets, then publishes only `dist/`. Deployment requires the build job to succeed. Official GitHub actions are pinned to commit IDs. Only the deployment job can write Pages and request its OIDC deployment token.
+GitHub Pages uses the Actions publishing source. `.github/workflows/pages.yml` runs on non-documentation pushes to `main` or manual dispatch. It installs locked dependencies, runs Node tests and Chromium, Firefox and WebKit browser tests, rebuilds the allowlisted static assets, then publishes only `dist/`. Deployment requires the build job to succeed. Official GitHub actions are pinned to commit IDs. Only the deployment job can write Pages and request its OIDC deployment token.
 
 The proprietary sample is ignored and absent from the repository/artifact. CI therefore skips the local-sample tests; deterministic synthetic tests still run. The optional live-source test is not enabled in CI. The app downloads the official database directly from Mio and keeps working projects in browser storage; it does not host or upload user BIN/project files.
 

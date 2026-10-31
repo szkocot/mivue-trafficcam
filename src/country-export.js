@@ -17,12 +17,13 @@ function describeReview(preview,ctx){
    classification:ctx.classifications.get(section?`${id}:${index?'end':'start'}`:id)??null}))};
  });return preview;
 }
-export async function exportCountrySelection({project,preview,format}){
+export async function exportCountrySelection({project,preview,format,countries=[]}){
  if(!preview.ready)countryFail(preview.records.unresolvedIds.length+preview.references.unresolvedIds.length?'COUNTRY_REVIEW_REQUIRED':'COUNTRY_EXTRAS_ACK_REQUIRED');
  if(!['bin','json','geojson','csv','references'].includes(format))countryFail('COUNTRY_DECISION_INVALID');
  const notices=projectNotices(project),selectionReport={...structuredClone(preview),sourceNotices:notices};
  const ids=new Set(preview.records.keptIds),refIds=new Set(preview.references.keptIds);
- const suffix=preview.options.countryIds.map(s=>s.replace(/[^a-zA-Z0-9_-]/g,'_')).join('-').slice(0,160);
+ const labels=new Map(countries.map(c=>[c.id,c.iso2??c.id]));
+ const suffix=preview.options.countryIds.map(id=>(labels.get(id)??id).replace(/[^a-zA-Z0-9_-]/g,'_')).join('-').slice(0,160);
  const result={selectionReport,notices};
  if(format==='bin'){
   if(!ids.size)countryFail('COUNTRY_EMPTY_BIN');
@@ -67,7 +68,7 @@ export function createCountryExportController({loadData}){
    const matches=()=>current&&['sessionId','revision','generation','token'].every(k=>current[k]===args[k]);
    if(!matches())countryFail('COUNTRY_PREVIEW_STALE');const start=epoch,ctx=await context(args);checkSignal(args.signal);if(start!==epoch||!matches())countryFail('COUNTRY_PREVIEW_STALE');
    const preview=describeReview(selectCountries({...ctx,options:current.options}),ctx);preview.boundaryNotice=structuredClone(data.notice);
-   const result=await exportCountrySelection({project:args.project,preview,format:args.format});checkSignal(args.signal);if(start!==epoch||!matches())countryFail('COUNTRY_PREVIEW_STALE');
+   const result=await exportCountrySelection({project:args.project,preview,format:args.format,countries:classifier.countries});checkSignal(args.signal);if(start!==epoch||!matches())countryFail('COUNTRY_PREVIEW_STALE');
    return {...result,revision:args.revision,generation:args.generation,token:args.token};
   }};
 }

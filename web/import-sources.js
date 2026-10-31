@@ -2,6 +2,7 @@
 export function listImportSources({canardAvailable=false}={}){
  return [
   {id:'csv',labelKey:'importCsv',available:true,reasonCode:null,attribution:null,url:null},
+  {id:'osm',labelKey:'importOsm',available:true,reasonCode:null,attribution:'© OpenStreetMap contributors — ODbL 1.0',url:'https://www.openstreetmap.org/copyright'},
   {id:'geojson',labelKey:'importGeojson',available:true,reasonCode:null,attribution:null,url:null},
   {id:'canard',labelKey:'importCanard',available:canardAvailable,reasonCode:canardAvailable?null:'SNAPSHOT_UNAVAILABLE',
    attribution:'GITD / CANARD',url:'https://www.canard.gitd.gov.pl/cms/en/mapa-urzadzen'},

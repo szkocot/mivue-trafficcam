@@ -1,6 +1,6 @@
 # MiVue 955W firmware observations
 
-Read-only inspection on 2026-09-20. No firmware code was executed, installed, or modified. Firmware and extracted proprietary bytes are not distributed in this repository.
+Original read-only inspection on 2026-09-20; the [2026-10-31 follow-up](binary-research-2026-10-31.md) supersedes the untraced-reader/unknown-version statements below and records verified 22×22 support. No firmware code was executed, installed, or modified. Firmware and extracted proprietary bytes are not distributed in this repository.
 
 ## User-provided sources
 
@@ -30,7 +30,7 @@ The bundled `Speedcam_Data_FEU.bin` was reconstructed in memory from data nodes 
 
 All regional sums and 484-cell tables were checked; every populated cell's byte span is `10 + count × 28`. The initial region at offset 72 is empty; the first populated region is at offset 82. Therefore header offset 20 is **not consistently the offset of the first populated region**: its value here is 72, whereas the current sample has 82 with the same first populated-region offset. Its actual meaning remains unknown.
 
-This validates a second structural variant associated with the 955W firmware, but does not establish camera-type bits, direction units, OPP endpoint roles, checksum semantics, or whether modified files will be accepted. The production parser/encoder still explicitly supports only the tested 20×20 variant. Supporting 22×22 is a separately testable next format extension.
+This validates a second structural variant associated with the 955W firmware, but does not establish camera-type bits, direction units, OPP endpoint roles, checksum semantics, or whether modified files will be accepted. The production parser/encoder now supports both researched 20×20 and 22×22 variants, with synthetic relocation tests and byte-identical reconstruction and no-op builds of this extracted database. See [2026-10-31 research](binary-research-2026-10-31.md).
 
 UBIFS structures were interpreted using the [Linux UBIFS on-flash definitions](https://raw.githubusercontent.com/torvalds/linux/master/fs/ubifs/ubifs-media.h). Static inspection found speed-camera activity symbols in `libzkgui.so`; the database-reading implementation has not yet been traced.
 

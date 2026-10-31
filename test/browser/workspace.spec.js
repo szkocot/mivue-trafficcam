@@ -4,7 +4,8 @@ import { makeFixture } from './helpers.js';
 import { createProject } from '../../src/project.js';
 test.beforeEach(async({page})=>{await stubNetwork(page);await page.goto('/mivue-trafficcam/');});
 test('file open, bounded pagination, keyboard selection and language preference',async({page})=>{
- await openFixture(page,Array.from({length:101},()=>({})));
+ const chooser=page.waitForEvent('filechooser');await page.locator('.file-button').click();
+ await (await chooser).setFiles({name:'fixture.bin',mimeType:'application/octet-stream',buffer:Buffer.from(makeFixture(Array.from({length:101},()=>({}))).bytes)});
  await expect(page.getByTestId('record-count')).toHaveText('101');
  await expect(page.getByTestId('record-row')).toHaveCount(100);
  await page.getByTestId('record-row').first().getByRole('button').focus();await page.keyboard.press('Enter');

@@ -1,5 +1,10 @@
 # Browser editor verification — 2026-09-20
 
+## Programmatic TODO follow-up — 2026-10-31
+
+Current integrated evidence: **256 Node tests pass with no skips**, including private official20×20 and firmware22×22 repeated parsed-JSON/project/BIN exact-byte/hash round trips. **201 deterministic tests pass across Chromium, Firefox and WebKit**, with three opt-in checks skipped; separate live Mio checks pass in all three engines (GET1/HEAD1/no repeated body). [Cross-browser details](cross-browser-verification.md), [source import preservation](source-research-2026-10-31.md), [binary preservation/reader evidence](binary-research-2026-10-31.md). Builds with and without the accepted CANARD dataset pass. No physical Safari/mobile/GPS/MiVue result is implied; use [manual acceptance](user-acceptance.md).
+
+
 ## Import/cache polish — local verification 2026-10-31
 
 - Node v26.13.0: `npm test` passes 239 tests, no skips. Run outside the sandbox to allow the preview-server test to bind a local port; the sandboxed attempt hit a Node runtime assertion in that test.
