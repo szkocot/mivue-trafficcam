@@ -41,3 +41,12 @@ Use the [published application](https://szkocot.github.io/mivue-trafficcam/). Re
 | Failure, record IDs/location, screenshot or exact message | |
 
 Firmware inspection, headless engine tests and a valid binary layout do not replace these observations. Speed/direction/type meanings that remain unverified are listed in the binary research notes.
+
+For byte comparison on macOS/Linux, retain distinct original and rebuilt paths:
+
+```sh
+shasum -a 256 original/Speedcam_Data_FEU.bin rebuilt/Speedcam_Data_FEU.bin
+cmp original/Speedcam_Data_FEU.bin rebuilt/Speedcam_Data_FEU.bin
+```
+
+Equal hashes and a successful silent `cmp` establish byte identity. Use this for unchanged output; edited or country-reduced output should differ and requires the separate build/device checks. CSV/GeoJSON/reference exports represent supported data, while project JSON preserves the reopenable original BIN and edits. OSM source-file formatting, envelope and unrelated elements are outside the camera-node selection.

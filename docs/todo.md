@@ -24,7 +24,7 @@ Updated **2026-10-31** after the user authorized all programmatic TODO work and 
 - [x] Enable and observe daily gated checks; verify accepted source/data deployments.
 - [x] Confirm current manifest/snapshot hash, counts and freshness, cache reuse, PL/EN and private-file exclusions.
 
-The previous code release `3972fa5` deployed in [run 41245309208](https://github.com/szkocot/mivue-trafficcam/actions/runs/41245309208). Fresh public Chromium loaded 53,338 official records, exercised PL/EN errors and persistent cache warnings, saw private-file 404s and no page errors. Later release evidence belongs in deployment.md. Publication safeguards are not a blanket permission for arbitrary new services.
+The previous code release `3972fa5` deployed in [run 41245309208](https://github.com/szkocot/mivue-trafficcam/actions/runs/41245309208). Fresh public Chromium loaded 53,338 official records, exercised PL/EN errors and persistent cache warnings, saw private-file 404s and no page errors. The programmatic follow-up `39ecdbe` subsequently deployed in [run41246260899](https://github.com/szkocot/mivue-trafficcam/actions/runs/41246260899): Linux CI passed254Node/two skips and195browser/nine skips. Fresh public Chromium confirmed22×22 support, OSM import/licence, exact official BIN download, Poland filenames, private-file404s and no page errors. Full evidence is in deployment.md. Publication safeguards are not a blanket permission for arbitrary new services.
 
 ## 2. Country selection — completed
 
@@ -41,6 +41,7 @@ The previous code release `3972fa5` deployed in [run 41245309208](https://github
 - [ ] Hosted CANARD detail enrichment: current access works, but one sample does not establish units, conditional/vehicle-class limits, direction/status semantics, all category schemas, stable updates, notices or permitted unattended volume.
 - [ ] PK/control-point coordinates: current public array remains `[{}]`, not an authoritative empty dataset.
 - [ ] OSM enforcement ways/relations: explicitly rejected until supported role/geometry semantics are implemented; no road-route inference. Only selected camera nodes are imported.
+- [ ] Real OSM acquisition: one bounded provider request timed out without data. Synthetic parser/project/browser coverage passes; an actual local OSM export has not been validated.
 - [ ] Other providers: no additional concrete dataset supplied; require a named reusable source and verified access/schema/identity before adding an adapter.
 
 [Source research and exact blockers](source-research-2026-10-31.md). Missing speed/direction/status stays unknown; source metadata is distinct from BIN-encoded values.

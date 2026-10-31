@@ -13,10 +13,12 @@
 - [x] Use reviewed ISO codes for scoped data filenames, stable-ID fallback, unchanged device BIN name and report IDs; test mixed selections.
 - [x] Run integrated tests/build/artifact checks and independent review, resolving important findings.
 - [x] Update TODO/README/research evidence and prepare manual browser/device acceptance and recovery instructions.
-- [ ] Commit/push the verified increment and check the deployment, continuing the user-authorized release workflow.
+- [x] Commit/push the verified increment and check the deployment, continuing the user-authorized release workflow.
 
 **Limits:** No firmware execution, proprietary artifact publication, guessed semantic encoding, force-build bypass or physical-device success claim. Real mobile/browser provider GPS and camera alert behavior require the user's tests.
 
 ## Verification
 
 256 Node tests pass with both private variants;201 browser checks pass across three engines,3opt-in skips;3live Mio tests pass. Both allowlisted build modes pass. Independent review found no actionable issues. OSM/source and firmware-semantic blockers are explicit in the TODO; manual acceptance remains user work.
+
+Released as39ecdbe in successful run41246260899; Linux CI254Node+195browser pass, with expected private/live skips. Fresh public smoke passed22×22,OSM/licence, exact full BIN hash, Poland filename and private-file exclusions with zero page errors. Optional real OSM acquisition timed out; no live-dataset claim.
