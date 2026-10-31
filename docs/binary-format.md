@@ -12,6 +12,18 @@ These findings describe one local sample, not a general MiVue specification. Str
 
 All multibyte numeric fields described below use little-endian byte order. Offsets are absolute byte offsets unless stated otherwise.
 
+## Additional official download — 2026-10-31
+
+The original July sample findings above remain historical evidence. A fresh download from the configured official Mio endpoint returned a second inspected file:
+
+- Size: 1,532,826 bytes; SHA-256: `69759a67d9442bfa1a636c38ccbc16623a2208ef34564e11f68ad0d696becdb1`.
+- Embedded version candidate: `202609010125`; HTTP Last-Modified: `Mon, 21 Sep 2026 03:00:53 GMT`.
+- 53,338 records; 9 regions; 2,800 cells, 897 populated.
+- 13 candidate-link warnings: 11 missing targets and 2 unexpected target types.
+- Unchanged project reconstruction is byte-identical. No new field meanings or device acceptance are established.
+
+Private-sample tests pin both inspected hashes, counts and anomaly offsets; downloaded bytes remain ignored and excluded from the public build.
+
 ## Header and spatial index
 
 | Offset | Encoding | Observed value | Interpretation |

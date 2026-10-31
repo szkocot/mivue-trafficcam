@@ -1,6 +1,6 @@
 # Remaining work
 
-Handoff updated **2026-09-29** from the agreed follow-up list. The user authorized implementing points **1–4 and 6**. Points **1 and 2 are completed and deployed**; points **3, 4 and 6 remain open**. Point 5 requires separate user/device testing. Binary research may be needed before some reduced BIN builds can succeed.
+Handoff updated **2026-10-31** from the agreed follow-up list. The user authorized implementing points **1–4 and 6**. Points **1 and 2 are completed and deployed**; points **3, 4 and 6 remain open**. Point 5 requires separate user/device testing. Binary research may be needed before some reduced BIN builds can succeed.
 
 Last verified release: **2026-09-21**, source `c8f3f99`, with release documentation committed as `281285b` on `main`. That release passed 237 local Node tests and 62 Chromium tests (one opt-in live-source skip). These are recorded results, not a fresh test or live-service check on the handoff date. The merged country-export branch/worktree was removed; do not recreate its completed implementation.
 
@@ -8,7 +8,7 @@ Last verified release: **2026-09-21**, source `c8f3f99`, with release documentat
 
 Suggested order (not a new scope approval):
 
-1. **Point 6 — polish:** actionable PL/EN import errors, persistent Mio cache warnings, then Firefox/WebKit coverage. Track physical mobile testing separately.
+1. **Point 6 — browser coverage:** Firefox/WebKit coverage next. Actionable PL/EN import errors and persistent Mio cache warnings are implemented locally; see verification below. Track physical mobile testing separately.
 2. **Point 3 — sources:** assess permitted CANARD enrichment and OSM/other source access before choosing an adapter to implement.
 3. **Point 4 — binary research:** investigate header/link blockers and verify field meanings before enabling more encoding controls.
 4. **Country-export minor:** use reviewed ISO codes in data filenames, falling back to stable dataset IDs. Keep the device BIN filename unchanged.
@@ -18,7 +18,7 @@ Before implementation, inspect `git status`, recent commits and this checklist; 
 
 Copy/paste to resume:
 
-> Continue the MiVue TrafficCam project in /Users/szymonkocot/Projects/mivue-trafficcam. Read docs/todo.md and README.md first, and check the current working tree. CANARD publication and country exports are already completed and deployed. Resume with point 6: actionable Polish/English import errors and persistent Mio cache warnings, followed by browser coverage. Keep points 3 and 4 on the backlog. Preserve full backups and BIN safety checks, add regression tests, and update README/TODO after each task. Do not assume device acceptance or legal permission for new sources.
+> Continue the MiVue TrafficCam project in /Users/szymonkocot/Projects/mivue-trafficcam. Read docs/todo.md and README.md first, and check the current working tree. CANARD publication and country exports are already completed and deployed. The PL/EN import-error and Mio-cache-warning fixes are implemented locally; verify/integrate that increment before continuing point 6 with Firefox/WebKit coverage. Keep points 3 and 4 on the backlog. Preserve full backups and BIN safety checks, add regression tests, and update README/TODO after each task. Do not assume device acceptance or legal permission for new sources.
 
 Useful references: [deployment evidence](deployment.md), [browser verification](browser-verification.md), [CANARD access assessment](source-access.md), [CANARD field inventory](canard-field-inventory.md), [binary research](binary-format.md), [firmware research](firmware-research.md), [country boundaries](country-boundaries.md).
 
@@ -85,10 +85,12 @@ Device acceptance remains unverified. All generated files remain experimental an
 
 ## 6. PL/EN polish and browser coverage — implementation and testing
 
-- [ ] Translate technical import codes such as `DUPLICATE_ID` and `CSV_QUOTE` into actionable PL/EN messages.
-- [ ] Keep Mio cache persistence warnings visible instead of immediately replacing them with a ready/unchanged message. This is the older Mio-cache issue, not the corrected CANARD warning behavior.
+- [x] Translate technical import codes such as `DUPLICATE_ID` and `CSV_QUOTE` into actionable PL/EN messages.
+- [x] Keep Mio cache persistence warnings visible instead of immediately replacing them with a ready/unchanged message. This is the older Mio-cache issue, not the corrected CANARD warning behavior.
 - [ ] Exercise Firefox, Safari/WebKit and physical mobile browsers: file handling, storage/recovery, map/editor, downloads and browser GPS permissions.
 - [ ] Record supported/tested environments and remaining limitations; do not infer physical-device behavior from Chromium tests.
+
+Local increment (2026-10-31): import failures now explain repairs in PL/EN, retain schema field names and distinguish data-record indices from CSV records including the header. File-wide errors omit record numbering. Mio cache warnings remain alongside operation status until a successful cache write. Regression tests cover failed writes/reads, offline status, recovery, duplicate IDs, malformed quotes, headers and JSON, unchanged projects and successful retry. Verification: **239 Node tests and 65 Chromium tests pass**, one opt-in live-source browser skip; the separate opt-in live Mio browser test also passes (one GET, one HEAD, no repeat download). Build and diff checks pass. Independent review found and verified the correction of a CSV record-limit location error. The newer 53,338-record official file passes unchanged rebuilding and browser country-preview checks; both inspected private-file hashes remain pinned. Live verification passed before the user-authorized commit/push; deployment is not yet verified.
 
 ## Completion rules
 

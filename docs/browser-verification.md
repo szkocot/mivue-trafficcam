@@ -1,5 +1,15 @@
 # Browser editor verification — 2026-09-20
 
+## Import/cache polish — local verification 2026-10-31
+
+- Node v26.13.0: `npm test` passes 239 tests, no skips. Run outside the sandbox to allow the preview-server test to bind a local port; the sandboxed attempt hit a Node runtime assertion in that test.
+- Pinned Playwright Chromium: `npx playwright test` passes 65 tests, with one opt-in live-source skip. The separate `MIVUE_LIVE_SOURCE=1 npx playwright test test/browser/live-source.spec.js` also passes: one GET on startup, one HEAD after reload and no second GET; browser CORS, IndexedDB persistence and unchanged detection work against the official endpoint. Browser-visible SHA-256 is `69759a67d9442bfa1a636c38ccbc16623a2208ef34564e11f68ad0d696becdb1`, Last-Modified `Mon, 21 Sep 2026 03:00:53 GMT`, length 1,532,826; ETag is not exposed. The initial run exposed the July-only private-sample expectations; both inspected hashes are now pinned without weakening count/anomaly checks.
+- New regressions were observed failing before fixes. They cover duplicate IDs, CSV quotes, headers, malformed JSON and record-limit errors in PL/EN; unsuccessful imports preserve the project and permit a successful retry. Count-limit errors omit misleading record numbers; quote errors distinguish CSV records including the header from data-record indices.
+- Cache regressions cover failed reads and GET/unchanged-HEAD writes, offline retention, visible translated warnings, usable in-memory data and clearing the warning after storage succeeds.
+- Latest private official sample: 53,338 records, byte-identical Node reconstruction and browser BIN download. Real country preview remains bounded to 100 DOM rows.
+- Web build and diff checks pass. Independent review's CSV count-limit finding was fixed and regression-tested; no remaining findings. Live checks passed before the user-authorized commit/push; deployment and fresh public-site verification are not claimed. Firefox/WebKit, physical mobile, GPS-provider and MiVue 955W acceptance checks remain open.
+
+
 ## Hosted CANARD public release — verified
 
 Run `35529021193` deployed source `f95ea5fda6b171b48c5493a45b336b0481e4368a` and data `7bb196ec462115ef2ebd7355fb19b229dbac49f2`. Local isolated and CI suites: 206 Node pass (one private-sample skip), 51 Chromium pass (private-sample and optional live-source skips). Workflow lint and diff checks passed. Two new scheduling tests went RED→GREEN for optional-job skips; failed/skipped/cancelled builds and non-main refs remain excluded.

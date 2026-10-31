@@ -4,6 +4,13 @@ export function createImportDialog({onImport,onCanard,getCanard=()=>null,onCance
  let token=0,snapshot=null,fields={},committing=false,remembered={namespace:'',attribution:''};
  try{const saved=JSON.parse(storage?.getItem('mivue-import-source')??'null');if(saved&&typeof saved.namespace==='string'&&typeof saved.attribution==='string')remembered=saved;}catch{}
  const el=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
+ function describeIssue(issue){
+  const reasons=['DUPLICATE_ID','CSV_QUOTE','CONFLICTING_ID','INPUT_LIMIT','COUNT_LIMIT','METADATA_LIMIT','METADATA_DEPTH'];
+  const fields=['header','columns','json','features','feature','crs','coordinates','latitude','longitude','geometry','kind','status','id','namespace','attribution','speed','speed_unit','direction'];
+  const key=reasons.includes(issue.code)?`importReason_${issue.code}`:`importInvalid_${fields.includes(issue.field)?issue.field:'value'}`;
+  const location=issue.index>=0&&issue.code!=='COUNT_LIMIT'?(issue.code==='CSV_QUOTE'?'importIssueCsv':'importIssue'):'importIssueFile';
+  return t(location,{row:issue.index+1,field:issue.field,reason:t(key)});
+ }
  const cancel=()=>{if(committing)return;token++;dialog.close();onCancel?.();};dialog.oncancel=e=>{e.preventDefault();cancel();};
  function render(){
   ++token;committing=false;dialog.replaceChildren(el('h2',t('import')),el('p',t('importHelp')),el('p',t('importSafety')));fields={};
@@ -40,14 +47,14 @@ export function createImportDialog({onImport,onCanard,getCanard=()=>null,onCance
     if(!fields.templateAck.checked||!record||record.originalSourceOffset===null||![1,3,5].includes(record.typeRaw)||record.originalLinkRaw!==0){error.textContent=t('templateRequiredAck');file.value='';return;}
     policies.push({namespace:source.namespace,kind:fields.templateKind.value,templateId});
    }
-   if(selected.size>20*1024*1024){error.textContent=t('importFailed')+' '+t('importHelp');file.value='';return;}
+   if(selected.size>20*1024*1024){error.textContent=t('importFailed')+' '+t('importReason_INPUT_LIMIT');file.value='';return;}
    const format=fields.importFormat.value;for(const input of Object.values(fields))input.disabled=true;
    try{
     const text=await selected.text();if(current!==token)return;
     await onImport({text,format,source,retrievedAt:new Date().toISOString(),policies},()=>current===token,()=>{committing=true;button.disabled=true;});
     if(current!==token)return;remembered={namespace:source.namespace,attribution:source.attribution};try{storage?.setItem('mivue-import-source',JSON.stringify(remembered));}catch{}
     dialog.close();
-   }catch(e){if(current===token){error.textContent=t(e.code==='STALE_IMPORT'?'STALE_IMPORT':'importFailed');for(const issue of (e.issues??[]).slice(0,10))error.textContent+=' '+t('importIssue',{row:issue.index+1,field:issue.field,code:issue.code});}}
+   }catch(e){if(current===token){error.textContent=t(e.code==='STALE_IMPORT'?'STALE_IMPORT':'importFailed');for(const issue of (e.issues??[]).slice(0,10))error.textContent+=' '+describeIssue(issue);}}
    finally{if(current===token){committing=false;for(const input of Object.values(fields))input.disabled=false;file.value='';button.disabled=false;}}
   };
  }

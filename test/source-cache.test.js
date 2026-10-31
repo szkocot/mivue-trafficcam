@@ -48,3 +48,15 @@ test('storage failure retains in-memory download; corrupt persisted cache is rej
  x.store.getCache=async()=>({version:1,bytes:new Uint8Array([0]),source:{}});
  assert.equal(await x.cache.loadCached(),null);
 });
+test('cache warnings survive ready, unchanged and offline states until a successful write',async()=>{
+ let offline=false;const x=setup(async(_,o)=>{if(offline)throw Error('offline');return new Response(o.method==='HEAD'?null:new Uint8Array([42]),{headers});});
+ const put=x.store.putCache;x.store.putCache=async()=>{throw Error('quota');};
+ await x.cache.check();assert.equal(x.statuses.at(-1).state,'ready');assert.equal(x.statuses.at(-1).cacheFailed,true);
+ await x.cache.check();assert.equal(x.statuses.at(-1).state,'unchanged');assert.equal(x.statuses.at(-1).cacheFailed,true);
+ offline=true;await x.cache.check();assert.equal(x.statuses.at(-1).state,'check-unavailable');assert.equal(x.statuses.at(-1).cacheFailed,true);
+ offline=false;x.store.putCache=put;await x.cache.check();assert.equal(x.statuses.at(-1).cacheFailed,false);
+});
+test('failed cache reads remain visible after an unavailable check',async()=>{
+ const x=setup(async()=>{throw Error('offline');});x.store.getCache=async()=>{throw Error('denied');};
+ await x.cache.loadCached();await x.cache.check();assert.equal(x.statuses.at(-1).cacheFailed,true);
+});

@@ -48,3 +48,16 @@ test('manual file wins while startup worker is still decoding official data',asy
  await page.goto('/mivue-trafficcam/');await expect.poll(()=>page.evaluate(()=>window.startupWaiting)).toBe(true);
  await openFixture(page);await expect(page.getByTestId('record-count')).toHaveText('1');
 });
+test('Mio persistence warning stays visible in both languages and clears after storage recovers',async({page})=>{
+ await stubNetwork(page);
+ await page.addInitScript(()=>{window.denySourceWrites=true;const put=IDBObjectStore.prototype.put;IDBObjectStore.prototype.put=function(...args){if(this.name==='source'&&window.denySourceWrites)throw new DOMException('quota','QuotaExceededError');return put.apply(this,args);};});
+ const bytes=Buffer.from(makeFixture([{}]).bytes);
+ await page.route(official,r=>r.fulfill({body:r.request().method()==='HEAD'?'':bytes,headers:{'Access-Control-Allow-Origin':'*','Last-Modified':'Thu, 16 Jul 2026 07:39:32 GMT','Content-Length':String(bytes.length)}}));
+ await page.goto('/mivue-trafficcam/');const status=page.getByTestId('source-status');
+ await expect(status).toHaveAttribute('data-state','ready');await expect(status).toContainText('Cache could not be retained');
+ await expect(page.getByTestId('record-count')).toHaveText('1');
+ await page.getByRole('button',{name:'Check for updates',exact:true}).click();await expect(status).toHaveAttribute('data-state','unchanged');await expect(status).toContainText('Cache could not be retained');
+ await page.getByRole('button',{name:'PL',exact:true}).click();await expect(status).toContainText('Nie można zachować bazy lokalnie');
+ await page.evaluate(()=>{window.denySourceWrites=false;});await page.locator('#check').click();
+ await expect(status).toHaveAttribute('data-state','unchanged');await expect(status).not.toContainText('Nie można zachować');
+});

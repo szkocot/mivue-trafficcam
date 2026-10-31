@@ -11,8 +11,8 @@ function validator(m){
   return null;
 }
 export function createSourceCache({store,fetchImpl=globalThis.fetch,validateBytes,now=()=>new Date().toISOString(),onStatus=()=>{}}){
-  let cached=null,pending=null,controller=null;
-  const status=(state,extra={})=>onStatus({state,...extra});
+  let cached=null,pending=null,controller=null,cacheFailed=false;
+  const status=(state,extra={})=>onStatus({state,cacheFailed,...extra});
   async function loadCached(){
     try{
       const entry=await store.getCache();
@@ -21,7 +21,7 @@ export function createSourceCache({store,fetchImpl=globalThis.fetch,validateByte
       const sha256=await validateBytes(entry.bytes);
       if(sha256!==entry.source.sha256)throw Error('INVALID_CACHE');
       cached=entry;status('cached');return cached;
-    }catch(error){status('cache-failed',{error});return null;}
+    }catch(error){cacheFailed=true;status('cache-failed',{error});return null;}
   }
   async function runCheck({force=false}={}){
     controller=new AbortController();const signal=controller.signal;
@@ -35,7 +35,7 @@ export function createSourceCache({store,fetchImpl=globalThis.fetch,validateByte
         if(!remote || !local){status('check-unavailable');return cached;}
         if(remote===local){
           cached={...cached,source:{...cached.source,checkedAt:now()}};
-          try{await store.putCache(cached);}catch(error){status('cache-failed',{error});}
+          try{await store.putCache(cached);cacheFailed=false;}catch(error){cacheFailed=true;status('cache-failed',{error});}
           status('unchanged');return cached;
         }
       }
@@ -46,7 +46,7 @@ export function createSourceCache({store,fetchImpl=globalThis.fetch,validateByte
       const sha256=await validateBytes(bytes);signal.throwIfAborted();
       const entry={version:1,bytes,source:{url:OFFICIAL_DATABASE_URL,retrievedAt:now(),checkedAt:now(),...metadata(response),sha256}};
       // Validate the entire replacement before touching the last usable copy.
-      try{await store.putCache(entry);}catch(error){status('cache-failed',{error});}
+      try{await store.putCache(entry);cacheFailed=false;}catch(error){cacheFailed=true;status('cache-failed',{error});}
       cached=entry;status('ready');return entry;
     }catch(error){status(signal.aborted?'cancelled':cached?'check-unavailable':'failed',{error});return cached;}
   }

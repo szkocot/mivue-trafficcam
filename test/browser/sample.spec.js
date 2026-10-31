@@ -2,12 +2,13 @@ import { test,expect } from '@playwright/test';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { stubNetwork } from './helpers.js';
+import { sampleExpectations } from '../helpers/local-sample.js';
 test('full local sample: bounded DOM, responsive worker, byte-identical build',async({page},testInfo)=>{
  test.skip(!existsSync('Speedcam_Data_FEU.bin'),'Local proprietary sample absent');test.setTimeout(120000);
  await stubNetwork(page);await page.goto('/mivue-trafficcam/');
  await page.evaluate(()=>{window.frames=0;const frame=()=>{window.frames++;requestAnimationFrame(frame);};requestAnimationFrame(frame);});
  const started=Date.now();await page.getByLabel('Open file',{exact:true}).setInputFiles('Speedcam_Data_FEU.bin');
- await expect(page.getByTestId('record-count')).toHaveText('52935',{timeout:30000});const loadMs=Date.now()-started;
+ await expect(page.getByTestId('record-count')).toHaveText(String(sampleExpectations(await readFile('Speedcam_Data_FEU.bin')).records),{timeout:30000});const loadMs=Date.now()-started;
  await expect(page.getByTestId('record-row')).toHaveCount(100);expect(await page.locator('.leaflet-marker-icon').count()).toBe(0);
  await page.getByRole('button',{name:'Fit all records',exact:true}).click();
  await page.getByLabel('Show speed limits',{exact:true}).check();await page.getByLabel('Show metadata',{exact:true}).check();
@@ -31,7 +32,7 @@ test('full local sample: bounded DOM, responsive worker, byte-identical build',a
 });
 test('real country boundaries classify the local sample with bounded preview and cancellation',async({page})=>{
  test.skip(!existsSync('Speedcam_Data_FEU.bin'),'Local proprietary sample absent');test.setTimeout(120000);
- await stubNetwork(page);await page.goto('/mivue-trafficcam/');await page.getByLabel('Open file',{exact:true}).setInputFiles('Speedcam_Data_FEU.bin');await expect(page.getByTestId('record-count')).toHaveText('52935',{timeout:30000});
+ await stubNetwork(page);await page.goto('/mivue-trafficcam/');await page.getByLabel('Open file',{exact:true}).setInputFiles('Speedcam_Data_FEU.bin');await expect(page.getByTestId('record-count')).toHaveText(String(sampleExpectations(await readFile('Speedcam_Data_FEU.bin')).records),{timeout:30000});
  await page.getByRole('button',{name:'Export',exact:true}).click();await page.getByLabel('Export scope',{exact:true}).selectOption('countries');
  const countries=page.getByLabel('Countries',{exact:true});await expect(countries.locator('option')).toHaveCount(258,{timeout:30000});
  const poland=await countries.locator('option').filter({hasText:'Poland (PL)'}).getAttribute('value');await countries.selectOption(poland);

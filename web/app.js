@@ -19,7 +19,7 @@ import {CANARD_NAMESPACE} from '../src/canard-snapshot.js';
 const $=id=>document.getElementById(id);
 let preference;try{preference=localStorage;}catch{}
 const i18n=createI18n({storage:preference}),t=(key,params)=>i18n.t(key,params),client=createWorkerClient();
-let state=null,selectedId=null,page=1,bounds=null,source=null,sourceInfo=null,sourceStatus='checking',saveStatus='notSaved',operation='ready',intent=0,recovery=null,recoveryBlocked=false,busy=false;
+let state=null,selectedId=null,page=1,bounds=null,source=null,sourceInfo=null,sourceStatus='checking',sourceCacheFailed=false,saveStatus='notSaved',operation='ready',intent=0,recovery=null,recoveryBlocked=false,busy=false;
 let referencePage=1,importSummary=null;
 let canardEntry=null,canardState={state:'checking'},canardSyncState='',startupSettled=false;
 const unavailable={getCache:async()=>null,getWorking:async()=>null,putCache:async()=>{throw Error('STORAGE_UNAVAILABLE');},putWorking:async()=>{throw Error('STORAGE_UNAVAILABLE');}};
@@ -145,7 +145,7 @@ function render(){
  const records=filtered();$('record-count').textContent=state?.view.records.filter(r=>!r.deleted).length??0;
  $('result-count').textContent=records.length;$('changes').textContent=state?.view.records.filter(r=>r.changed).length??0;
  $('warnings-count').textContent=state?.view.diagnostics.length??0;
- $('source-status').textContent=t(sourceStatus==='ready'?'sourceReady':sourceStatus==='failed'?'sourceFailed':sourceStatus);$('source-status').dataset.state=sourceStatus;
+ $('source-status').textContent=t(sourceStatus==='ready'?'sourceReady':sourceStatus==='failed'?'sourceFailed':sourceStatus)+(sourceCacheFailed&&sourceStatus!=='cache-failed'?' '+t('cache-failed'):'');$('source-status').dataset.state=sourceStatus;
  $('save-status').textContent=t(saveStatus);$('operation-status').textContent=t(operation);
  $('empty').hidden=Boolean(state);$('hidden-selection').hidden=!selectedId||records.some(r=>r.id===selectedId)||references().some(r=>r.id===selectedId);
  $('filename').textContent=state?.view.source.name??'MiVue 955W · EU';$('use-source').disabled=!source||busy;
@@ -233,7 +233,7 @@ async function start(){
  const ticket=intent;
  try{store=await openStorage();}catch{saveStatus='saveFailed';}
  startCanard().catch(()=>{canardState={state:'check-failed'};renderCanard();});
- cache=createSourceCache({store,validateBytes:bytes=>client.validateSource(bytes),onStatus:s=>{sourceStatus=s.state;render();}});
+ cache=createSourceCache({store,validateBytes:bytes=>client.validateSource(bytes),onStatus:s=>{sourceStatus=s.state;sourceCacheFailed=s.cacheFailed;render();}});
  try{
   const saved=await store.getWorking();
   if(saved && ticket===intent){

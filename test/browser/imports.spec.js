@@ -119,3 +119,17 @@ test('reopened import discloses saved templates before a blank-template import a
  await page.getByRole('button',{name:'PL',exact:true}).click();await page.getByRole('button',{name:'Importuj',exact:true}).click();
  await expect(page.getByTestId('saved-import-policies')).toContainText('Fotoradar');await expect(page.getByRole('dialog')).toContainText('Puste pole zachowuje zapisane reguły');
 });
+for(const language of ['EN','PL'])test(`actionable ${language} import errors preserve the project and allow retry`,async({page})=>{
+ await setup(page);await page.getByRole('button',{name:language,exact:true}).click();await page.locator('#import').click();
+ const dialog=page.locator('.import-dialog'),inputs=dialog.locator('input');await inputs.nth(0).fill('example');await inputs.nth(1).fill('Owner');
+ const file=dialog.locator('input[type=file]'),alert=dialog.getByRole('alert');
+ const upload=text=>file.setInputFiles({name:'bad.csv',mimeType:'text/csv',buffer:Buffer.from(text)});
+ await upload('id,latitude,longitude,kind\na,52,19,camera\na,53,20,camera');
+ await expect(alert).toContainText(language==='EN'?'Use a unique id':'Użyj unikalnego id');await expect(alert).not.toContainText('DUPLICATE_ID');await expect(alert).toContainText('2');
+ await upload('id,latitude,longitude,kind\n"unfinished');await expect(alert).toContainText(language==='EN'?'Close quoted CSV fields':'Zamknij pola CSV');await expect(alert).not.toContainText('CSV_QUOTE');
+ await upload('wrong,header');await expect(alert).toContainText('id,latitude,longitude,kind');await expect(alert).not.toContainText(' 0:');
+ await upload('id,latitude,longitude,kind\n'+'a,52,19,camera\n'.repeat(100001));await expect(alert).toContainText(language==='EN'?'Split the file':'Podziel plik');await expect(alert).not.toContainText(language==='EN'?'Data record/feature':'Rekord danych / obiekt');
+ await dialog.locator('select').first().selectOption('geojson');await upload('{');await expect(alert).toContainText(language==='EN'?'Fix the JSON syntax':'Popraw składnię JSON');await expect(alert).not.toContainText(' 0:');
+ await expect(page.getByTestId('record-count')).toHaveText('1');
+ await dialog.locator('select').first().selectOption('csv');await upload('id,latitude,longitude,kind\na,52,19,camera');await expect(dialog).not.toBeVisible();await expect(page.getByTestId('reference-row')).toHaveCount(1);
+});
