@@ -31,7 +31,8 @@ export function createDetails(element,{onApply,onOperation,onPick,onResolve,t}){
   element.replaceChildren();fields={};if(!record){element.append(el('p',t('select')));return;}
   element.append(el('h2',t('details')));const id=el('p',record.id);id.dataset.testid='selected-id';element.append(id);
   const refs=record.reference?[record]:record.sourceObservations??[];
-  element.append(el('p',speedLabel(refs,t)));
+  if(!record.reference)element.append(el('p',`${t('binSpeed')}: ${record.rawBytes16To19[0]}`),el('p',`${t('binType')}: ${record.typeRaw}`),el('p',t('binFieldsNotice')));
+  element.append(el('p',`${t('speedLimit')}: ${speedLabel(refs,t)}`));
   for(const ref of refs){
    const section=el('section');section.className='source-metadata';
    for(const [label,value] of metadataRows(ref,t)){section.append(el('strong',label),el('pre',value));}

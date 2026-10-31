@@ -1,4 +1,7 @@
 export default {
+  binSpeed: "Speed (BIN value)",
+  binType: "Type (BIN code)",
+  binFieldsNotice: "Speed units and complete type meanings are unverified. Values come from the BIN; source-reported limits are shown separately.",
  importOsm:'OpenStreetMap JSON (camera nodes)',importOsmHelp:'Local OSM / Overpass JSON only: speed_camera nodes with coordinates. Enforcement relations and ways are rejected; no route is inferred. Unknown status stays unknown. Source attribution is fixed to OpenStreetMap contributors / ODbL; retrieval time is the local import time. Keep the licence notice when sharing exports.',importReason_OSM_UNSUPPORTED_GEOMETRY:'Enforcement relations / camera ways are unsupported. Export camera nodes with coordinates only.',importReason_OSM_NO_CAMERAS:'No supported speed camera nodes found.',
 
  countryPosition:'Latitude, longitude',countryCandidates:'Matched / nearby countries',countryNoMatch:'No matched country',countryComponent:'Linked section members',countryTriggers:'Triggered by',

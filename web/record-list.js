@@ -2,12 +2,15 @@ import { pageRecords } from '../src/view-filter.js';
 export function renderRecordList(element,{records,page,selectedId,onSelect,onPage,t,reference=false}){
  const result=pageRecords(records,page),table=document.createElement('table');
  const head=table.createTHead().insertRow();
- for(const text of ['ID',t('latitude'),t('longitude')]){const th=document.createElement('th');th.textContent=text;head.append(th);}
+ if(!reference)table.createCaption().textContent=t('binFieldsNotice');
+ const columns=['ID',t('latitude'),t('longitude')];if(!reference)columns.push(t('binSpeed'),t('binType'));
+ for(const text of columns){const th=document.createElement('th');th.textContent=text;head.append(th);}
  const body=table.createTBody();
  for(const r of result.records){
   const row=body.insertRow();row.dataset.testid=reference?'reference-row':'record-row';if(r.id===selectedId)row.className='selected';
   const button=document.createElement('button');button.textContent=r.id;button.onclick=()=>onSelect(r.id);row.insertCell().append(button);
   row.insertCell().textContent=r.latitude??'—';row.insertCell().textContent=r.longitude??'—';
+  if(!reference){row.insertCell().textContent=r.rawBytes16To19[0];row.insertCell().textContent=r.typeRaw;}
  }
  const nav=document.createElement('div');nav.className='pagination';
  for(const [key,delta] of [['previous',-1],['next',1]]){

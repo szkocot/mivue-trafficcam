@@ -1,5 +1,10 @@
 # Browser editor verification — 2026-09-20
 
+## BIN speed/type display — 2026-10-31
+
+256 Node tests pass with both real private databases and no skips. The three-engine suite passes 204 browser tests, with three opt-in live-source skips. New PL/EN cases display stored speed values 0/50/255 and type codes 1/964/9128/4294967295, select details, confirm zero modifications and download byte-identical original BIN bytes. The regression was observed failing on missing columns before the display change. The narrow 390 px screenshot was visually checked: both new columns fit; reference-table columns remain unchanged. Independent review found no actionable issues. The displayed speed has no guessed unit, and types have no invented semantic names.
+
+
 ## Programmatic TODO follow-up — 2026-10-31
 
 Current integrated evidence: **256 Node tests pass with no skips**, including private official20×20 and firmware22×22 repeated parsed-JSON/project/BIN exact-byte/hash round trips. **201 deterministic tests pass across Chromium, Firefox and WebKit**, with three opt-in checks skipped; separate live Mio checks pass in all three engines (GET1/HEAD1/no repeated body). [Cross-browser details](cross-browser-verification.md), [source import preservation](source-research-2026-10-31.md), [binary preservation/reader evidence](binary-research-2026-10-31.md). Builds with and without the accepted CANARD dataset pass. No physical Safari/mobile/GPS/MiVue result is implied; use [manual acceptance](user-acceptance.md).

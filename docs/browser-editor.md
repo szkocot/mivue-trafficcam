@@ -71,3 +71,7 @@ Choose **OpenStreetMap JSON (camera nodes)** in Import after opening a BIN/proje
 Only speed-camera nodes with coordinates are supported. Ordinary cameras have unknown operational status and remain references; proposed/disused tags retain planned/inactive status. Numeric speed limits retain original units, bearings remain camera-facing metadata, and other tags survive unchanged. Enforcement relations and camera ways produce an actionable error; export camera nodes separately. There is no automatic API download, route inference or speed/direction BIN encoding. The retrieval time is local import time, not file freshness. Reimporting a node clears stale source limits/bearings when its current tags no longer supply them, while manual BIN edits remain protected.
 
 Keep the OpenStreetMap contributors / ODbL licence notice when sharing derived outputs; reference exports embed it and the existing notice download covers associated BIN records. See [supported fields, research and limits](source-research-2026-10-31.md).
+
+## BIN speed and type display
+
+The BIN records table and selected-record details show the current stored speed value (record byte 16) and raw type code (record word 20), including zero and unknown codes. Speed units, zero semantics and complete type meanings remain unverified; no camera-type names or km/h interpretation are guessed. Source-reported limits remain separately labelled with attribution. These read-only fields do not alter the project or encoded bytes; advanced raw-byte editing remains explicit.

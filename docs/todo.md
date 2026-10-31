@@ -68,6 +68,7 @@ Use [the acceptance checklist](user-acceptance.md). Confirm model-specific insta
 ## 6. PL/EN and browsers — programmatic coverage completed
 
 - [x] Actionable PL/EN import errors with accurate record/file context.
+- [x] Read-only stored BIN speed and raw type display in the table/details, with explicit unit/meaning limits and separate source speed labels.
 - [x] Persistent Mio cache warnings until storage recovers.
 - [x] Chromium, Firefox and WebKit projects, CI engine installation, file chooser, imports, editing, storage/recovery, map, downloads and emulated location checks.
 - [x] Fix actual WebKit hidden-file-input pointer interception and test the visible file chooser.

@@ -1,4 +1,7 @@
 export default {
+  binSpeed: "Prędkość (wartość BIN)",
+  binType: "Typ (kod BIN)",
+  binFieldsNotice: "Jednostki prędkości i pełne znaczenie typów są niezweryfikowane. Wartości pochodzą z BIN; ograniczenia według źródeł są pokazane osobno.",
  importOsm:'OpenStreetMap JSON (węzły fotoradarów)',importOsmHelp:'Lokalny JSON OSM / Overpass: węzły speed_camera ze współrzędnymi. Relacje kontroli i drogi są odrzucane; trasa nie jest zgadywana. Nieznany status pozostaje nieznany. Źródło: OpenStreetMap contributors / ODbL; czas pobrania oznacza lokalny import. Przy udostępnianiu zachowaj informację o licencji.',importReason_OSM_UNSUPPORTED_GEOMETRY:'Relacje kontroli / drogi fotoradarów nie są obsługiwane. Wyeksportuj tylko węzły fotoradarów ze współrzędnymi.',importReason_OSM_NO_CAMERAS:'Brak obsługiwanych węzłów fotoradarów.',
 
  countryPosition:'Szerokość, długość',countryCandidates:'Dopasowane / pobliskie kraje',countryNoMatch:'Brak dopasowanego kraju',countryComponent:'Rekordy powiązanego odcinka',countryTriggers:'Uwzględniono przez',

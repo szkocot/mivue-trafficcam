@@ -10,6 +10,8 @@ The intended scope includes fixed speed cameras and section-based average-speed 
 
 ## Status
 
+**BIN record display, 2026-10-31:** the BIN table and selected-record details show the stored speed value and raw type code in PL/EN. Units and complete type meanings remain explicitly unverified; attributed source speed limits are separate. Displaying these fields does not modify the project or BIN output.
+
 **Deployed programmatic TODO increment, 2026-10-31:** local attributed OSM camera-node imports; verified 20×20 and 22×22 BIN support; ISO country-export filenames; Chromium/Firefox/WebKit coverage and the WebKit file-input fix. **256 Node tests, 201 deterministic browser tests and all three live Mio browser checks pass**. Repeated parse/JSON/project/rebuild cycles preserve both available real BIN files byte-for-byte and by SHA-256; imported observation metadata survives project/reference export. [Deployment 41246260899](https://github.com/szkocot/mivue-trafficcam/actions/runs/41246260899) and fresh public Chromium smoke checks passed for `39ecdbe`. [Evidence and remaining blockers](docs/todo.md). [Your browser/device test procedure](docs/user-acceptance.md). Unknown header/link/flag semantics remain guarded; physical MiVue acceptance is untested.
 
 **Returning to this project?** Start with the [TODO and handoff](docs/todo.md), updated 2026-10-31. It separates completed CANARD/country-export work from remaining source enrichment, binary research and PL/EN/browser polish, and includes a ready-to-paste resume prompt. Its verification dates are historical; no new live-service check is implied.
