@@ -17,7 +17,7 @@ Updated **2026-11-01** after the user authorized all programmatic TODO work and 
 - Repeated BIN → parsed JSON → reconstruction → project save/reopen → BIN cycles preserve every byte, SHA-256, record and diagnostic for the 53,338-record official file and 51,790-record firmware file. Synthetic 20×20/22×22 fixtures exercise every raw byte, unknown types/references and unusual numeric encodings.
 - CSV/GeoJSON/OSM selected observation identities, geometry, original metadata, units, normalized fields, attribution and timestamps survive project save/reopen and deterministic reference export. This preserves supported data, not the source file's whitespace/quoting/envelope or unrelated OSM elements. Full project JSON is the reopenable backup; data exports are projections.
 - The current hosted CANARD snapshot validates at **811 observations** (506 PP, 136 OPP, 169 RL, PK unavailable); its 401,881 bytes, SHA-256 `f7f136127a9b32a8ce3470af84bc8d27dbefad9d2abd83e4d280ef6523754d87`, and canonical JSON parse/re-export match exactly.
-- Independent implementation review found no actionable issues. Build/diff checks and release verification are recorded in [deployment](deployment.md) and [browser evidence](cross-browser-verification.md).
+- Independent implementation review found no actionable issues. Final code `ceff93a` deployed successfully in [run 41274971549](https://github.com/szkocot/mivue-trafficcam/actions/runs/41274971549); fresh public Chromium verified PL/EN decoded BIN fields, zero edits and no page errors. Build/diff checks and release verification are recorded in [deployment](deployment.md) and [browser evidence](cross-browser-verification.md).
 
 ## 1. CANARD publication — completed
 
