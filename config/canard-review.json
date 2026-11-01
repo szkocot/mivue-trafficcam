@@ -1,6 +1,7 @@
 {
   "version": 1,
   "publicationApproved": true,
+  "details": {"enabled":true,"speedPolicy":"minimum-passenger-car-any-time-any-direction","speedUnit":"km/h"},
   "publicationBlockers": [],
   "unavailableCategoryPolicy": {"PK":{"exactLiteral":"[{}]","count":null,"userApproved":true}},
   "termsSha256": "1f6e8f2f7daf6edbd2654668b1af4d7fb82d8c47ac703cc9fb087115a541f3da",
@@ -57,8 +58,8 @@
     "licenceUrl":"https://creativecommons.org/licenses/by/4.0/",
     "disclaimerPl":"Dane poglądowe, nie dokument urzędowy. Projekt niezależny, bez poparcia GITD/CANARD. Używasz na własne ryzyko.",
     "disclaimerEn":"Illustrative data, not an official document. Independent project, not endorsed by GITD/CANARD. Use at your own risk.",
-    "transformation":"Public map observations normalized for independent display; OPP endpoints are not road routes. No status, speed or direction inferred.",
-    "transformationVersion":1,
+    "transformation":"Public map and device detail observations; car speed is the minimum across all supplied times and directions, interpreted as km/h by import policy. Original conditional/vehicle rows retained. OPP endpoints are not road routes; status and bearing remain unknown.",
+    "transformationVersion":2,
     "reviewedTermsSha256":"1f6e8f2f7daf6edbd2654668b1af4d7fb82d8c47ac703cc9fb087115a541f3da"
   },
   "reviewedCandidateSha256": "9033e492f0cfdd4355c9fcb92bb2c4a8cd982ce9cee018af0af7aeb1df0afa26"

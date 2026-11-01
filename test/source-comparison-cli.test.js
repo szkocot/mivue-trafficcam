@@ -76,3 +76,22 @@ test('ancestor symlinks cannot bypass accepted-input containment',async()=>{
  assert.throws(()=>execFileSync(...command({...f,output:join(alias,'nested','report')}),{stdio:'pipe'}),e=>e.stderr.toString().includes('must not be inside'));
  await assert.rejects(access(join(f.canard,'nested')),{code:'ENOENT'});
 });
+
+test('CLI exports source versus Mio speed evidence without treating ambiguous geometry as verified identity',async()=>{
+ const f=await fixture();
+ await writeFile(f.mio,Buffer.from(makeFixture([50,60,0].map(speed=>({latitudeRaw:5200,longitudeRaw:2100,rawBytes16To19:[speed,0,0,1]}))).bytes));
+ const batch=normalizeCanardLayers(makeCanardLayers(),{review,retrievedAt});
+ for(const o of batch.observations){o.speedKmh=50;o.originalSpeed={value:50,unit:'km/h'};}
+ const prepared=await prepareSnapshot({batch,notices:review.notices,checkedAt:retrievedAt,termsSha256:review.notices.reviewedTermsSha256,robotsSha256:review.robotsSha256,review});
+ const canard=join(dirname(f.canard),'known-canard');await writeDataset(canard,prepared);
+ execFileSync(...command({...f,canard}),{stdio:'pipe'});
+ const report=JSON.parse(await readFile(join(f.output,'comparison.json'),'utf8'));
+ const point=report.points.find(r=>r.category==='PP');assert.equal(point.status,'ambiguous');assert.equal(point.identityVerified,false);
+ assert.deepEqual(point.candidates.map(c=>c.speedCompliance.status).sort(),['agree','different','mio-unspecified']);
+ const mismatch=point.candidates.find(c=>c.speedCompliance.status==='different');assert.equal(mismatch.rawSpeed,60);assert.equal(mismatch.speedCompliance.sourceSpeedKmh,50);assert.equal(mismatch.speedCompliance.mioSpeedKmh,60);assert.equal(mismatch.speedCompliance.deltaKmh,10);
+ assert.ok(report.speedCompliance.byCandidateStatus.ambiguous);
+ const html=await readFile(join(f.output,'index.html'),'utf8');assert.ok(html.includes('Speed comparison'));assert.ok(html.includes('mio-unspecified'));assert.ok(html.includes('different'));assert.ok(html.includes('not verified identities'));
+ const csv=await readFile(join(f.output,'comparison.csv'),'utf8');assert.ok(csv.includes('candidateSpeedComparisons'));assert.ok(csv.includes('mio-unspecified'));assert.ok(csv.includes('deltaKmh'));
+ const geo=JSON.parse(await readFile(join(f.output,'comparison.geojson'),'utf8'));assert.deepEqual(geo.speedCompliance,report.speedCompliance);
+ const feature=geo.features.find(f=>f.properties.source==='CANARD'&&f.properties.category==='PP');assert.equal(feature.properties.status,'unknown');assert.equal(feature.properties.identityVerified,false);assert.deepEqual(feature.properties.candidates.map(c=>c.speedCompliance),point.candidates.map(c=>c.speedCompliance));
+});

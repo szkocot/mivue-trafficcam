@@ -45,7 +45,7 @@ jobs:
     needs: resolve
     if: github.event_name == 'schedule' || inputs.operation == 'update' || inputs.operation == 'withdraw'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     permissions:
       contents: read
     steps:

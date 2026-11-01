@@ -56,5 +56,5 @@ try{
  const files={'NOTICE.json':JSON.stringify({sourceNotices:report.sourceNotices,boundaryNotice:report.boundaryNotice,inputs:report.inputs,containsLocallyDerivedMioData:true},null,2)+'\n','comparison.json':JSON.stringify(report,null,2)+'\n','comparison.csv':comparisonCsv(report),'bin-speed-inventory.csv':speedInventoryCsv(view.records),'comparison.geojson':comparisonGeoJson(report),'index.html':comparisonHtml(report,poland)};
  // Every input and all report content are validated before a fresh destination is created.
  await mkdir(dirname(output),{recursive:true});await mkdir(output);for(const [name,text]of Object.entries(files))await writeFile(join(output,name),text,{flag:'wx'});
- process.stdout.write(JSON.stringify({output,inputs:report.inputs,scope:report.scope,counts:report.counts,speed:speedCounts(report.speed),importVerification:report.importVerification,currentProjectBuild:report.currentProjectBuild},null,2)+'\n');
+ process.stdout.write(JSON.stringify({output,inputs:report.inputs,scope:report.scope,counts:report.counts,speed:speedCounts(report.speed),speedCompliance:report.speedCompliance,importVerification:report.importVerification,currentProjectBuild:report.currentProjectBuild},null,2)+'\n');
 }catch(error){process.stderr.write(`${error.code??'COMPARISON_FAILED'}: ${error.message}\n`);process.exitCode=1;}

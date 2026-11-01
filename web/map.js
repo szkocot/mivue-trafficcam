@@ -12,9 +12,16 @@ export function createMap(element,{onSelect,onPick,onViewport,onTileError}){
   const size=map.getSize(),ratio=devicePixelRatio||1;canvas.width=size.x*ratio;canvas.height=size.y*ratio;canvas.style.width=`${size.x}px`;canvas.style.height=`${size.y}px`;
   const ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);
   const points=[];
-  for(const r of [...records,...references]){if(!hasPosition(r))continue;const p=map.latLngToContainerPoint([r.latitude,r.longitude]);if(p.x>=-20&&p.y>=-20&&p.x<=size.x+20&&p.y<=size.y+20)points.push({id:r.id,x:p.x,y:p.y,reference:r.reference});}
+  for(const r of [...records,...references]){if(!hasPosition(r))continue;const p=map.latLngToContainerPoint([r.latitude,r.longitude]);if(p.x>=-20&&p.y>=-20&&p.x<=size.x+20&&p.y<=size.y+20)points.push({id:r.id,x:p.x,y:p.y,reference:r.reference,merged:!r.reference&&Boolean(r.sourceObservations?.length)});}
   const grid=map.getZoom()<12?40:10;
-  groups=[...aggregatePoints(points.filter(p=>!p.reference),grid),...aggregatePoints(points.filter(p=>p.reference),grid).map(g=>({...g,reference:true}))];
+  groups=[...aggregatePoints(points.filter(p=>!p.reference&&!p.merged),grid),
+   ...aggregatePoints(points.filter(p=>p.merged),grid).map(g=>({...g,merged:true})),
+   ...aggregatePoints(points.filter(p=>p.reference),grid).map(g=>({...g,reference:true}))];
+  // Separate status groups within one grid cell so coincident colors remain visible.
+  const buckets=new Map();for(const g of groups){const key=`${Math.floor(g.x/grid)}:${Math.floor(g.y/grid)}`;if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(g);}
+  for(const bucket of buckets.values())if(bucket.length>1)bucket.forEach((g,i)=>{g.x+=(i-(bucket.length-1)/2)*34;});
+  const legend=element.parentElement.querySelector('.legend');
+  if(legend)legend.textContent=translate('mapLegend',{bin:points.filter(p=>!p.reference&&!p.merged).length,merged:points.filter(p=>p.merged).length,references:points.filter(p=>p.reference).length})+' '+translate('links');
   const lookup=new Map([...records,...references].map(r=>[r.id,r]));
   ctx.strokeStyle='#7351a2';ctx.lineWidth=2;ctx.setLineDash([3,5]);
   for(const r of references)if(r.geometry.type==='LineString'){
@@ -26,7 +33,8 @@ export function createMap(element,{onSelect,onPick,onViewport,onTileError}){
    const a=map.latLngToContainerPoint([selected.latitude,selected.longitude]),b=map.latLngToContainerPoint([target.latitude,target.longitude]);
    ctx.strokeStyle='#ad6800';ctx.setLineDash([6,5]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);
   }
-  for(const g of groups){const active=g.ids.includes(selectedId);ctx.beginPath();ctx.arc(g.x,g.y,g.ids.length>1?15:active?8:5,0,Math.PI*2);ctx.fillStyle=active?'#e59a13':g.reference?'#7351a2':'#087f77';ctx.fill();ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
+  for(const g of groups){const active=g.ids.includes(selectedId),radius=g.ids.length>1?15:5;ctx.beginPath();ctx.arc(g.x,g.y,radius,0,Math.PI*2);ctx.fillStyle=g.reference?'#7351a2':g.merged?'#365b9b':'#087f77';ctx.fill();ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
+   if(active){ctx.beginPath();ctx.arc(g.x,g.y,radius+4,0,Math.PI*2);ctx.strokeStyle='#e59a13';ctx.lineWidth=3;ctx.stroke();}
    if(g.ids.length>1){ctx.fillStyle='white';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='11px system-ui';ctx.fillText(String(g.ids.length),g.x,g.y);}
   }
   const labels=[];ctx.font='12px system-ui';
@@ -42,7 +50,7 @@ export function createMap(element,{onSelect,onPick,onViewport,onTileError}){
  function viewport(){const b=map.getBounds();onViewport({south:b.getSouth(),north:b.getNorth(),west:b.getWest(),east:b.getEast()});}
  map.on('move zoom resize',draw);map.on('moveend',viewport);
  map.on('click',e=>{if(pick){onPick(e.latlng.lat,e.latlng.lng);return;}
-  const p=e.containerPoint,g=groups.find(g=>Math.hypot(p.x-g.x,p.y-g.y)<18);if(!g)return;
+  const p=e.containerPoint;let g,nearest=18;for(const candidate of groups){const distance=Math.hypot(p.x-candidate.x,p.y-candidate.y);if(distance<nearest){g=candidate;nearest=distance;}}if(!g)return;
   if(g.ids.length>1)map.setView(map.containerPointToLatLng([g.x,g.y]),Math.min(19,map.getZoom()+2));else onSelect(g.ids[0]);
  });
  const resize=new ResizeObserver(()=>map.invalidateSize());resize.observe(element);

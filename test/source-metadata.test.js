@@ -17,3 +17,9 @@ test('point label placement suppresses collisions and bounds every frame to 200 
  assert.equal(m.placeLabels(items,()=>20).length,200);
  assert.equal(m.placeLabels([{x:0,y:0,text:'a'},{x:0,y:0,text:'b'}],()=>30).length,1);
 });
+test('CANARD selected car limits disclose minimum-over-time/direction policy',()=>{
+ const i=createI18n({languages:['en'],storage:null});
+ const ref={speedKmh:50,attribution:'GITD / CANARD',originalProperties:{canardDetail:{selectionPolicy:'minimum-passenger-car-any-time-any-direction'}}};
+ assert.match(m.speedLabel([ref],i.t),/50 km\/h.*minimum car/i);
+ i.setLanguage('pl');assert.match(m.speedLabel([ref],i.t),/50 km\/h.*minimum dla samochodów osobowych/i);
+});

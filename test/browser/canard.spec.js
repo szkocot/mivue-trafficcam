@@ -126,3 +126,21 @@ test('shared cache transaction rejects older writes and resurrection after withd
  });
  expect(result).toEqual({stale:'CANARD_STALE_MANIFEST',revoked:'CANARD_SOURCE_WITHDRAWN',futureRevoked:'CANARD_SOURCE_WITHDRAWN',cached:null});
 });
+test('CANARD minimum car speed survives hosted import, PL/EN details, reload and retained evidence',async({page})=>{
+ const checkedAt=new Date().toISOString(),batch=normalizeCanardLayers(makeCanardLayers(),{review,retrievedAt:checkedAt});
+ const point=batch.observations.find(o=>o.originalProperties.sourceCategory==='PP');
+ Object.assign(point,{speedKmh:50,originalSpeed:{value:50,unit:'km/h'}});
+ point.originalProperties.canardDetail={selectionPolicy:'minimum-passenger-car-any-time-any-direction',raw:{limits:[{car:70,truck:40,time:'day'},{car:50,truck:30,time:'night'}]}};
+ const entry=await prepareSnapshot({batch,notices:review.notices,checkedAt,review});await routes(page,()=>entry);
+ await page.goto('/mivue-trafficcam/');await openFixture(page);await importCanard(page);
+ const id='import:'+JSON.stringify(['pl.gitd.canard.public-map',point.sourceId]);
+ await page.getByTestId('reference-row').getByRole('button',{name:id,exact:true}).click();
+ await expect(page.locator('#details')).toContainText('50 km/h · GITD / CANARD · Minimum car limit across all times and directions');
+ await expect(page.locator('#details')).toContainText('"truck": 30');
+ await page.getByRole('button',{name:'PL',exact:true}).click();await expect(page.locator('#details')).toContainText('Minimum dla samochodów osobowych');
+ await page.reload();await page.getByTestId('reference-row').getByRole('button',{name:id,exact:true}).click();
+ await expect(page.locator('#details')).toContainText('50 km/h');await expect(page.getByTestId('record-count')).toHaveText('1');
+ const project=await page.evaluate(async()=>{const {openStorage}=await import('./web/storage.js');const s=await openStorage();const value=await s.getWorking();s.close();return value;});
+ // Project/reference persistence is verified by the worker/codec tests; inspect the live retained evidence here.
+ expect(JSON.stringify(project)).toContain('minimum-passenger-car-any-time-any-direction');
+});

@@ -12,6 +12,50 @@ const distance=(a,b)=>{
 const recordId=r=>r.id??`source:${r.offset}`;
 const describe=r=>({id:recordId(r),coordinates:position(r),rawType:r.typeRaw,rawSpeed:r.rawBytes16To19[0],rawBytes16To19:[...r.rawBytes16To19],decodedSpeed:decodeBinSpeed(r.rawBytes16To19[0]),decodedType:decodeBinType(r.typeRaw)});
 
+const complianceStatuses=['agree','different','canard-unavailable','mio-unspecified','mio-unclassified','partial'];
+const candidateStatuses=['spatial-candidate','ambiguous','range-review','canard-only'];
+function compareSpeed(sourceSpeedKmh,record){
+ const mioSpeedKmh=record.decodedSpeed.speedKmh;
+ const status=!Number.isFinite(sourceSpeedKmh)?'canard-unavailable':record.decodedSpeed.status==='unspecified'?'mio-unspecified':record.decodedSpeed.status!=='known'?'mio-unclassified':sourceSpeedKmh===mioSpeedKmh?'agree':'different';
+ return {recordId:record.id,status,sourceSpeedKmh,mioSpeedKmh,deltaKmh:Number.isFinite(sourceSpeedKmh)&&mioSpeedKmh!==null?mioSpeedKmh-sourceSpeedKmh:null};
+}
+function compareRowSpeeds(row){
+ const candidateCounts=Object.fromEntries(complianceStatuses.map(k=>[k,0]));
+ for(const c of row.candidates){
+  if(c.endpoints){
+   const endpoints=c.endpoints.map(e=>compareSpeed(row.sourceSpeedKmh,e)),statuses=endpoints.map(e=>e.status);
+   const status=statuses.includes('different')?'different':statuses.every(s=>s===statuses[0])?statuses[0]:'partial';
+   c.speedCompliance={status,sourceSpeedKmh:row.sourceSpeedKmh,endpoints,partial:statuses.some(s=>s==='mio-unspecified'||s==='mio-unclassified'),differentRecordIds:endpoints.filter(e=>e.status==='different').map(e=>e.recordId)};
+  }else{
+   const comparison=compareSpeed(row.sourceSpeedKmh,c);
+   c.speedCompliance={...comparison,differentRecordIds:comparison.status==='different'?[c.id]:[]};
+  }
+  c.speedCompliance.candidateStatus=c.endpoints&&!c.rangeWithinTolerance?'range-review':row.status;
+  candidateCounts[c.speedCompliance.status]++;
+ }
+ const present=Object.keys(candidateCounts).filter(k=>candidateCounts[k]);
+ row.speedCompliance={status:present.length===1?present[0]:present.length?'mixed':'no-candidate',candidateCounts,differentRecordIds:[...new Set(row.candidates.flatMap(c=>c.speedCompliance.differentRecordIds))]};
+}
+function summarizeCompliance(rows){
+ const empty=()=>({rows:0,candidateCounts:Object.fromEntries(complianceStatuses.map(k=>[k,0])),endpointCounts:Object.fromEntries(complianceStatuses.map(k=>[k,0])),differentRecordIds:[],differentEvidence:[]});
+ const groups=()=>Object.fromEntries(candidateStatuses.map(k=>[k,empty()]));
+ const byCandidateStatus=groups(),byCategory=Object.fromEntries(['PP','OPP','RL'].map(k=>[k,groups()]));
+ for(const row of rows){
+  const statuses=new Set(row.candidates.length?row.candidates.map(c=>c.speedCompliance.candidateStatus):[row.status]);
+  for(const status of statuses)for(const group of [byCandidateStatus[status],byCategory[row.category]?.[status]])if(group)group.rows++;
+  for(const c of row.candidates){
+   const comparison=c.speedCompliance,candidateStatus=comparison.candidateStatus;
+   for(const group of [byCandidateStatus[candidateStatus],byCategory[row.category]?.[candidateStatus]]){
+    if(!group)continue;group.candidateCounts[comparison.status]++;
+    for(const endpoint of comparison.endpoints??[])group.endpointCounts[endpoint.status]++;
+    for(const evidence of comparison.endpoints??[comparison])if(evidence.status==='different')group.differentEvidence.push({sourceId:row.sourceId,candidateId:c.id,recordId:evidence.recordId,sourceSpeedKmh:row.sourceSpeedKmh,mioSpeedKmh:evidence.mioSpeedKmh,deltaKmh:evidence.deltaKmh,category:row.category,candidateStatus});
+   }
+  }
+ }
+ for(const group of [...Object.values(byCandidateStatus),...Object.values(byCategory).flatMap(Object.values)])group.differentRecordIds=[...new Set(group.differentEvidence.map(e=>e.recordId))].sort();
+ return {interpretation:'Speed comparisons apply to geometric candidates only, never verified identities. CANARD passenger minima can differ from time/direction-specific limits. BIN decoding retains its firmware scope; unavailable or unclassified values are not filled.',byCandidateStatus,byCategory};
+}
+
 // Connector overlap is review evidence only: these segments are not surveyed road routes.
 function connectorOverlap(a,b,c,d){
  const scale=R*RAD,cos=Math.cos((a[1]+b[1])*RAD/2);
@@ -83,13 +127,15 @@ export function compareCanardMio({database,batch,classifier,countryId}){
    sectionRows.push({...row,status:within.length>1?'ambiguous':within.length?'spatial-candidate':candidates.length?'range-review':'canard-only',spanMetres:span,possibleSplitOrMerge:!within.length&&candidates.length>1&&candidates.some(c=>c.connectorOverlap),candidates});
   }
  }
+ for(const row of [...pointRows,...sectionRows])compareRowSpeeds(row);
+ const speedCompliance=summarizeCompliance([...pointRows,...sectionRows]);
  const localInventory=speedInventory(scoped),globalInventory=speedInventory(records);
  const counts=rows=>Object.fromEntries(['spatial-candidate','ambiguous','range-review','canard-only'].map(k=>[k,rows.filter(r=>r.status===k).length]));
  return {schema:'mivue-canard-mio-comparison',version:1,tolerance:{endpointMetres:COMPARISON_RADIUS_METRES,spanMetresMinimum:20,spanFraction:.1},
   interpretation:'Geometric candidates require identity/road review. Source-only coverage is legitimate. Reviewed BIN metadata is firmware-scoped; unclassified values remain raw. Identity and road limits are not verified by decoded metadata.',
   scope:{countryId,total:records.length,validInScope:scoped.length,borderInScope:scoped.filter(r=>scopeById.get(recordId(r)).status==='border').length,
    borderRecordIds:scoped.filter(r=>scopeById.get(recordId(r)).status==='border').map(recordId),invalid:records.length-valid.length,outsideOrUnassigned:valid.length-scoped.length},
-  counts:{points:counts(pointRows),sections:counts(sectionRows)},points:pointRows,sections:sectionRows,
+  counts:{points:counts(pointRows),sections:counts(sectionRows)},points:pointRows,sections:sectionRows,speedCompliance,
   invalidRecords:records.filter(r=>!hasPosition(r)).map(describe),
   mioOnly:scoped.filter(r=>!used.has(recordId(r))).map(describe),
   mioOnlySections:pairs.filter(p=>p.inScope&&!usedPairs.has(p.id)).map(p=>({id:p.id,endpoints:[describe(p.a),describe(p.b)],spanMetres:distance(position(p.a),position(p.b))})),linkProblems,

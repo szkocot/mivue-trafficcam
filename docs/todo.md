@@ -8,15 +8,16 @@ Updated **2026-11-01** after the user authorized all programmatic TODO work and 
 2. Use [browser/device acceptance](user-acceptance.md) to test your actual browser/phone and MiVue 955W. Keep the original database, full project and recovery backup.
 3. Return observations with model/firmware, source/output SHA-256, record IDs and exact symptoms. Automated structural validity is not device acceptance.
 4. Continue semantic BIN controls only when the firmware-reader trace or controlled tests establish the remaining flag/header/endpoint meanings. Keep existing build blockers.
-5. CANARD detail enrichment needs verified units, direction/status semantics, cross-category/identity evidence, notices and an unattended-access arrangement. PK coordinates remain unavailable. Additional named providers require their own access/identity assessment.
+5. CANARD car speeds use the explicit minimum-over-time/direction policy documented in [car-speed imports](canard-speeds.md). Review original conditional rows when needed; active status and compass direction remain unknown. PK coordinates remain unavailable. Additional named providers require their own access/identity assessment.
 
 ## Verification and preservation
 
-- **284 Node tests pass, zero skips**, with both private official and firmware databases present. The preview-server artifact test requires a local listening port; sandboxed Node attempts crashed natively, while the unrestricted integrated run passed.
-- **216 deterministic browser tests pass** across Chromium, Firefox and WebKit; three opt-in live checks are skipped in that command. The separate live Mio run passes **all three engines**, each with one GET, one HEAD and no second body download.
+- **313 Node tests pass, zero skips**, with both private official and firmware databases present. The preview-server artifact test requires a local listening port; sandboxed Node attempts crashed natively, while the unrestricted integrated run passed.
+- **222 deterministic browser tests pass** across Chromium, Firefox and WebKit; three opt-in live checks are skipped in that command. The separate live Mio run passes **all three engines**, each with one GET, one HEAD and no second body download.
 - Repeated BIN → parsed JSON → reconstruction → project save/reopen → BIN cycles preserve every byte, SHA-256, record and diagnostic for the 53,338-record official file and 51,790-record firmware file. Synthetic 20×20/22×22 fixtures exercise every raw byte, unknown types/references and unusual numeric encodings.
 - CSV/GeoJSON/OSM selected observation identities, geometry, original metadata, units, normalized fields, attribution and timestamps survive project save/reopen and deterministic reference export. This preserves supported data, not the source file's whitespace/quoting/envelope or unrelated OSM elements. Full project JSON is the reopenable backup; data exports are projections.
-- The current hosted CANARD snapshot validates at **811 observations** (506 PP, 136 OPP, 169 RL, PK unavailable); its 401,881 bytes, SHA-256 `f7f136127a9b32a8ce3470af84bc8d27dbefad9d2abd83e4d280ef6523754d87`, and canonical JSON parse/re-export match exactly.
+- The map-only baseline CANARD snapshot validates at **811 observations** (506 PP, 136 OPP, 169 RL, PK unavailable); its 401,881 bytes, SHA-256 `f7f136127a9b32a8ce3470af84bc8d27dbefad9d2abd83e4d280ef6523754d87`, and canonical JSON parse/re-export match exactly.
+- Enriched car-speed verification: all 811 detail responses validated, 642 numeric passenger minima (506 PP + 136 OPP), 169 genuinely unavailable RL limits. User point PP 91359960 imports as 50 km/h and agrees with its Mio candidate 3.22 m away. Unique candidates agree for 53/54 PP and 16/17 OPP pairs; retain differing and ambiguous evidence. [Full results](canard-speeds.md).
 - Independent implementation review found no actionable issues. Final code `ceff93a` deployed successfully in [run 41274971549](https://github.com/szkocot/mivue-trafficcam/actions/runs/41274971549); fresh public Chromium verified PL/EN decoded BIN fields, zero edits and no page errors. Build/diff checks and release verification are recorded in [deployment](deployment.md) and [browser evidence](cross-browser-verification.md).
 
 ## 1. CANARD publication — completed
@@ -39,7 +40,7 @@ The previous code release `3972fa5` deployed in [run 41245309208](https://github
 - [x] Assess OSM access, ODbL attribution and typed stable identities; implement local OSM/Overpass JSON camera-node imports, including proposed/disused lifecycle tags.
 - [x] Preserve original element metadata/units/IDs/import times, OSM notices and manual edits/deletions. Reimport clears obsolete OSM source metadata without changing manually owned BIN coordinates.
 - [x] Test repeats, malformed input, conflicts/bindings, original metadata, notice retention, project persistence and PL/EN errors across all three engines.
-- [ ] Hosted CANARD detail enrichment: official renderer evidence now establishes separate passenger/truck, time and named-direction rows. Explicit units, legal applicability, active-status semantics, OPP/RL schemas, stable updates, notices and permitted unattended volume remain unverified; do not collapse conditional rows into one speed.
+- [x] Import CANARD detail speeds using the user-selected minimum positive passenger-car limit across all times/directions. Preserve full raw conditional/vehicle evidence and provenance, and disclose the explicit km/h interpretation policy in metadata. Serial bounded server-side acquisition, identity-bound cache and complete-batch publication retain existing source gates. [Policy and operation](canard-speeds.md). Status/bearing and legal applicability are not inferred.
 - [ ] PK/control-point coordinates: current public array remains `[{}]`, not an authoritative empty dataset.
 - [x] Import documented `type=enforcement` / `enforcement=average_speed` relations with exactly one distinct from/to node and both coordinate-bearing nodes supplied in the file. Preserve `relation/<id>`, original relation/endpoint evidence, units and notices; sections remain reference-only endpoint connectors. Ambiguous/missing geometry, camera ways and other enforcement relations fail visibly. No road route or MiVue endpoint encoding is inferred.
 - [ ] Real OSM acquisition: one bounded provider query timed out without data; a subsequent provider status check returned HTTP 406. Synthetic node/relation parser/project/browser coverage passes; a real lawful local OSM export is required for a real-data check. No retry/access workaround or live connector is enabled.
@@ -64,7 +65,7 @@ The previous code release `3972fa5` deployed in [run 41245309208](https://github
 - [x] Add regression fixtures for import/binding preservation and comparison edge cases; record automated candidate/discrepancy counts. Cross-source agreement supports consistency; it does not establish identity, completeness or device alert behavior.
 - [ ] Resolve ambiguous identities and confirm actual road/direction-dependent OPP extents and speed applicability against authoritative evidence or the user’s manual observations. No automatic identity or road-route claim is made.
 
-Executable: `scripts/compare-sources.mjs`; [method, results and artifact instructions](canard-mio-verification.md). Private output: `exports/canard-mio-audit-2026-11-01/`. Real import checks preserve all 811 CANARD observations and the original BIN byte-for-byte. Results: points 54 unique spatial candidates / 606 ambiguous / 15 CANARD-only; OPP 17 unique / 111 ambiguous / 7 range review / 1 CANARD-only. Poland/border scope contains 1,767 Mio records, with 165 record / 8 linked-pair Mio-only views. All 265 scoped stored zeros (3,361 globally) use raw type 3; all 811 public CANARD source limits are unknown by source policy. No limits were guessed.
+Executable: `scripts/compare-sources.mjs`; [method, results and artifact instructions](canard-mio-verification.md). Private output: `exports/canard-mio-audit-2026-11-01/`. Real import checks preserve all 811 CANARD observations and the original BIN byte-for-byte. Results: points 54 unique spatial candidates / 606 ambiguous / 15 CANARD-only; OPP 17 unique / 111 ambiguous / 7 range review / 1 CANARD-only. Poland/border scope contains 1,767 Mio records, with 165 record / 8 linked-pair Mio-only views. All 265 scoped stored zeros (3,361 globally) use raw type 3; all 811 map-only baseline source limits were unknown; the enriched follow-up imports 642 car limits under the explicit minimum policy. No limits were guessed.
 
 
 ## 4. Binary research — verified extension completed, semantics remain open
@@ -92,6 +93,7 @@ Use [the acceptance checklist](user-acceptance.md). Confirm model-specific insta
 
 - [x] Actionable PL/EN import errors with accurate record/file context.
 - [x] Read-only stored BIN speed and raw type display in the table/details, with explicit unit/meaning limits and separate source speed labels.
+- [x] Distinct merged-point map color: blue for explicit source/BIN bindings, teal for unbound BIN points, purple for references, and amber selection rings; mixed status groups remain visible with a PL/EN legend.
 - [x] Persistent Mio cache warnings until storage recovers.
 - [x] Chromium, Firefox and WebKit projects, CI engine installation, file chooser, imports, editing, storage/recovery, map, downloads and emulated location checks.
 - [x] Fix actual WebKit hidden-file-input pointer interception and test the visible file chooser.
@@ -100,7 +102,7 @@ Use [the acceptance checklist](user-acceptance.md). Confirm model-specific insta
 
 ## Remaining gates after programmatic implementation
 
-All currently specified, evidence-supported programmatic increments above are implemented. The unchecked items require upstream data/access or semantic evidence (CANARD details/PK, real OSM file, a named other provider, ambiguous cross-source identities, binary mappings/anomalous links), or the user's physical browser/device observations. These are retained as open verification gates, not claimed complete by synthetic tests. A lawful OSM file supplied locally can be tested with the implemented parser and round-trip workflow without new product code. New evidence can justify a further implementation increment; unknown values and build blockers remain until then.
+All currently specified, evidence-supported programmatic increments above are implemented. The unchecked items require upstream data/access or semantic evidence (PK, real OSM file, a named other provider, ambiguous cross-source identities, binary mappings/anomalous links), or the user's physical browser/device observations. These are retained as open verification gates, not claimed complete by synthetic tests. A lawful OSM file supplied locally can be tested with the implemented parser and round-trip workflow without new product code. New evidence can justify a further implementation increment; unknown values and build blockers remain until then.
 
 ## Completion rules
 

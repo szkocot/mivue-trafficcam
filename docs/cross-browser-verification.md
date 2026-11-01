@@ -51,3 +51,10 @@ The subsequent Linux CI failure was a real loading/click race: worker completion
 The final local follow-up includes explicit OSM average-speed endpoint relations, offline audit-report safety/navigation, and firmware-scoped read-only BIN interpretation with unknown raw values retained. Node verification passed 284 tests with zero skips, including both private binaries. The final full browser suite passed 216 tests (72 per engine), with three intentional opt-in live skips, in 2.7 minutes. The physical-browser/device limits above still apply.
 
 The separate opt-in live Mio check passed all three engines in 12.0 seconds on 2026-11-01. Each made one GET and one HEAD; all observed the unchanged official SHA-256 `69759a67d9442bfa1a636c38ccbc16623a2208ef34564e11f68ad0d696becdb1`, 1,532,826 bytes and Last-Modified 2026-09-21. No second body download was required.
+
+
+## CANARD car speeds and merged colors — 2026-11-01
+
+Final integrated checks pass **313 Node tests with zero skips** and **222 browser tests with three opt-in live-source skips**, across Chromium/Firefox/WebKit. New browser cases verify minimum-car PL/EN labels, conditional evidence and persistence; explicit binding turns a point blue while unbound BIN stays teal and references purple, selected status retains an amber ring, undo/redo/reload preserves the status, and no coordinates or per-point DOM markers are introduced. The initial new CANARD test used an incorrect unescaped source ID; correcting it to the real source-qualified ID passed all three engines without UI changes or forced clicks.
+
+Independent review found an aggregate cache-memory gap in the new fetcher. A red/green regression now enforces a 20 MiB budget across cached and fresh encoded bodies. The real 811-entry cache is 2,768,870 bytes and revalidates all identities/hashes without further detail requests, producing the identical snapshot SHA-256. Live detail acquisition, actual import preservation and CANARD–Mio speed evidence are in [car-speed verification](canard-speeds.md). Physical-browser/device gates remain separate.

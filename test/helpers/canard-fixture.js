@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import lz from 'lz-string';
-export const review=JSON.parse(readFileSync(new URL('../../config/canard-review.json',import.meta.url)));
+const configuredReview=JSON.parse(readFileSync(new URL('../../config/canard-review.json',import.meta.url)));
+export const review={...configuredReview,details:{enabled:false}};
 export const retrievedAt='2026-09-20T10:22:00.000Z';
 export function makeCanardLayers(){
  const point={id:1,lon:21,lat:52,rodzajPomiaru:'PP',nrSeryjny:'TEST-1',lok2PktDlugosc:null,lok2PktSzerokosc:null};

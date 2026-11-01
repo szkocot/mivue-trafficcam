@@ -2,8 +2,7 @@ import {readFile,writeFile,appendFile,mkdir} from 'node:fs/promises';
 import {dirname} from 'node:path';
 import {readDataset,writeDataset,fail} from './files.js';
 import {createGitAdapter,publishPrepared} from './publish.js';
-import {prepareUpdate} from './update.js';
-import {fetchCanardPage} from './access.js';
+import {prepareUpdate,fetchCanardInput} from './update.js';
 import {inspectCanard} from './prepare.js';
 const [command,...args]=process.argv.slice(2);
 const output=async(key,value)=>{if(process.env.GITHUB_OUTPUT)await appendFile(process.env.GITHUB_OUTPUT,`${key}=${value??''}\n`);else console.log(`${key}=${value??''}`);};
@@ -15,7 +14,7 @@ if(command==='resolve'&&!args.length){
  const [destination,previousDir,cacheFile]=args,previous=previousDir==='-'?null:await readDataset(previousDir);
  let previousAccess=null;try{previousAccess=JSON.parse(await readFile(cacheFile));}catch(error){if(error.code!=='ENOENT'&&!(error instanceof SyntaxError))throw error;}
  let access,prepared;
- if(command==='candidate'){access=await fetchCanardPage({previous:previousAccess});prepared=await inspectCanard({access,review,previous});}
+ if(command==='candidate'){access=await fetchCanardInput({review,previousAccess});prepared=await inspectCanard({access,review,previous});}
  else{
   if(process.env.CANARD_PUBLICATION_ENABLED!=='true')fail('CANARD_PUBLICATION_DISABLED');
   ({access,prepared}=await prepareUpdate({review,previous,previousAccess}));

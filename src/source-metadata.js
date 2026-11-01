@@ -3,7 +3,8 @@ export function speedLabel(references,t){
  const known=references.filter(r=>Number.isFinite(r.speedKmh));
  if(!known.length)return t('speedUnknown');
  if(new Set(known.map(r=>r.speedKmh)).size>1)return t('speedConflict');
- return `${number(known[0].speedKmh)} km/h · ${[...new Set(known.map(r=>r.attribution))].join(', ')}`;
+ const policy=known.some(r=>r.originalProperties?.canardDetail?.selectionPolicy==='minimum-passenger-car-any-time-any-direction')?` · ${t('canardCarMinimum')}`:'';
+ return `${number(known[0].speedKmh)} km/h · ${[...new Set(known.map(r=>r.attribution))].join(', ')}${policy}`;
 }
 export function safeSourceUrl(value){try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)?u.href:null;}catch{return null;}}
 export function metadataRows(r,t){

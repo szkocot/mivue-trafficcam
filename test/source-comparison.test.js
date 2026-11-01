@@ -89,3 +89,41 @@ test('reviewed BIN metadata distinguishes known, unspecified and unclassified wi
  const csv=comparisonCsv(r);assert.ok(csv.includes('decodedSpeedKmh'));assert.ok(csv.includes('unspecified'));assert.ok(csv.includes('unclassified'));assert.ok(csv.includes('MiVue 955W'));
  const inventory=speedInventoryCsv([{id:'raw',typeRaw:5,rawBytes16To19:[139,0,0,1],latitude:37,longitude:-7}]);assert.ok(inventory.includes('\"139\"'));assert.ok(inventory.includes('\"unclassified\",\"\",\"mobile\"'));
 });
+test('speed compliance distinguishes each candidate without turning ambiguous proximity into identity',()=>{
+ const p={...point('speed',[-7,37]),speedKmh:50,originalSpeed:{value:50,unit:'km/h'},originalProperties:{sourceCategory:'PP',canardDetail:{selectionPolicy:'minimum-passenger-car-any-time-any-direction'}}};
+ const r=run([{rawBytes16To19:[50,0,0,1]},{rawBytes16To19:[60,0,0,1]},{rawBytes16To19:[0,0,0,1]},{rawBytes16To19:[139,0,0,1]}],[p]);
+ const row=r.points[0];assert.equal(row.status,'ambiguous');assert.equal(row.identityVerified,false);assert.equal(row.speedCompliance.status,'mixed');
+ assert.deepEqual(row.candidates.map(c=>c.speedCompliance.status).sort(),['agree','different','mio-unclassified','mio-unspecified']);
+ assert.equal(row.sourceMetadata.canardDetail.selectionPolicy,p.originalProperties.canardDetail.selectionPolicy);
+ const different=row.candidates.find(c=>c.rawSpeed===60);assert.equal(different.speedCompliance.deltaKmh,10);assert.deepEqual(different.speedCompliance.differentRecordIds,[different.id]);
+ const group=r.speedCompliance.byCategory.PP.ambiguous;assert.equal(group.rows,1);assert.equal(group.candidateCounts.agree,1);assert.equal(group.candidateCounts.different,1);
+ assert.equal(group.differentEvidence[0].sourceSpeedKmh,50);assert.equal(group.differentEvidence[0].mioSpeedKmh,60);
+ assert.equal(r.speedCompliance.byCandidateStatus['spatial-candidate'].rows,0);
+});
+test('unique agreement, missing source limits and source-only points remain distinct evidence',()=>{
+ const known={...point('speed',[-7,37]),speedKmh:50,originalSpeed:{value:50,unit:'km/h'}};
+ for(const [o,status] of [[known,'agree'],[point('unknown',[-7,37]),'canard-unavailable']]){
+  const r=run([{}],[o]);assert.equal(r.points[0].status,'spatial-candidate');assert.equal(r.points[0].speedCompliance.status,status);
+  assert.equal(r.speedCompliance.byCandidateStatus['spatial-candidate'].candidateCounts[status],1);assert.equal(r.points[0].identityVerified,false);
+ }
+ assert.equal(run([], [known]).points[0].speedCompliance.status,'no-candidate');
+});
+test('OPP compliance checks both stored endpoints and exposes partial/mismatched evidence',()=>{
+ const source={...section('limits',[-7,37],[-6.9,37]),speedKmh:50,originalSpeed:{value:50,unit:'km/h'}};
+ for(const [values,status,partial] of [[[50,50],'agree',false],[[50,60],'different',false],[[50,0],'partial',true],[[60,0],'different',true],[[0,0],'mio-unspecified',true],[[139,139],'mio-unclassified',true]]){
+  const r=run([{typeRaw:964,linkTo:1,rawBytes16To19:[values[0],0,0,1]},{typeRaw:9128,longitudeRaw:-654,rawBytes16To19:[values[1],0,0,1]}],[source]);
+  const candidate=r.sections[0].candidates[0],comparison=candidate.speedCompliance;
+  assert.equal(r.sections[0].status,'spatial-candidate');assert.equal(comparison.status,status);assert.equal(comparison.partial,partial);assert.equal(comparison.endpoints.length,2);
+  assert.deepEqual(candidate.endpoints.map(e=>e.rawSpeed),values);assert.equal(r.sections[0].identityVerified,false);
+  assert.equal(Object.values(r.speedCompliance.byCategory.OPP['spatial-candidate'].endpointCounts).reduce((a,b)=>a+b,0),2);
+ }
+});
+test('extra range-review pairs never enter unique spatial speed agreement counts',()=>{
+ const source={...section('limits',[-7,37],[-6.9,37]),speedKmh:50,originalSpeed:{value:50,unit:'km/h'}};
+ const r=run([{typeRaw:964,linkTo:1},{typeRaw:9128,longitudeRaw:-654},{typeRaw:964,linkTo:3,rawBytes16To19:[60,0,0,1]},{typeRaw:9128,longitudeRaw:-648,rawBytes16To19:[60,0,0,1]}],[source]);
+ assert.equal(r.sections[0].status,'spatial-candidate');assert.equal(r.sections[0].candidates.length,2);
+ const summary=r.speedCompliance.byCategory.OPP;
+ assert.equal(summary['spatial-candidate'].candidateCounts.agree,1);assert.equal(summary['spatial-candidate'].candidateCounts.different,0);
+ assert.equal(summary['range-review'].candidateCounts.different,1);assert.equal(summary['range-review'].differentEvidence.length,2);
+ assert.equal(summary['range-review'].differentEvidence[0].candidateStatus,'range-review');
+});

@@ -59,3 +59,8 @@ Source-reported road length/direction and route geometry are unavailable in the 
 Tests cover source-only/ambiguous coverage, country scope, cross-boundary pairs, both orientations, partial/adjacent ranges, short-range length differences, invalid coordinates/links, raw zeros and known source values, protected manual versus source-owned coordinates, repeat imports, exact input preservation, no-overwrite/symlink guards, formula/HTML safety and reimportable analysis GeoJSON. The report runs offline in Chromium/Firefox/WebKit and links source/candidate map evidence to review rows.
 
 The automated consistency/import audit is implemented. Human identity/range review, actual road distance/direction, remaining BIN semantics beyond the reviewed finite contract and device acceptance are not declared complete by geometric agreement. CANARD enrichment/PK and real OSM acquisition retain the independent evidence/access blockers documented in the TODO/source research.
+
+
+## Enriched car-speed follow-up
+
+The earlier snapshot/results above pin the map-only baseline. The enriched run imports 642 numeric passenger-car limits under the user-selected minimum-over-time/direction policy and retains 169 legitimately unavailable RL limits. See [car-speed evidence and differences](canard-speeds.md#live-verification--2026-11-01) and private `exports/canard-mio-car-speeds-2026-11-01/`. Unique geometric candidates agree for 53/54 PP and 16/17 OPP; differing values and all ambiguous/range-review evidence remain explicit. Both OPP endpoints are compared, and numerical agreement never establishes identity or road-route validity.
