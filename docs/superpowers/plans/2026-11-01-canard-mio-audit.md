@@ -17,7 +17,7 @@ A Node CLI reads a BIN (or saved project), accepted CANARD snapshot and pinned c
 
 ## Limits
 
-100 m is a candidate-search tolerance, not identity proof. OPP spans are endpoint connectors, not verified road routes. Raw BIN speed values have unverified units/zero semantics. Missing source speeds, source-only records and foreign Mio coverage are not importer failures. No undisclosed defaults or proximity-based speed filling.
+100 m is a candidate-search tolerance, not identity proof. OPP spans are endpoint connectors, not verified road routes. The later reviewed finite BIN decoder supplies firmware-scoped km/h/zero interpretation while retaining unclassified raw values. Missing source speeds, source-only records and foreign Mio coverage are not importer failures. No undisclosed defaults or proximity-based speed filling.
 
 ## Implemented result
 

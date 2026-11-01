@@ -39,7 +39,7 @@ The previous code release `3972fa5` deployed in [run 41245309208](https://github
 - [x] Assess OSM access, ODbL attribution and typed stable identities; implement local OSM/Overpass JSON camera-node imports, including proposed/disused lifecycle tags.
 - [x] Preserve original element metadata/units/IDs/import times, OSM notices and manual edits/deletions. Reimport clears obsolete OSM source metadata without changing manually owned BIN coordinates.
 - [x] Test repeats, malformed input, conflicts/bindings, original metadata, notice retention, project persistence and PL/EN errors across all three engines.
-- [ ] Hosted CANARD detail enrichment: current access works, but one sample does not establish units, conditional/vehicle-class limits, direction/status semantics, all category schemas, stable updates, notices or permitted unattended volume.
+- [ ] Hosted CANARD detail enrichment: official renderer evidence now establishes separate passenger/truck, time and named-direction rows. Explicit units, legal applicability, active-status semantics, OPP/RL schemas, stable updates, notices and permitted unattended volume remain unverified; do not collapse conditional rows into one speed.
 - [ ] PK/control-point coordinates: current public array remains `[{}]`, not an authoritative empty dataset.
 - [x] Import documented `type=enforcement` / `enforcement=average_speed` relations with exactly one distinct from/to node and both coordinate-bearing nodes supplied in the file. Preserve `relation/<id>`, original relation/endpoint evidence, units and notices; sections remain reference-only endpoint connectors. Ambiguous/missing geometry, camera ways and other enforcement relations fail visibly. No road route or MiVue endpoint encoding is inferred.
 - [ ] Real OSM acquisition: one bounded provider query timed out without data; a subsequent provider status check returned HTTP 406. Synthetic node/relation parser/project/browser coverage passes; a real lawful local OSM export is required for a real-data check. No retry/access workaround or live connector is enabled.
@@ -75,9 +75,10 @@ Executable: `scripts/compare-sources.mjs`; [method, results and artifact instruc
 - [x] Add firmware-scoped read-only speed/type interpretation: finite known km/h values, zero as unavailable, unknown bytes retained raw; generic/red-light/mobile announcement categories and neutral linked endpoints. Exhaustive byte/type tests and both private-file counts preserve exact output.
 - [x] Repeated exact-byte/hash reconstruction and project persistence for both real variants and adversarial synthetic raw fields.
 - [ ] Establish complete speed/direction/type-flag, endpoint-role and opaque-header mappings from reader evidence and controlled device observations before adding semantic controls.
+- [x] Trace endpoint registration/destination observation, two retained state slots and sampled-average arithmetic; classify every unresolved target by actual record/header bytes. [Evidence and remaining role limits](binary-endpoint-followup-2026-11-01.md). No universal repair exists in the inspected data.
 - [ ] Resolve anomalous links safely: no universal arithmetic repair is supported. Keep unresolved references in unchanged output; block unsafe address-space changes.
 
-[Binary follow-up and reader trace](binary-research-2026-10-31.md). Proprietary downloads/extracted bytes remain untracked and absent from public assets. Firmware inspection is not installation or device acceptance.
+[Binary follow-up and reader trace](binary-research-2026-10-31.md); [checksum consumer follow-up](binary-checksum-followup-2026-11-01.md). The traced additive sum covers all file bytes, but its caller/acceptance role remains unproved; no embedded checksum or repair rule is inferred. Proprietary downloads/extracted bytes remain untracked and absent from public assets. Firmware inspection is not installation or device acceptance.
 
 ## 5. MiVue 955W — user's physical testing
 

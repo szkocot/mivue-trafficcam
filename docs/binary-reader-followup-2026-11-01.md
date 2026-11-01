@@ -111,3 +111,6 @@ Applying this exact finite whitelist to the available private files gives:
 A separate type contract can describe exact raw values **1: Speed camera (generic)**, **3: Red-light announcement category**, **5: Mobile announcement category**, **964 / 9128: two distinct linked-section endpoint categories**. Endpoint labels must not claim start/end roles; they derive from the distinct converted Autodoria flags, pairing evidence and coordinate-reference consumer. Other raw codes remain unclassified. These are whole raw values; do not implement this mapping by testing raw bit masks.
 
 For independent implementation review, the meaningful decoder checks are: enumerate all 256 speed bytes against the explicit whitelist; assert zero is not a posted 0 km/h; assert 5/139/255 remain raw; distinguish all five observed types and unknown whole type values; apply the real-file counts above; and confirm decoded presentation does not alter project save/reopen or binary round-trip bytes. There is no need to make device speech availability a promise: even recognized values have language/customer-specific speech behavior.
+
+
+A subsequent bounded [endpoint-state and anomalous-link trace](binary-endpoint-followup-2026-11-01.md) follows the two endpoint categories into registration/observation calls and classifies every unresolved target by its actual byte container.
