@@ -149,6 +149,14 @@ jobs:
         run: npm test
       - name: Browser regression tests
         run: npm run test:browser
+      - name: Preserve browser failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: browser-failure-traces
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 3
       - name: Build allowlisted static assets
         env:
           DATA_SHA: ${{ needs.publish.outputs.data_sha || needs.resolve.outputs.data_sha }}

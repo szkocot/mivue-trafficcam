@@ -152,6 +152,7 @@ function render(){
  $('operation-cancel').hidden=!busy;
  $('save').disabled=!state;$('exports').disabled=!state||busy;
  $('import').disabled=!state||busy;
+ $('map-tab').disabled=busy;$('list-tab').disabled=busy;
  $('undo').disabled=!state?.canUndo||busy;$('redo').disabled=!state?.canRedo||busy;$('discard').disabled=!state||busy;
  renderRecordList($('record-list'),{records,page,selectedId,onSelect:select,onPage:p=>{page=p;render();},t});
  const refs=references();

@@ -1,5 +1,10 @@
 # Browser editor verification — 2026-09-20
 
+## Loading-click race — 2026-11-01
+
+The first BIN-display CI run failed two Firefox narrow-layout cases while local macOS tests passed. Linux Firefox stress reproduced one failure in 20 cases: the file worker completed between pointer down/up, hid the working-state Cancel control and moved the List button, leaving the map visible. Map/List switches now follow the existing busy state. A paused-worker regression was RED before this change and passes in all three engines afterward; the complete local suite passes 207 browser tests (three opt-in skips), and the integrated Node suite passes 256 tests with both private inputs. Linux Firefox passes 30 repeated narrow/loading cases after the fix, with no forced clicks, retries or timeout increases. CI now retains failed browser traces for diagnosis.
+
+
 ## BIN speed/type display — 2026-10-31
 
 256 Node tests pass with both real private databases and no skips. The three-engine suite passes 204 browser tests, with three opt-in live-source skips. New PL/EN cases display stored speed values 0/50/255 and type codes 1/964/9128/4294967295, select details, confirm zero modifications and download byte-identical original BIN bytes. The regression was observed failing on missing columns before the display change. The narrow 390 px screenshot was visually checked: both new columns fit; reference-table columns remain unchanged. Independent review found no actionable issues. The displayed speed has no guessed unit, and types have no invented semantic names.
