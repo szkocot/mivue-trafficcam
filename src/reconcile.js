@@ -1,8 +1,9 @@
 import { inspectProject,applyImportTransaction,bytesToHex } from './project.js';
-import { upgradeProject } from './ingestion-state.js';
+import { upgradeProject,boundRecordIds,bindingTargetsSupported } from './ingestion-state.js';
 import { normalizeBatch,identity,jsonCopy,requireImport } from './import-normalize.js';
 import { createProximityIndex } from './import-spatial.js';
 import {OSM_SOURCE} from './import-osm.js';
+import {CANARD_NAMESPACE} from './canard-snapshot.js';
 
 const key=o=>identity(o.namespace,o.sourceId);
 const equal=(a,b)=>JSON.stringify(jsonCopy(a))===JSON.stringify(jsonCopy(b));
@@ -30,8 +31,9 @@ export async function reconcile(project,input){
  for(const o of batch.observations){
   const k=identity(namespace,o.sourceId),old=oldObservations.get(k),next={...o,namespace,retrievedAt:batch.retrievedAt,disposition:old?.disposition??'auto',codes:[]};
   if(old){
-   // OSM node exports carry complete current tags; absent tags must clear stale source metadata.
-   if(namespace!==OSM_SOURCE.namespace){
+   // Complete OSM tags and CANARD details replace stale fields; generic partial imports retain them.
+   const complete=namespace===OSM_SOURCE.namespace||(namespace===CANARD_NAMESPACE&&Object.hasOwn(o.originalProperties,'canardDetail'));
+   if(!complete){
    for(const field of ['name','direction','url'])if(next[field]===null)next[field]=old[field];
    if(next.speedKmh===null){next.speedKmh=old.speedKmh;next.originalSpeed=old.originalSpeed;}
    if(!Object.hasOwn(o.originalProperties,'status')&&next.status==='unknown')next.status=old.status;
@@ -53,19 +55,20 @@ export async function reconcile(project,input){
  for(const o of incoming){
   const k=key(o),binding=bindings.get(k),codes=[];let recordId=binding?.recordId??null,changed=false;
   if(binding){
-   const i=recordIndices.get(recordId),record=records[i],owner=owners.get(recordId);
-   if(!supported(o)){
+   const ids=boundRecordIds(binding),i=recordIndices.get(recordId),record=records[i],owner=owners.get(recordId);
+   const compatible=binding.recordIds?bindingTargetsSupported(o,ids,checked.entries,checked.originals):supported(o);
+   if(!compatible){
     o.disposition='reference';
     codes.push('UNSUPPORTED');ingestion.bindings=ingestion.bindings.filter(b=>key(b)!==k);detachOwner(ingestion,namespace,o.sourceId);
     recordId=null;summary.referenceOnly++;
    }
-   else if(record.deleted){codes.push('DELETED');summary.protected++;}
-   else if(!owner||owner==='manual'||identity(owner.namespace,owner.sourceId)!==k){codes.push('MANUAL_PROTECTED');summary.protected++;}
+   else if(ids.some(id=>records[recordIndices.get(id)].deleted)){codes.push('DELETED');summary.protected++;}
+   else if(o.geometry.type==='LineString'||ids.length>1||!owner||owner==='manual'||identity(owner.namespace,owner.sourceId)!==k){codes.push('MANUAL_PROTECTED');summary.protected++;}
    else {
     const [longitude,latitude]=o.geometry.coordinates;
     if(record.edits.latitude!==latitude||record.edits.longitude!==longitude){records[i]={...record,edits:{...record.edits,latitude,longitude}};changed=true;recordsChanged=true;}
    }
-   if(supported(o)&&o.status!=='active')codes.push('NOT_ACTIVE');
+   if(compatible&&o.status!=='active')codes.push('NOT_ACTIVE');
   }else{
    if(o.disposition==='reference')codes.push('REFERENCE_ONLY');
    else if(!supported(o))codes.push('UNSUPPORTED');
@@ -94,21 +97,35 @@ export async function reconcile(project,input){
  return {project:applyImportTransaction(project,{records,nextId,ingestion}),summary};
 }
 
-export async function resolveImport(project,{namespace,sourceId,action,recordId}){
+/** Batch association decisions validate once and commit as one import transaction. */
+export async function resolveImports(project,resolutions){
+ project=upgradeProject(project);const checked=inspectProject(project);
+ requireImport(Array.isArray(resolutions)&&resolutions.length>0&&resolutions.length<=project.ingestion.observations.length,'resolutions');
+ const observations=new Map(project.ingestion.observations.map(o=>[key(o),o])),bindings=new Map(project.ingestion.bindings.map(b=>[key(b),b]));
+ const ownership=new Map(project.ingestion.ownership.map(o=>[o.recordId,o])),seen=new Set();
+ for(const resolution of resolutions){
+  requireImport(resolution&&Object.keys(resolution).every(k=>['namespace','sourceId','action','recordId','recordIds'].includes(k)),'resolution');
+  const {namespace,sourceId,action,recordId,recordIds}=resolution,k=identity(namespace,sourceId),o=observations.get(k);
+  requireImport(o&&!seen.has(k)&&['bind','reference'].includes(action),'resolution');seen.add(k);
+  for(const id of boundRecordIds(bindings.get(k))){const owner=ownership.get(id);if(owner?.coordinates!=='manual'&&owner?.coordinates.namespace===namespace&&owner.coordinates.sourceId===sourceId)ownership.set(id,{recordId:id,coordinates:'manual'});}
+  observations.set(k,{...o,codes:[],disposition:action==='reference'?'reference':'auto'});bindings.delete(k);
+  if(action==='reference')continue;
+  const ids=recordIds??[recordId];
+  requireImport((recordId===undefined||recordId===ids[0])&&bindingTargetsSupported(o,ids,checked.entries,checked.originals)&&ids.every(id=>!checked.entries.get(id).deleted),'recordIds');
+  bindings.set(k,{namespace,sourceId,recordId:ids[0],recordIds:[...ids]});
+  for(const id of ids)if(!ownership.has(id))ownership.set(id,{recordId:id,coordinates:'manual'});
+ }
+ const ingestion={...project.ingestion,observations:[...observations.values()].sort(order),bindings:[...bindings.values()].sort(order),ownership:[...ownership.values()].sort((a,b)=>a.recordId<b.recordId?-1:1)};
+ return equal(ingestion,project.ingestion)?project:applyImportTransaction(project,{ingestion});
+}
+export async function resolveImport(project,resolution){
+ if(resolution.action!=='add-distinct')return resolveImports(project,[resolution]);
+ const {namespace,sourceId}=resolution;
  project=upgradeProject(project);inspectProject(project);
  const k=identity(namespace,sourceId),o=project.ingestion.observations.find(o=>key(o)===k);
- requireImport(o&&['bind','reference','add-distinct'].includes(action),'resolution');
- const ingestion={...project.ingestion,observations:project.ingestion.observations.map(v=>key(v)===k?{...v,codes:[],disposition:action==='reference'?'reference':'auto'}:v),bindings:project.ingestion.bindings.filter(b=>key(b)!==k),ownership:[...project.ingestion.ownership]};
+ requireImport(o&&supported(o)&&o.status==='active','resolution');
+ const ingestion={...project.ingestion,observations:project.ingestion.observations.map(v=>key(v)===k?{...v,codes:[],disposition:'auto'}:v),bindings:project.ingestion.bindings.filter(b=>key(b)!==k),ownership:[...project.ingestion.ownership]};
  detachOwner(ingestion,namespace,sourceId);
- if(action==='reference')return applyImportTransaction(project,{ingestion});
- requireImport(supported(o),'resolution');
- if(action==='bind'){
-  const record=project.records.find(r=>r.id===recordId);requireImport(record,'recordId');
-  ingestion.bindings.push({namespace,sourceId,recordId});
-  if(!ownerOf(project,recordId))ingestion.ownership.push({recordId,coordinates:'manual'});
-  return applyImportTransaction(project,{ingestion});
- }
- requireImport(o.status==='active','status');
  const policy=ingestion.policies.find(p=>p.namespace===namespace&&p.kind===o.kind);requireImport(policy,'template');
  const id=`new:${project.nextId}`,[longitude,latitude]=o.geometry.coordinates;
  ingestion.bindings.push({namespace,sourceId,recordId:id});ingestion.ownership.push({recordId:id,coordinates:{namespace,sourceId}});

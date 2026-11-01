@@ -75,3 +75,14 @@ Keep the OpenStreetMap contributors / ODbL licence notice when sharing derived o
 ## BIN speed and type display
 
 The BIN records table and selected-record details show the current stored speed value (record byte 16) and raw type code (record word 20), including zero and unknown codes. The reviewed firmware-scoped decoder labels a finite set of values as km/h, zero as Not specified, and whole codes as generic/red-light/mobile announcement categories or linked-section endpoints. Other values remain raw/unclassified; complete flags and endpoint-role semantics remain unverified. Source-reported limits remain separately labelled with attribution. These read-only fields do not alter the project or encoded bytes; advanced raw-byte editing remains explicit.
+
+
+## Merge matching points and OPPs
+
+After importing source observations, use **Merge matching observations** above the reference table. The paginated review shows compatible BIN point records within 100 m and existing complete OPP pairs whose two endpoints and straight-line span fit the source section. It shows source car speed, candidate BIN speeds/distances, and CANARD `kierunek`/named direction evidence. Unique, uncontested candidates are preselected; ambiguous candidates need an explicit selection. The selection is a source association, not a claim that spatial proximity proves identity.
+
+One source camera can attach to several compatible BIN records (for example, separately represented approaches). An OPP can attach to one or more complete existing 964→9128 pairs. Select whole pairs; missing, deleted, wrong-type or half-pair associations are rejected. Existing associations remain selectable as whole units even if new nearby candidates share an endpoint. Manual record-ID entry remains available in selected reference details; multiple IDs are comma-separated. **Unmerge source observation** removes the complete source association.
+
+Applying the review is one undoable transaction. All associated BIN points/endpoints become blue and merged OPP connectors are blue dashed lines. Source direction names appear in details/review and optional map metadata labels. Road chainage is labelled separately and never converted to a guessed compass bearing; blank source direction does not imply both camera approaches. The car-speed minimum-over-time/direction policy remains unchanged.
+
+Merging changes source associations, not coordinates, raw speed/type bytes or links. Complete section bindings survive save/reopen/reimport, and manually owned coordinates/deletions stay protected. Source/reference exports retain every associated record ID. Country projections include a reference when any associated record is kept and disclose `selectedRecordIds`; actual linked OPP pairs remain whole. These associations do not create new device-format OPP records or encode source speed/direction into raw bytes.

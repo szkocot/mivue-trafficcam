@@ -69,3 +69,29 @@ test('country data filenames prefer reviewed ISO codes and retain stable-ID fall
  }
  assert.equal((await c.export({...args,format:'bin'})).filename,'Speedcam_Data_FEU.bin');
 });
+test('country reference export retains secondary kept associations, full provenance and active notices',async()=>{
+ const {resolveImport}=await import('../src/reconcile.js');const {projectNotices}=await import('../src/source-notices.js');
+ const fixture=makeFixture([{longitudeRaw:-654},{}]);let project=await createProject(fixture.bytes);
+ const first=project.records.find(r=>r.sourceOffset===fixture.recordOffsets[0]).id,second=project.records.find(r=>r.sourceOffset===fixture.recordOffsets[1]).id;
+ const batch=makeImportBatch();batch.observations[0].geometry={type:'Point',coordinates:[-6.9,37]};project=(await reconcile(project,batch)).project;
+ project=await resolveImport(project,{namespace:batch.source.namespace,sourceId:'a',action:'bind',recordIds:[first,second]});
+ project.ingestion.sources[0].notices=JSON.parse(await readFile(new URL('../config/canard-review.json',import.meta.url),'utf8')).notices;
+ const before=await serializeProject(project),c=await controller(),p=await prepare(project,c);
+ assert.deepEqual(p.preview.records.keptIds,[second]);assert.equal(p.preview.references.keptIds.length,1);
+ const args={project,sessionId:'x',revision:0,generation:1,token:p.token},result=await c.export({...args,format:'references'}),feature=JSON.parse(result.text).features[0];
+ assert.equal(feature.properties.recordId,first);assert.deepEqual(feature.properties.recordIds,[first,second]);assert.deepEqual(feature.properties.selectedRecordIds,[second]);
+ assert.equal(result.notices.length,1);assert.equal(projectNotices(applyEdit(project,{kind:'delete',id:first}),{encodedOnly:true}).length,1);
+ assert.equal(JSON.parse((await c.export({...args,format:'geojson'})).text).features.length,1);assert.equal(parseDatabase((await c.export({...args,format:'bin'})).bytes).records.length,1);
+ assert.equal(await serializeProject(project),before);
+});
+test('bound OPP country exports preserve whole cross-country linked pairs',async()=>{
+ const {resolveImport}=await import('../src/reconcile.js');
+ const fixture=makeFixture([{typeRaw:964,linkTo:1},{typeRaw:9128,longitudeRaw:-654}]);let project=await createProject(fixture.bytes);
+ const ids=fixture.recordOffsets.map(offset=>project.records.find(r=>r.sourceOffset===offset).id),batch=makeImportBatch();
+ batch.observations[0]={...batch.observations[0],kind:'section',geometry:{type:'LineString',coordinates:[[-7,37],[-6.9,37]]}};
+ project=(await reconcile(project,batch)).project;project=await resolveImport(project,{namespace:batch.source.namespace,sourceId:'a',action:'bind',recordIds:ids});
+ const c=await controller(),p=await prepare(project,c),args={project,sessionId:'x',revision:0,generation:1,token:p.token};
+ assert.deepEqual(p.preview.records.keptIds,[...ids].sort());assert.equal(p.preview.references.keptIds.length,1);assert.equal(p.preview.linkedExtras.length,1);
+ const feature=JSON.parse((await c.export({...args,format:'references'})).text).features[0];assert.deepEqual(feature.properties.selectedRecordIds,ids);assert.deepEqual(feature.properties.recordIds,ids);
+ const records=parseDatabase((await c.export({...args,format:'bin'})).bytes).records;assert.equal(records.length,2);assert.equal(records[0].linkRaw,records[1].offset);
+});

@@ -9,7 +9,7 @@ An independent browser editor and CLI for inspecting, editing and rebuilding Mio
 - Polish/English map and record list, search, display filters and optional browser location.
 - Official Mio database download or local BIN/project import, local autosave and downloadable project backups.
 - Coordinate edits, clone/delete/restore, undo/redo and validated binary exports.
-- Attributed CSV, GeoJSON, OSM camera-node and hosted CANARD observation imports. CANARD car limits use the minimum across all supplied times/directions, retaining original conditions ([policy](docs/canard-speeds.md)). Source limits and metadata remain separate from BIN fields; imported OPP geometry is reference-only.
+- Attributed CSV, GeoJSON, OSM camera-node and hosted CANARD observation imports. CANARD car limits use the minimum across all supplied times/directions, retaining original conditions ([policy](docs/canard-speeds.md)). Source limits and metadata remain separate from BIN fields; OPP observations can be associated with existing complete BIN endpoint pairs. New OPP encoding remains unsupported.
 - Selected-country exports with boundary uncertainty and linked-endpoint review. Full project backups retain the complete dataset.
 - Read-only, firmware-scoped speed/type interpretation alongside raw BIN codes, plus CANARD–Mio comparison reports.
 

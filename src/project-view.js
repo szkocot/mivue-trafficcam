@@ -8,9 +8,9 @@ export const hasPosition = r => Number.isFinite(r.latitude) && Number.isFinite(r
 export async function projectView(project) {
   const { baseline, originals, entries } = await validateProject(project);
   const sourcesByRecord=new Map();
-  for(const o of referenceView(project))if(o.recordId){
-    if(!sourcesByRecord.has(o.recordId))sourcesByRecord.set(o.recordId,[]);
-    sourcesByRecord.get(o.recordId).push(o);
+  for(const o of referenceView(project))for(const recordId of o.recordIds){
+    if(!sourcesByRecord.has(recordId))sourcesByRecord.set(recordId,[]);
+    sourcesByRecord.get(recordId).push(o);
   }
   const byOffset = new Map();
   for (const d of baseline.diagnostics) {

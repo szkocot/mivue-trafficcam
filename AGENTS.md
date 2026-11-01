@@ -13,6 +13,7 @@ This is an unofficial browser editor and Node CLI for Mio MiVue camera databases
 ## Code map
 
 - `src/parser.js`, `spatial.js`, `encoder.js`, `project.js`: binary parsing, layout, preservation and validated builds.
+- `src/import-matches.js`: compatible point/complete-pair merge suggestions; ambiguity is reviewed, not silently resolved.
 - `src/import-*.js`, `reconcile.js`, `source-metadata.js`: attributed observations, identity, ownership, imports and exports.
 - `src/canard-adapter.js`, `canard-details.js`, `canard-snapshot.js`: CANARD map/detail normalization and snapshot validation.
 - `scripts/canard/`: bounded upstream acquisition, private cache, preparation and separately gated publication.
@@ -32,6 +33,7 @@ This is an unofficial browser editor and Node CLI for Mio MiVue camera databases
 - The BIN speed whitelist/type labels are firmware-scoped; use the shared helper. Do not invent bitmask meanings, fixed-camera labels for generic type 1, or start/end roles from neutral linked codes.
 - Coordinate order in GeoJSON is longitude, latitude. OPP endpoint connectors are not road routes. Proximity gives review candidates, not identity or an automatic merge.
 - Mio-only and CANARD-only coverage is legitimate. Compare complete OPP endpoint pairs and range evidence; one nearby endpoint does not verify the section.
+- Bindings may contain `recordIds` for multiple point records or complete existing OPP pairs; retain legacy primary `recordId`. Project views, map colors, notices, reimport and country projections must handle every associated record. Never reduce a saved section association to one endpoint.
 - Respect manual coordinate ownership/deletions during reimport. Preserve source-qualified IDs, notices, original units/conditions, timestamps and metadata through reconciliation and export.
 
 ## CANARD car-speed policy

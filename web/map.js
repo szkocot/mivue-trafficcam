@@ -1,3 +1,4 @@
+import {sourceDirectionLabel} from '../src/source-direction.js';
 import { hasPosition } from '../src/project-view.js';
 import { aggregatePoints } from '../src/view-filter.js';
 import { speedLabel,placeLabels } from '../src/source-metadata.js';
@@ -27,6 +28,12 @@ export function createMap(element,{onSelect,onPick,onViewport,onTileError}){
   for(const r of references)if(r.geometry.type==='LineString'){
    ctx.beginPath();r.geometry.coordinates.forEach(([lon,lat],i)=>{const p=map.latLngToContainerPoint([lat,lon]);if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);});ctx.stroke();
   }
+  ctx.setLineDash([5,4]);ctx.strokeStyle='#365b9b';
+  for(const r of records){
+   const target=lookup.get(r.linkTargetId);
+   if(!target||r.typeRaw!==964||target.typeRaw!==9128||!hasPosition(r)||!hasPosition(target)||!r.sourceObservations?.some(o=>o.kind==='section'&&o.recordIds?.includes(target.id)))continue;
+   const a=map.latLngToContainerPoint([r.latitude,r.longitude]),b=map.latLngToContainerPoint([target.latitude,target.longitude]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+  }
   ctx.setLineDash([]);
   const selected=lookup.get(selectedId),target=lookup.get(selected?.linkTargetId);
   if(selected && target && hasPosition(selected)&&hasPosition(target)){
@@ -41,7 +48,7 @@ export function createMap(element,{onSelect,onPick,onViewport,onTileError}){
   if(display.showSpeedLimits||display.showMetadata)for(const g of groups){
    if(g.ids.length!==1)continue;const r=lookup.get(g.ids[0]),refs=r.reference?[r]:r.sourceObservations??[],parts=[];
    if(display.showSpeedLimits&&refs.some(ref=>Number.isFinite(ref.speedKmh)))parts.push(speedLabel(refs,translate));
-   if(display.showMetadata)for(const ref of refs)if(ref.name)parts.push(`${ref.name} · ${ref.attribution}`);
+   if(display.showMetadata)for(const ref of refs){if(ref.name)parts.push(`${ref.name} · ${ref.attribution}`);const direction=sourceDirectionLabel(ref,translate);if(direction!==translate('valueUnknown'))parts.push(direction);}
    if(parts.length)labels.push({...g,text:parts.join(' / ').slice(0,160)});
   }
   const placed=placeLabels(labels,text=>ctx.measureText(text).width);canvas.dataset.labelCount=String(placed.length);

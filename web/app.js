@@ -1,3 +1,4 @@
+import {createMergeDialog} from './merge-dialog.js';
 import { createI18n } from './i18n.js';
 import { createMap } from './map.js';
 import { renderRecordList } from './record-list.js';
@@ -69,6 +70,10 @@ const importsUI=createImportDialog({t,storage:preference,getCanard:()=>canardEnt
  }catch(e){if(ticket===intent)operation='failed';throw e;}
  finally{if(ticket===intent){if(!isCurrent())operation='cancelled';busy=false;details.setBusy(false);render();}}
 }});
+const mergesUI=createMergeDialog({client,t,getIdentity:()=>({sessionId:client.sessionId,revision:state?.revision}),getReferences:()=>state?.references??[],onBusy:setBusy,onClose:render,onApply:async(resolutions,identity)=>{
+ if(identity.sessionId!==client.sessionId||identity.revision!==state?.revision)throw Error('STALE_IMPORT');
+ if(!await mutate('merge-imports',{resolutions,expectedRevision:identity.revision}))throw Error('MERGE_FAILED');
+}});
 const canardSync=createCanardSync({getContext:()=>({sessionId:client.sessionId,revision:state?.revision,
  ready:Boolean(state)&&startupSettled&&!recoveryBlocked&&!recovery,dirty:details.hasDraft()||Boolean(document.querySelector('dialog[open]')),busy,
  enabled:state?.sourceSync?.some(s=>s.namespace===CANARD_NAMESPACE&&s.enabled)??false}),
@@ -128,7 +133,7 @@ async function guardReplace(){
 }
 function recover(){if(recovery)downloadBlob({bytes:JSON.stringify(recovery,null,2),mime:'application/json',filename:'mivue-recovery.json'});}
 function translate(){
- exportsUI.invalidate();
+ exportsUI.invalidate();mergesUI.invalidate();
  document.documentElement.lang=i18n.language;
  map.setLanguage(t);
  metadataOptions.setLanguage();
@@ -151,7 +156,8 @@ function render(){
  $('filename').textContent=state?.view.source.name??'MiVue 955W · EU';$('use-source').disabled=!source||busy;
  $('operation-cancel').hidden=!busy;
  $('save').disabled=!state;$('exports').disabled=!state||busy;
- $('import').disabled=!state||busy;
+ $('fit').disabled=!state||busy;
+ $('import').disabled=!state||busy;$('merge-sources').disabled=!state?.references?.length||busy;
  $('map-tab').disabled=busy;$('list-tab').disabled=busy;
  $('undo').disabled=!state?.canUndo||busy;$('redo').disabled=!state?.canRedo||busy;$('discard').disabled=!state||busy;
  renderRecordList($('record-list'),{records,page,selectedId,onSelect:select,onPage:p=>{page=p;render();},t});
@@ -204,6 +210,7 @@ $('file').onchange=e=>importFile(e.target.files[0]);
 document.ondragover=e=>e.preventDefault();document.ondrop=e=>{e.preventDefault();importFile(e.dataTransfer.files[0]);};
 for(const id of ['search','viewport','warnings','changed','deleted','type'])$(id).oninput=()=>{page=1;render();};
 for(const lang of ['pl','en'])$(lang).onclick=()=>{i18n.setLanguage(lang);translate();};
+$('merge-sources').onclick=async()=>{if(busy||!await guardDraft())return;try{await mergesUI.open();}catch{operation='failed';render();}};
 $('fit').onclick=()=>map.fit(state?.view.records.filter(r=>!r.deleted)??[]);
 $('locate').onclick=()=>locationController.locate();
 $('location-cancel').onclick=()=>locationController.cancel();

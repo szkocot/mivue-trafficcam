@@ -1,3 +1,4 @@
+import {boundRecordIds} from './ingestion-state.js';
 import {countryFail} from './country-data.js';
 import {createCountryClassifier} from './country-classifier.js';
 import {selectCountries} from './country-selection.js';
@@ -33,7 +34,7 @@ export async function exportCountrySelection({project,preview,format,countries=[
  }
  let text;
  if(format==='references')text=JSON.stringify({type:'FeatureCollection',schema:'mivue-source-observations',version:1,sourceNotices:notices,exportSelection:selectionReport,
-  features:referenceView(project).filter(r=>refIds.has(r.id)).map(({id,geometry,...properties})=>({type:'Feature',id,geometry,properties}))},null,2)+'\n';
+  features:referenceView(project).filter(r=>refIds.has(r.id)).map(({id,geometry,...properties})=>({type:'Feature',id,geometry,properties:{...properties,selectedRecordIds:boundRecordIds(properties).filter(id=>ids.has(id))}}))},null,2)+'\n';
  else{
   const view=await projectView(project);view.records=view.records.filter(r=>ids.has(r.id));view.diagnostics=view.diagnostics.filter(d=>ids.has(d.recordId));
   text=exportView(view,format);if(format!=='csv')text=JSON.stringify({...JSON.parse(text),sourceNotices:notices,exportSelection:selectionReport},null,2)+'\n';
@@ -49,7 +50,7 @@ export function createCountryExportController({loadData}){
   if(!data){const loaded=await loadData({signal});checkSignal(signal);if(start!==epoch)countryFail('COUNTRY_PREVIEW_STALE');data=loaded;classifier=createCountryClassifier(data);}
   if(!cached||cached.sessionId!==sessionId||cached.revision!==revision){
    const view=await projectView(project),references=referenceView(project),items=view.records.filter(r=>!r.deleted).map(r=>({id:r.id,latitude:r.latitude,longitude:r.longitude}));
-   for(const r of references)if(!r.recordId){
+   for(const r of references)if(!boundRecordIds(r).length){
     if(r.geometry?.type==='LineString')for(const [label,xy]of [['start',r.geometry.coordinates[0]],['end',r.geometry.coordinates.at(-1)]])items.push({id:`${r.id}:${label}`,longitude:xy?.[0],latitude:xy?.[1]});
     else items.push({id:r.id,longitude:r.geometry?.coordinates?.[0],latitude:r.geometry?.coordinates?.[1]});
    }

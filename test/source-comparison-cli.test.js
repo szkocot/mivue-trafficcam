@@ -95,3 +95,28 @@ test('CLI exports source versus Mio speed evidence without treating ambiguous ge
  const geo=JSON.parse(await readFile(join(f.output,'comparison.geojson'),'utf8'));assert.deepEqual(geo.speedCompliance,report.speedCompliance);
  const feature=geo.features.find(f=>f.properties.source==='CANARD'&&f.properties.category==='PP');assert.equal(feature.properties.status,'unknown');assert.equal(feature.properties.identityVerified,false);assert.deepEqual(feature.properties.candidates.map(c=>c.speedCompliance),point.candidates.map(c=>c.speedCompliance));
 });
+
+test('saved-project audit includes every associated OPP endpoint and protects secondary deletions',async()=>{
+ const {createProject,serializeProject,applyEdit}=await import('../src/project.js');
+ const {reconcile,resolveImport}=await import('../src/reconcile.js');
+ const {validateSnapshot}=await import('../src/canard-snapshot.js');
+ const f=await fixture(),hosted=await validateSnapshot(f.prepared.bytes,f.prepared.manifest);
+ const bytes=Buffer.from(makeFixture([{regionIndex:5,cellIndex:164,typeRaw:964,linkTo:1,latitudeRaw:5200,longitudeRaw:2100},{regionIndex:5,cellIndex:164,typeRaw:9128,latitudeRaw:5206,longitudeRaw:2106,rawBytes16To19:[60,0,0,1]}]).bytes);await writeFile(f.mio,bytes);
+ let p=(await reconcile(await createProject(bytes),hosted.batch)).project;
+ const recordIds=p.records.map(r=>r.id);
+ p=await resolveImport(p,{namespace:'pl.gitd.canard.public-map',sourceId:'["OPP","1"]',action:'bind',recordIds});
+ p=applyEdit(p,{kind:'update',id:recordIds[1],changes:{longitude:21.101}});
+ for(const deleted of [false,true]){
+  if(deleted)p=applyEdit(p,{kind:'delete',id:recordIds[1]});
+  const text=await serializeProject(p),path=f.mio.replace('.bin',deleted?'-deleted.json':'.json'),output=deleted?f.output+'-deleted':f.output;await writeFile(path,text);
+  execFileSync(...command({...f,mio:path,output}),{stdio:'pipe'});
+  const report=JSON.parse(await readFile(join(output,'comparison.json'),'utf8')),binding=report.projectBindings[0];
+  assert.deepEqual(binding.recordIds,recordIds);assert.equal(binding.status,deleted?'protected-deletion':'identity-review-required');
+  assert.equal(binding.recordId,recordIds[0]);assert.deepEqual(binding.binCoordinates,[21,52]);assert.equal(binding.rawBinSpeed,50);
+  assert.deepEqual(binding.boundRecords.map(r=>r.recordId),recordIds);assert.deepEqual(binding.boundRecords.map(r=>r.coordinates),[[21,52],[21.101,52.1]]);
+  assert.deepEqual(binding.boundRecords.map(r=>r.rawSpeed),[50,60]);assert.deepEqual(binding.boundRecords.map(r=>r.rawType),[964,9128]);assert.deepEqual(binding.boundRecords.map(r=>r.present),[true,true]);
+  assert.deepEqual(binding.boundRecords.map(r=>r.deleted),[false,deleted]);assert.ok(binding.boundRecords.every(r=>r.manuallyOwnedCoordinates));
+  assert.equal(binding.geometryMatchesLatest,true);assert.equal(report.currentProjectBuild.passed,!deleted);if(deleted)assert.equal(report.currentProjectBuild.code,'DANGLING_LINK');
+  assert.equal(await readFile(path,'utf8'),text);assert.deepEqual(await readFile(f.mio),bytes);assert.equal(report.importVerification.baselineBinByteIdentical,true);
+ }
+});

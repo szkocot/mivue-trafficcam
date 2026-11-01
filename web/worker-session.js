@@ -1,3 +1,4 @@
+import {findImportMatches} from '../src/import-matches.js';
 import { createProject,loadProject,serializeProject,applyImportTransaction } from '../src/project.js';
 import {validateSnapshot,CANARD_NAMESPACE,canonical} from '../src/canard-snapshot.js';
 import {projectNotices} from '../src/source-notices.js';
@@ -6,7 +7,7 @@ import { projectView,exportView } from '../src/project-view.js';
 import { buildProject } from '../src/encoder.js';
 import { isProjectModified } from '../src/ingestion-state.js';
 import { referenceView,exportReferences } from '../src/import-view.js';
-import { reconcile,setImportPolicy,resolveImport } from '../src/reconcile.js';
+import { reconcile,setImportPolicy,resolveImport,resolveImports } from '../src/reconcile.js';
 import { parseCsv } from '../src/import-csv.js';
 import { parseGeoJson } from '../src/import-geojson.js';
 import { parseOsmJson } from '../src/import-osm.js';
@@ -75,6 +76,11 @@ export function createWorkerSession({loadCountryData}={}){
       }
       history.commit(candidate);
       return kind==='import-canard'?{snapshot:await snapshot(),summary}:snapshot();
+    }
+    if(kind==='import-matches'||kind==='merge-imports'){
+      if(payload.expectedRevision!==history.revision)throw Object.assign(new Error('Import revision changed'),{code:'STALE_IMPORT'});
+      if(kind==='import-matches'){const current=await snapshot();return {revision:history.revision,...findImportMatches({records:current.view.records,references:current.references})};}
+      history.commit(await resolveImports(history.current,payload.resolutions));return snapshot();
     }
     if(['import','parse-import','import-policy','import-resolve'].includes(kind)){
       if(payload.expectedRevision!==history.revision)throw Object.assign(new Error('Import revision changed'),{code:'STALE_IMPORT'});

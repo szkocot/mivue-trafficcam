@@ -1,3 +1,4 @@
+import {boundRecordIds} from './ingestion-state.js';
 import {countryFail} from './country-data.js';
 const object=x=>x&&typeof x==='object'&&!Array.isArray(x);
 const sorted=a=>[...a].sort();
@@ -34,8 +35,8 @@ export function selectCountries({view,references,classifications,boundary,option
  }
  const kept=new Set(recordPart.keptIds),unresolved=new Set(recordPart.unresolvedIds);
  for(const r of references){
-  let state;
-  if(r.recordId)state=kept.has(r.recordId)?'keep':unresolved.has(r.recordId)?'review':'exclude';
+  let state;const bound=boundRecordIds(r);
+  if(bound.length)state=bound.some(id=>kept.has(id))?'keep':bound.some(id=>unresolved.has(id))?'review':'exclude';
   else if(r.geometry?.type==='LineString'){
    const a=get(`${r.id}:start`),b=get(`${r.id}:end`),d=decision(r.id);
    const included=c=>c.status==='assigned'&&selected.has(c.countryIds[0]);

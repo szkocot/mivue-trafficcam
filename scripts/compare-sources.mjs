@@ -39,15 +39,21 @@ try{
  const observations=new Map(hosted.batch.observations.map(o=>[o.sourceId,o])),records=new Map(view.records.map(r=>[r.id,r]));
  const ownership=new Map(project.ingestion.ownership.map(o=>[o.recordId,o.coordinates]));
  report.projectBindings=referenceView(project).filter(o=>o.namespace===CANARD_NAMESPACE&&o.recordId).map(o=>{
-  const record=records.get(o.recordId),current=observations.get(o.sourceId);
-  return {sourceId:o.sourceId,recordId:o.recordId,deleted:Boolean(record?.deleted),recordPresent:Boolean(record),kind:o.kind,
+  const record=records.get(o.recordId),current=observations.get(o.sourceId),recordIds=o.recordIds??[o.recordId];
+  const boundRecords=recordIds.map(recordId=>{
+   const r=records.get(recordId);
+   return {recordId,present:Boolean(r),deleted:Boolean(r?.deleted),coordinates:r?[r.longitude,r.latitude]:null,
+    rawSpeed:r?.rawBytes16To19[0]??null,rawType:r?.typeRaw??null,manuallyOwnedCoordinates:ownership.get(recordId)==='manual',
+    generatedRecord:r?.originalSourceOffset===null,templateId:r?.templateId??null};
+  });
+  return {sourceId:o.sourceId,recordId:o.recordId,recordIds,boundRecords,deleted:Boolean(record?.deleted),recordPresent:Boolean(record),kind:o.kind,
    latestGeometry:current?.geometry??null,storedSourceGeometry:o.geometry,binCoordinates:record?[record.longitude,record.latitude]:null,
    storedSourceSpeedKmh:o.speedKmh,latestSourceSpeedKmh:current?.speedKmh??null,rawBinSpeed:record?.rawBytes16To19[0]??null,rawBinType:record?.typeRaw??null,
    storedObservationRetrievedAt:o.retrievedAt,snapshotRetrievedAt:hosted.batch.retrievedAt,
    geometryMatchesLatest:Boolean(current&&canonical(current.geometry)===canonical(o.geometry)),
    metadataDifferences:current?Object.keys(current).filter(field=>canonical(current[field])!==canonical(o[field])):[],
    manuallyOwnedCoordinates:ownership.get(o.recordId)==='manual',generatedRecord:record?.originalSourceOffset===null,templateId:record?.templateId??null,sourceOnlySinceUpdate:!current,
-   status:!record?'invalid-target':record.deleted?'protected-deletion':o.kind==='section'?'unsupported-section-binding':'identity-review-required'};
+   status:boundRecords.some(r=>!r.present)?'invalid-target':boundRecords.some(r=>r.deleted)?'protected-deletion':'identity-review-required'};
  });
  if(input.toLowerCase().endsWith('.json')){
   try{const built=await buildProject(project);report.currentProjectBuild={passed:true,sha256:await sha256(built.bytes),...built.report};}

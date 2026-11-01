@@ -23,3 +23,10 @@ test('CANARD selected car limits disclose minimum-over-time/direction policy',()
  assert.match(m.speedLabel([ref],i.t),/50 km\/h.*minimum car/i);
  i.setLanguage('pl');assert.match(m.speedLabel([ref],i.t),/50 km\/h.*minimum dla samochodów osobowych/i);
 });
+test('metadata rows use named directions and keep road chainage separate from bearings',()=>{
+ const t=key=>key,r={kind:'section',status:'unknown',direction:null,originalProperties:{canardDetail:{raw:{limity:[{typ:{kierunek:'Warszawa',kierunekPikietazu:'ROSNACY'}}],urzadzenie:{nazwaKierunku1:'Warszawa',nazwaKierunku2:'Katowice',masztKierunekPomiaru:'Pikietaz rosnacy'}}}}};
+ const rows=m.metadataRows(r,t);assert.equal(rows.find(([key])=>key==='direction')[1],'Warszawa / Katowice');assert.equal(rows.find(([key])=>key==='roadChainage')[1],'Pikietaz rosnacy / ROSNACY');
+ assert.equal(r.direction,null);
+ const fallback=m.metadataRows({...r,originalProperties:{canardDetail:{raw:{urzadzenie:{masztKierunekPomiaru:'Pikietaz rosnacy'}}}}},t);
+ assert.equal(fallback.find(([key])=>key==='direction')[1],'roadChainage: Pikietaz rosnacy');assert.equal(fallback.filter(([key])=>key==='roadChainage').length,0);
+});

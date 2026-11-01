@@ -71,7 +71,7 @@ test('view switches wait for file loading to finish before accepting clicks',asy
  await page.addInitScript(()=>{const post=Worker.prototype.postMessage;Worker.prototype.postMessage=function(message,...rest){if(message.kind==='open-bin'&&message.payload.name==='fixture.bin'){window.releaseFile=()=>post.call(this,message,...rest);return;}return post.call(this,message,...rest);};});
  await page.setViewportSize({width:390,height:844});await page.reload();await openFixture(page);
  const list=page.getByRole('button',{name:'List',exact:true}),map=page.getByRole('button',{name:'Map',exact:true});
- await expect(list).toBeDisabled();await expect(map).toBeDisabled();
+ await expect(list).toBeDisabled();await expect(map).toBeDisabled();await expect(page.getByRole('button',{name:'Fit all records',exact:true})).toBeDisabled();
  await page.evaluate(()=>window.releaseFile());await expect(page.getByTestId('record-count')).toHaveText('1');
  await expect(list).toBeEnabled();await expect(map).toBeEnabled();await list.click();
  await expect(page.getByTestId('record-row').first().getByRole('button')).toBeVisible();

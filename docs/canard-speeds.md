@@ -42,3 +42,8 @@ The private comparison package is `exports/canard-mio-car-speeds-2026-11-01/`. A
 Offline report QA imported all 2,808 analysis features, counted all 53,338 BIN inventory rows, and observed no remote requests, injected scripts/images or page errors. Generated files remain private/ignored.
 
 Released with source `b8e25bb` and data `920a977`, successfully deployed in [run 41335986512](https://github.com/szkocot/mivue-trafficcam/actions/runs/41335986512). Fresh public Chromium confirmed the exact snapshot hash, all 811 observations/642 car limits, the quoted 50 km/h record, an explicit blue binding, PL/EN legend, private-file exclusions and no page errors.
+
+
+## Direction and merges
+
+The editor uses CANARD `limity[].typ.kierunek` and `urzadzenie.nazwaKierunku1/2` as exact named direction labels in metadata, merge review and optional map labels. Numeric compass bearings remain separate. `masztKierunekPomiaru` and `kierunekPikietazu` are explicitly road-chainage evidence, never converted into a guessed bearing. The actual inspected snapshot has only three nonempty per-limit kierunek values (one OPP); section direction names supply useful labels for the other OPPs. Car-speed minimum selection still includes every direction/time row as requested. Complete newer detail snapshots clear removed numeric limits rather than retaining stale values. See [merge workflow](browser-editor.md#merge-matching-points-and-opps).

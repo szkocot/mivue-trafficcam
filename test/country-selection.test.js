@@ -38,3 +38,18 @@ test('sections remain whole and deleted/excluded bindings never become free refe
  f.classifications.set('section:start',{status:'invalid',countryIds:[]});assert.equal(selectCountries({...f,options:options()}).ready,false);
  assert.equal(selectCountries({...f,options:options(['BB'],{acknowledgeExtras:true})}).ready,true);
 });
+test('multirecord references follow any kept binding without expanding independent country records',()=>{
+ const f=selectionFixture();for(const r of f.view.records){r.typeRaw=1;r.linkTargetId=null;}
+ f.references=[{id:'many',recordId:'a',recordIds:['a','b'],geometry:{type:'Point',coordinates:[100,80]}}];
+ const p=selectCountries({...f,options:options(['BB'])});
+ assert.deepEqual(p.records.keptIds,['b']);assert.deepEqual(p.records.excludedIds,['a','c']);assert.deepEqual(p.references.keptIds,['many']);assert.deepEqual(p.linkedExtras,[]);
+ f.classifications.set('a',{status:'border',countryIds:['AA','BB']});
+ const uncertain=selectCountries({...f,options:options(['AA'])});assert.deepEqual(uncertain.references.unresolvedIds,['many']);
+ const kept=selectCountries({...f,options:options(['BB'])});assert.deepEqual(kept.references.keptIds,['many']);
+ f.references[0].recordIds=['missing','deleted'];assert.deepEqual(selectCountries({...f,options:options(['BB'])}).references.excludedIds,['many']);
+});
+test('multirecord section references retain real linked partners across countries',()=>{
+ const f=selectionFixture();f.references=[{id:'linked',recordId:'a',recordIds:['a','b'],geometry:{type:'LineString',coordinates:[[0,0],[10,10]]}}];
+ const p=selectCountries({...f,options:options(['AA'],{acknowledgeExtras:true})});
+ assert.deepEqual(p.records.keptIds,['a','b','c']);assert.deepEqual(p.references.keptIds,['linked']);assert.equal(p.linkedExtras[0].id,'b');
+});

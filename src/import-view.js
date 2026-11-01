@@ -1,3 +1,4 @@
+import {boundRecordIds} from './ingestion-state.js';
 import {identity} from './import-normalize.js';
 import {projectNotices} from './source-notices.js';
 
@@ -5,12 +6,13 @@ import {projectNotices} from './source-notices.js';
 export function referenceView(project){
  const state=project.ingestion;if(!state)return [];
  const sources=new Map(state.sources.map(s=>[s.namespace,s]));
- const bindings=new Map(state.bindings.map(b=>[identity(b.namespace,b.sourceId),b.recordId]));
+ const bindings=new Map(state.bindings.map(b=>[identity(b.namespace,b.sourceId),b]));
  const records=new Map(project.records.map(r=>[r.id,r]));
  return state.observations.map(o=>{
-  const recordId=bindings.get(identity(o.namespace,o.sourceId))??null,record=records.get(recordId),source=sources.get(o.namespace);
-  return {...structuredClone(o),id:`import:${identity(o.namespace,o.sourceId)}`,recordId,
-   encoded:Boolean(record&&!record.deleted),encodingStatus:record?.deleted?'deleted':record?'bound':'reference',
+  const recordIds=[...boundRecordIds(bindings.get(identity(o.namespace,o.sourceId)))],recordId=recordIds[0]??null,bound=recordIds.map(id=>records.get(id)),source=sources.get(o.namespace);
+  const allActive=bound.length>0&&bound.every(r=>r&&!r.deleted);
+  return {...structuredClone(o),id:`import:${identity(o.namespace,o.sourceId)}`,recordId,recordIds,
+   encoded:allActive,encodingStatus:bound.some(r=>r?.deleted)?'deleted':allActive?'bound':'reference',
    attribution:source.attribution,sourceUrl:source.url};
  });
 }

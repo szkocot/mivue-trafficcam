@@ -1,3 +1,4 @@
+import {sourceDirectionLabel,sourceChainageLabel} from './source-direction.js';
 const number=n=>String(Math.round(n*100)/100);
 export function speedLabel(references,t){
  const known=references.filter(r=>Number.isFinite(r.speedKmh));
@@ -8,11 +9,12 @@ export function speedLabel(references,t){
 }
 export function safeSourceUrl(value){try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)?u.href:null;}catch{return null;}}
 export function metadataRows(r,t){
- const unknown=t('valueUnknown');
+ const unknown=t('valueUnknown'),direction=sourceDirectionLabel(r,t),chainage=sourceChainageLabel(r);
  return [['namespace',r.namespace],['sourceId',r.sourceId],['attribution',r.attribution],['sourceName',r.name??unknown],
  ['sourceKind',t(`kind_${r.kind}`)],['sourceStatusLabel',t(`status_${r.status}`)],['speedLimit',speedLabel([r],t)],
- ['originalSpeed',r.originalSpeed?`${r.originalSpeed.value} ${r.originalSpeed.unit}`:unknown],['direction',r.direction===null?unknown:`${r.direction}°`],
- ['retrievedAt',r.retrievedAt],['encodingStatus',t(`encoding_${r.encodingStatus}`)],['originalProperties',JSON.stringify(r.originalProperties,null,2)]]
+ ['originalSpeed',r.originalSpeed?`${r.originalSpeed.value} ${r.originalSpeed.unit}`:unknown],['direction',direction],
+ ...(chainage&&direction!==`${t('roadChainage')}: ${chainage}`?[['roadChainage',chainage]]:[]),
+ ['retrievedAt',r.retrievedAt],['encodingStatus',t(`encoding_${r.encodingStatus}`)],...((r.recordIds?.length||r.recordId)?[['associatedRecords',(r.recordIds??[r.recordId]).join(', ')]]:[]),['originalProperties',JSON.stringify(r.originalProperties,null,2)]]
  .map(([key,value])=>[t(key),String(value??unknown)]);
 }
 export function placeLabels(items,measure){

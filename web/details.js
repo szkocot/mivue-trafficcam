@@ -38,6 +38,7 @@ export function createDetails(element,{onApply,onOperation,onPick,onResolve,t}){
    const section=el('section');section.className='source-metadata';
    for(const [label,value] of metadataRows(ref,t)){section.append(el('strong',label),el('pre',value));}
    for(const url of new Set([ref.url,ref.sourceUrl].map(safeSourceUrl).filter(Boolean))){const link=el('a',t('sourceLink'));link.href=url;link.target='_blank';link.rel='noopener noreferrer';section.append(link);}
+   if(onResolve&&ref.recordId)button(section,'unbindReference',()=>onResolve({namespace:ref.namespace,sourceId:ref.sourceId,action:'reference'}));
    element.append(section);
   }
   if(record.reference){
@@ -45,10 +46,10 @@ export function createDetails(element,{onApply,onOperation,onPick,onResolve,t}){
    if(!record.recordId&&onResolve){
     const resolution=action=>({namespace:record.namespace,sourceId:record.sourceId,action});
     button(element,'keepReference',()=>onResolve(resolution('reference')));
-    if(record.geometry.type==='Point'&&['camera','red-light'].includes(record.kind)){
-     const label=el('label',t('bindRecord')),target=el('input');label.append(target);element.append(label);
-     button(element,'bindReference',()=>onResolve({...resolution('bind'),recordId:target.value.trim()}));
-     button(element,'distinctReference',()=>onResolve(resolution('add-distinct')));
+    if(record.geometry.type==='Point'&&['camera','red-light'].includes(record.kind)||record.geometry.type==='LineString'&&record.kind==='section'){
+     const label=el('label',t(record.kind==='section'?'bindSection':'bindRecord')),target=el('input');label.append(target);element.append(label);
+     button(element,'bindReference',()=>onResolve({...resolution('bind'),recordIds:target.value.split(',').map(x=>x.trim()).filter(Boolean)}));
+     if(record.geometry.type==='Point')button(element,'distinctReference',()=>onResolve(resolution('add-distinct')));
     }
    }
    return;
