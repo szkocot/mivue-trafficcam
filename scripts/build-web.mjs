@@ -4,7 +4,7 @@ import {pathToFileURL} from 'node:url';
 import {readDataset,preparedFiles} from './canard/files.js';
 import {validateCountryData,COUNTRY_MAX_BYTES} from '../src/country-data.js';
 const root=resolve(import.meta.dirname,'..'),dist=resolve(root,'dist');
-const core=['parser','spatial','project','encoder','sources','project-view','history','view-filter','ingestion-state','import-normalize','import-view','import-csv','import-geojson','import-osm','import-spatial','reconcile','source-metadata','canard-snapshot','source-notices'];
+const core=['bin-metadata','parser','spatial','project','encoder','sources','project-view','history','view-filter','ingestion-state','import-normalize','import-view','import-csv','import-geojson','import-osm','import-spatial','reconcile','source-metadata','canard-snapshot','source-notices'];
 const web=['app','map','record-list','i18n','storage','source-cache','autosave','worker','worker-session','worker-client','details','downloads','export-dialog','location','import-dialog','import-results','import-sources','metadata-options','canard-cache','canard-sync'];
 const files=[['web/index.html','index.html'],['web/styles.css','web/styles.css'],
  ['src/country-data.js','src/country-data.js'],

@@ -83,3 +83,8 @@ Published 2026-09-20 from `459e92c7df0a991dd612b44a03853c27746590d1`: [successfu
 A separate fresh Chromium session against the public HTTPS site loaded 52,935 records directly from Mio, switched PL/EN, opened a synthetic BIN, edited latitude to 37.1, downloaded/reparsed the resulting binary, and imported a source point with attributed speed metadata. App/worker/core module URLs returned 200, the sample BIN URL returned 404, and no page errors occurred. This live smoke check is separate from the skipped optional CI live-source test; no device acceptance is implied.
 
 Non-blocking GitHub warnings: some pinned official Pages actions declare Node 20 and are currently run under Node 24 by GitHub; `ubuntu-latest` has an announced future image migration. The deployment succeeded; review upstream action/runner updates as maintenance, without suppressing test gates.
+
+
+## 2026-11-01 audit and metadata follow-up
+
+Implemented the private CANARD–Mio point/range/speed audit, explicit local OSM average-speed endpoint relations, and firmware-scoped read-only BIN interpretation. Local final verification: **284 Node tests, zero skips; 216 browser tests across Chromium/Firefox/WebKit, three opt-in skips; all three separate live Mio checks pass**. Both private real BIN variants remain byte-identical through reconstruction and persistence. The private offline report retains all 811 CANARD observations and 53,338 inventory records, with no remote requests or page errors; generated inputs/outputs remain excluded from publication. See [audit results](canard-mio-verification.md) and [remaining gates](todo.md). Release/deployment evidence follows after push.

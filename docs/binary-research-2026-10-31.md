@@ -106,3 +106,6 @@ Useful controlled device cases, with the original database backed up and the ori
 5. After the remaining header alias audit, evaluate a file that changes the first populated region while retaining version bytes; the current production guard deliberately blocks constructing this case. Do not bypass the guard or auto-repair unresolved section references merely to obtain a device test file.
 
 These are separate experiments, not prerequisites claimed to have been performed.
+
+
+Further speed-unit/zero, small-type audio-label and concrete scratch-alias evidence is recorded in the [2026-11-01 reader follow-up](binary-reader-followup-2026-11-01.md). It supersedes the earlier uncertainty about km/h consumption and the imprecise description of the scratch area as an allocation.

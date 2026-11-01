@@ -62,13 +62,13 @@ Coverage is point-speed cameras, OPP endpoints and red-light enforcement. Contro
 
 ## Local OpenStreetMap JSON
 
-Choose **OpenStreetMap JSON (camera nodes)** in Import after opening a BIN/project. The namespace and attribution fill automatically. Select a local OSM/Overpass JSON export containing `elements`, for example:
+Choose **OpenStreetMap JSON (cameras / sections)** in Import after opening a BIN/project. The namespace and attribution fill automatically. Select a local OSM/Overpass JSON export containing `elements`, for example:
 
 ```json
 {"elements":[{"type":"node","id":123,"lat":52,"lon":21,"tags":{"highway":"speed_camera","maxspeed":"30 mph","direction":"90","name":"Example"}}]}
 ```
 
-Only speed-camera nodes with coordinates are supported. Ordinary cameras have unknown operational status and remain references; proposed/disused tags retain planned/inactive status. Numeric speed limits retain original units, bearings remain camera-facing metadata, and other tags survive unchanged. Enforcement relations and camera ways produce an actionable error; export camera nodes separately. There is no automatic API download, route inference or speed/direction BIN encoding. The retrieval time is local import time, not file freshness. Reimporting a node clears stale source limits/bearings when its current tags no longer supply them, while manual BIN edits remain protected.
+Supported inputs are speed-camera nodes with coordinates and the explicit average-speed relations described below. Ordinary cameras have unknown operational status and remain references; proposed/disused tags retain planned/inactive status. Numeric speed limits retain original units, bearings remain camera-facing metadata, and other tags survive unchanged. Average-speed enforcement relations are supported only with exactly one distinct from/to node and both coordinate-bearing nodes included in the file. They remain reference-only endpoint connectors, never road routes. Other enforcement relations and camera ways produce an actionable error. There is no automatic API download, route inference or speed/direction BIN encoding. The retrieval time is local import time, not file freshness. Reimporting a node clears stale source limits/bearings when its current tags no longer supply them, while manual BIN edits remain protected.
 
 Keep the OpenStreetMap contributors / ODbL licence notice when sharing derived outputs; reference exports embed it and the existing notice download covers associated BIN records. See [supported fields, research and limits](source-research-2026-10-31.md).
 

@@ -1,8 +1,15 @@
 export default {
+  "binSpeed_unspecified": "Nie podano",
+  "binSpeed_unclassified": "Niesklasyfikowana",
+  "binKind_camera": "Kamera prędkości",
+  "binKind_red-light": "Czerwone światło",
+  "binKind_mobile": "Mobilna",
+  "binKind_linked-section": "Punkt odcinka pomiarowego",
+  "binKind_unclassified": "Niesklasyfikowany",
   binSpeed: "Prędkość (wartość BIN)",
   binType: "Typ (kod BIN)",
-  binFieldsNotice: "Jednostki prędkości i pełne znaczenie typów są niezweryfikowane. Wartości pochodzą z BIN; ograniczenia według źródeł są pokazane osobno.",
- importOsm:'OpenStreetMap JSON (węzły fotoradarów)',importOsmHelp:'Lokalny JSON OSM / Overpass: węzły speed_camera ze współrzędnymi. Relacje kontroli i drogi są odrzucane; trasa nie jest zgadywana. Nieznany status pozostaje nieznany. Źródło: OpenStreetMap contributors / ODbL; czas pobrania oznacza lokalny import. Przy udostępnianiu zachowaj informację o licencji.',importReason_OSM_UNSUPPORTED_GEOMETRY:'Relacje kontroli / drogi fotoradarów nie są obsługiwane. Wyeksportuj tylko węzły fotoradarów ze współrzędnymi.',importReason_OSM_NO_CAMERAS:'Brak obsługiwanych węzłów fotoradarów.',
+  binFieldsNotice: "Interpretacja ze zbadanego oprogramowania MiVue 955W: kategorie komunikatów i rozpoznane wartości km/h. Nieznane wartości zachowują surowe kody BIN; działanie urządzenia i pełne znaczenie typów pozostają niezweryfikowane. Ograniczenia według źródeł są pokazane osobno.",
+ importOsm:'OpenStreetMap JSON (fotoradary / odcinki)',importOsmHelp:'Lokalny JSON OSM / Overpass: węzły speed_camera lub relacje average_speed z dokładnie jednym węzłem from/to; oba węzły muszą mieć współrzędne i znajdować się w pliku. Inne geometrie kontroli są odrzucane; połączenie końców nie jest trasą drogową. Nieznany status pozostaje nieznany. Źródło: OpenStreetMap contributors / ODbL; czas pobrania oznacza lokalny import. Przy udostępnianiu zachowaj informację o licencji.',importReason_OSM_UNSUPPORTED_GEOMETRY:'Nieobsługiwana geometria kontroli. Użyj węzłów fotoradarów lub relacji average_speed z jednym różnym węzłem from/to; dołącz oba węzły ze współrzędnymi.',importReason_OSM_NO_CAMERAS:'Brak obsługiwanych fotoradarów lub odcinków pomiarowych.',
 
  countryPosition:'Szerokość, długość',countryCandidates:'Dopasowane / pobliskie kraje',countryNoMatch:'Brak dopasowanego kraju',countryComponent:'Rekordy powiązanego odcinka',countryTriggers:'Uwzględniono przez',
  countryScope:'Zakres eksportu',countryFull:'Cały zbiór',countrySelected:'Wybrane kraje',countryCountries:'Kraje',countrySearch:'Szukaj krajów',countryPreview:'Podgląd wyboru',countryRetry:'Ponów wczytanie granic',countryBoundaries:'Granice',countryPreviewReady:'Podgląd wyboru gotowy',countryFullBackup:'Pełna kopia projektu — bez filtrowania krajów',countryReportDownload:'Pobierz raport wyboru i informacje o źródłach',countryBinScope:'Kraje w pliku BIN',countryCaveat:'Uogólnione granice faktyczne, nie prawne ani geodezyjne. Punkty w odległości do 1 km od granicy wymagają sprawdzenia; nie jest to gwarancja dokładności. Odcinki wybieramy według końców, nie przebiegu drogi. Pełna kopia projektu zawiera wszystkie dane oryginalne.',

@@ -10,11 +10,13 @@ The intended scope includes fixed speed cameras and section-based average-speed 
 
 ## Status
 
-**BIN record display, 2026-10-31:** the BIN table and selected-record details show the stored speed value and raw type code in PL/EN. Units and complete type meanings remain explicitly unverified; attributed source speed limits are separate. Displaying these fields does not modify the project or BIN output.
+**CANARD–Mio audit, 2026-11-01:** `scripts/compare-sources.mjs` generates private map/table/JSON/CSV/GeoJSON evidence and a full BIN speed inventory. The real import preserved all 811 observations and the original BIN byte-for-byte. Coverage differences and seven OPP range-review cases remain explicit; unknown limits are not guessed. [Method, results and running the audit](docs/canard-mio-verification.md).
+
+**BIN record display, 2026-11-01:** table/details retain raw codes and add a conservative firmware-scoped km/h interpretation, unavailable-limit treatment for zero, and verified announcement categories. Unclassified values remain raw; attributed source limits stay separate. No presentation decoding changes the project or BIN bytes. [Reader evidence](docs/binary-reader-followup-2026-11-01.md).
 
 **Deployed programmatic TODO increment, 2026-10-31:** local attributed OSM camera-node imports; verified 20×20 and 22×22 BIN support; ISO country-export filenames; Chromium/Firefox/WebKit coverage and the WebKit file-input fix. **256 Node tests, 201 deterministic browser tests and all three live Mio browser checks pass**. Repeated parse/JSON/project/rebuild cycles preserve both available real BIN files byte-for-byte and by SHA-256; imported observation metadata survives project/reference export. [Deployment 41246260899](https://github.com/szkocot/mivue-trafficcam/actions/runs/41246260899) and fresh public Chromium smoke checks passed for `39ecdbe`. [Evidence and remaining blockers](docs/todo.md). [Your browser/device test procedure](docs/user-acceptance.md). Unknown header/link/flag semantics remain guarded; physical MiVue acceptance is untested.
 
-**Returning to this project?** Start with the [TODO and handoff](docs/todo.md), updated 2026-10-31. It separates completed CANARD/country-export work from remaining source enrichment, binary research and PL/EN/browser polish, and includes a ready-to-paste resume prompt. Its verification dates are historical; no new live-service check is implied.
+**Returning to this project?** Start with the [TODO and handoff](docs/todo.md), updated 2026-11-01. All evidence-supported programmatic items are implemented; remaining checks need source/access contracts, further binary evidence, authoritative identity/road review or your physical browser/device tests.
 
 **Released:** [Pages run 35622164123](https://github.com/szkocot/mivue-trafficcam/actions/runs/35622164123) deployed source `c8f3f99` with accepted CANARD data `3597190`. Local merged checks: 237 Node / 62 browser tests pass; CI: 236 Node / 60 browser pass (private sample and opt-in live-source checks skipped). Fresh public Chromium verified a reparsed reduced BIN, unchanged full backup, linked-endpoint acknowledgement, unsafe-BIN blocking, boundary/source notices, cache reuse, Polish controls and private-file 404s, without page errors. Backlog points 3, 4 and 6 remain open; data filenames still use stable dataset IDs. The notes below are historical task milestones, superseded by this release status.
 
@@ -163,7 +165,7 @@ npm ci
 npm run build:web
 npm run preview:web -- --base /mivue-trafficcam/
 # Open http://127.0.0.1:4173/mivue-trafficcam/
-npx playwright install chromium
+npx playwright install chromium firefox webkit
 npm run test:browser
 ```
 

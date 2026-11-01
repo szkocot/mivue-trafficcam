@@ -42,3 +42,12 @@ The integration run also caught a format-selection regression: switching from CS
 Playwright WebKit is an automated WebKit build, not the installed Safari application. No physical iPhone/iPad/Android browser, native download/share destination, real GPS provider, operating-system permission prompt or MiVue 955W was tested. Browser emulation verifies application behavior; it does not verify physical positioning accuracy or device acceptance. Generated BINs remain experimental and use-at-own-risk.
 
 For later manual testing, record browser/OS/device versions; open a backed-up local BIN; edit/save/reopen a project; download and reopen a full backup; retry after denying storage; check map/table use and imports in PL/EN; request and deny location while stationary; and inspect mobile download/share behavior. Keep physical MiVue acceptance in the separate hardware procedure. This record does not claim a new deployment or a fresh public-site release.
+
+
+## 2026-11-01 follow-up
+
+The subsequent Linux CI failure was a real loading/click race: worker completion removed the Working/Cancel control between mouse down/up and shifted the List tab away. The tabs now remain disabled during file loading. A paused-worker regression reproduces the boundary deterministically; 30 repeated Linux Firefox loading/mobile checks passed after the correction. [Deployment 41267095267](https://github.com/szkocot/mivue-trafficcam/actions/runs/41267095267) passed for `fb378cc`; fresh public Chromium confirmed PL/EN BIN field display, zero edits and no page errors. CI now retains failure traces for diagnosis.
+
+The final local follow-up includes explicit OSM average-speed endpoint relations, offline audit-report safety/navigation, and firmware-scoped read-only BIN interpretation with unknown raw values retained. Node verification passed 284 tests with zero skips, including both private binaries. The final full browser suite passed 216 tests (72 per engine), with three intentional opt-in live skips, in 2.7 minutes. The physical-browser/device limits above still apply.
+
+The separate opt-in live Mio check passed all three engines in 12.0 seconds on 2026-11-01. Each made one GET and one HEAD; all observed the unchanged official SHA-256 `69759a67d9442bfa1a636c38ccbc16623a2208ef34564e11f68ad0d696becdb1`, 1,532,826 bytes and Last-Modified 2026-09-21. No second body download was required.

@@ -1,6 +1,6 @@
 # Source research, 2026-10-31
 
-This bounded recheck supports a **local OSM camera-node JSON adapter**. It does not authorize a new hosted scraper, change binary encodings, or establish device acceptance. The CANARD publication history in [source-access.md](source-access.md) remains unchanged.
+This bounded recheck supports a **local OSM JSON adapter for camera nodes and explicit average-speed relation endpoints**; the 2026-11-01 relation contract is recorded below. It does not authorize a new hosted scraper, change binary encodings, or establish device acceptance. The CANARD publication history in [source-access.md](source-access.md) remains unchanged.
 
 ## OpenStreetMap: supported local input
 
@@ -52,3 +52,17 @@ CSV, GeoJSON and selected OSM observations are tested through reconciliation, pr
 ## Real local-file acquisition attempt
 
 After the synthetic/integration checks, the primary [Overpass service Commons/policy](https://dev.overpass-api.de/overpass-doc/en/preface/commons.html) was inspected. A single identified, bounded POST to `https://overpass-api.de/api/interpreter` requested Poland camera nodes (server timeout 25 seconds, client timeout 30 seconds, maximum received file 20 MiB). It timed out after 30.006882 seconds with curl exit 28, HTTP 000 and zero response bytes. No alternate endpoint or retry was used, and no dataset/count/hash was obtained. Real OSM acquisition and a real-file round trip are therefore **not verified**; the implemented adapter's schema, preservation and UI results use synthetic fixtures. A lawful local export supplied later can be checked through the same parser and project/reference workflow.
+
+On 2026-11-01, a bounded reachability recheck of the same Overpass provider’s `/api/status` returned HTTP 406. No replacement query or access workaround was attempted. Real OSM file acquisition remains unverified; a supplied local export can be tested without a live connector.
+
+## Explicit average-speed relations, 2026-11-01
+
+The current [approved enforcement relation documentation](https://wiki.openstreetmap.org/w/index.php?title=Relation:enforcement&oldid=3105039) identifies `enforcement=average_speed` and describes `from`/`to` as start/end measurement nodes. Its average-speed example includes `maxspeed`. This justifies a narrow extension of the local adapter, superseding the node-only limitation above.
+
+A relation must have `type=enforcement`, `enforcement=average_speed`, exactly one node member in each `from` and `to` role, distinct IDs/coordinates, and both nondeleted endpoint nodes with valid coordinates included in the same file. Relations may precede those nodes. No member-way geometry, implicit device endpoint, multiple-entry/exit choice or missing-node lookup is inferred. Unsupported enforcement geometry rejects the complete batch. Duplicate typed element identities also reject, including supporting elements.
+
+The observation uses `relation/<id>`, kind section, unknown status and unknown normalized direction. Numeric speed units follow the existing source normalization; source direction tags remain original evidence. Original relation fields/members and the two full endpoint nodes survive under `originalProperties.relation` / `endpointNodes`, with `geometryBasis=endpoints-not-road-route`. A two-coordinate LineString is a measurement endpoint connector, not a road route. It cannot generate MiVue section records or links. Speed-camera member nodes still import independently when tagged accordingly. Original metadata limits apply to the combined relation and endpoint evidence.
+
+Synthetic regressions verify order-independent endpoint resolution, typed node/relation IDs, unit/evidence preservation, no BIN changes, project/reference persistence, and rejection of unresolved, duplicate, ambiguous, deleted, invalid or coincident endpoints and ordinary maxspeed relations. No new live service or source publication is enabled.
+
+Verification for the endpoint-relation extension: 16 targeted Node tests pass, including repeat import, unchanged serialized project, exact reference metadata/units and ODbL notice retention. All 12 OSM browser cases pass in Chromium, Firefox and WebKit (PL/EN node import, rejected unsupported relation, explicit average-speed endpoint import and reload). These are synthetic-data checks, not validation of OSM completeness or MiVue device behavior.

@@ -1,3 +1,4 @@
+import {binSpeedLabel,binTypeLabel} from '../src/bin-metadata.js';
 import {metadataRows,speedLabel,safeSourceUrl} from '../src/source-metadata.js';
 export function parseCoordinate(text,limit){
  const value=text.trim();if(!/^[+-]?\d+(?:[.,]\d+)?$/.test(value))throw Error('invalidCoordinate');
@@ -31,7 +32,7 @@ export function createDetails(element,{onApply,onOperation,onPick,onResolve,t}){
   element.replaceChildren();fields={};if(!record){element.append(el('p',t('select')));return;}
   element.append(el('h2',t('details')));const id=el('p',record.id);id.dataset.testid='selected-id';element.append(id);
   const refs=record.reference?[record]:record.sourceObservations??[];
-  if(!record.reference)element.append(el('p',`${t('binSpeed')}: ${record.rawBytes16To19[0]}`),el('p',`${t('binType')}: ${record.typeRaw}`),el('p',t('binFieldsNotice')));
+  if(!record.reference)element.append(el('p',`${t('binSpeed')}: ${binSpeedLabel(record.rawBytes16To19[0],t)}`),el('p',`${t('binType')}: ${binTypeLabel(record.typeRaw,t)}`),el('p',t('binFieldsNotice')));
   element.append(el('p',`${t('speedLimit')}: ${speedLabel(refs,t)}`));
   for(const ref of refs){
    const section=el('section');section.className='source-metadata';
