@@ -9,7 +9,7 @@ function distance(a,b){
  const x=Math.sin((b[1]-a[1])*RAD/2),y=Math.sin((b[0]-a[0])*RAD/2);
  return 2*R*Math.asin(Math.min(1,Math.sqrt(x*x+Math.cos(a[1]*RAD)*Math.cos(b[1]*RAD)*y*y)));
 }
-const describe=r=>({id:recordId(r),latitude:r.latitude,longitude:r.longitude,rawType:r.typeRaw,rawSpeed:r.rawBytes16To19[0],decodedSpeed:decodeBinSpeed(r.rawBytes16To19[0])});
+const describe=r=>({id:recordId(r),latitude:r.latitude,longitude:r.longitude,rawType:r.typeRaw,typeRaw:r.typeRaw,rawBytes16To19:[...r.rawBytes16To19],rawSpeed:r.rawBytes16To19[0],decodedSpeed:decodeBinSpeed(r.rawBytes16To19[0])});
 
 /** Pure geometric suggestions: callers must review identity and explicitly choose associations. */
 export function findImportMatches({records,references}){

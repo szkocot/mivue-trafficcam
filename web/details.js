@@ -1,5 +1,5 @@
 import {binSpeedLabel,binTypeLabel} from '../src/bin-metadata.js';
-import {metadataRows,speedLabel,safeSourceUrl} from '../src/source-metadata.js';
+import {metadataRows,speedLabel,safeSourceUrl,directionRows} from '../src/source-metadata.js';
 export function parseCoordinate(text,limit){
  const value=text.trim();if(!/^[+-]?\d+(?:[.,]\d+)?$/.test(value))throw Error('invalidCoordinate');
  const n=Number(value.replace(',','.'));if(!Number.isFinite(n)||Math.abs(n)>limit)throw Error('invalidCoordinate');return n;
@@ -34,9 +34,10 @@ export function createDetails(element,{onApply,onOperation,onPick,onResolve,t}){
   const refs=record.reference?[record]:record.sourceObservations??[];
   if(!record.reference)element.append(el('p',`${t('binSpeed')}: ${binSpeedLabel(record.rawBytes16To19[0],t)}`),el('p',`${t('binType')}: ${binTypeLabel(record.typeRaw,t)}`),el('p',t('binFieldsNotice')));
   element.append(el('p',`${t('speedLimit')}: ${speedLabel(refs,t)}`));
+  if(!record.reference&&!refs.some(r=>r.originalProperties?.canardDetail))for(const[label,value]of directionRows({},t,[record]))element.append(el('strong',label),el('p',value));
   for(const ref of refs){
    const section=el('section');section.className='source-metadata';
-   for(const [label,value] of metadataRows(ref,t)){section.append(el('strong',label),el('pre',value));}
+   for(const [label,value] of metadataRows(ref,t,record.reference?[]:[record])){section.append(el('strong',label),el('pre',value));}
    for(const url of new Set([ref.url,ref.sourceUrl].map(safeSourceUrl).filter(Boolean))){const link=el('a',t('sourceLink'));link.href=url;link.target='_blank';link.rel='noopener noreferrer';section.append(link);}
    if(onResolve&&ref.recordId)button(section,'unbindReference',()=>onResolve({namespace:ref.namespace,sourceId:ref.sourceId,action:'reference'}));
    element.append(section);

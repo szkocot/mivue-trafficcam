@@ -29,6 +29,7 @@ This is an unofficial browser editor and Node CLI for Mio MiVue camera databases
 - Supported researched layout: 3×3 regions, 20×20 or 22×22 cells, 28-byte records. Reject unsupported layouts rather than guessing.
 - Keep encoder/header/link blockers. Do not repair pointers using nearest addresses, nearby cameras or equal type counts. Do not remove guards based on incomplete static traces.
 - Full project JSON is the reopenable backup. CSV/GeoJSON/reference exports are projections; they do not preserve arbitrary source whitespace, envelopes or unrelated OSM elements.
+- Keep vehicle alert heading, CANARD limit-row chainage, named directions, mast claims and physical camera aim separate. Mode-1 researched Mio heading byte ×2 is alert logic; approach/departure can yield only a labelled road-axis estimate, never an optical azimuth. Never retype generic source direction numbers or guess physical aim from town names/ROSNACY/MALEJACY. See docs/direction-interpretation.md.
 - Raw BIN speed/type and attributed source limits are separate. Presentation decoding must not mutate bytes. Unknown codes remain visible as raw values.
 - The BIN speed whitelist/type labels are firmware-scoped; use the shared helper. Do not invent bitmask meanings, fixed-camera labels for generic type 1, or start/end roles from neutral linked codes.
 - Coordinate order in GeoJSON is longitude, latitude. OPP endpoint connectors are not road routes. Proximity gives review candidates, not identity or an automatic merge.

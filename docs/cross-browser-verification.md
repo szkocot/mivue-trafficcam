@@ -67,3 +67,10 @@ Final verification passes **341 Node tests with two unavailable private-firmware
 New browser regressions exercise multiple camera records and complete existing OPP pairs in one explicit review transaction, direction labels from CANARD-style data, blue endpoints/connectors, all associated IDs, undo/redo and reload in all three engines. A shared-target candidate cannot reduce an existing OPP association to a half-pair. Full-suite WebKit exposed Fit accepting a click before project restore; Fit is now disabled while loading, verified with the paused-worker regression. Final full-suite run passes without forced clicks or timeout increases.
 
 Real-data verification associates the 71 unique candidates (including 17 OPP sections) with 88 BIN records while preserving all 811 observations and the original 53,338-record BIN SHA-256. The bound-project audit checks every endpoint, not just the primary ID. Ambiguous candidates stay reviewable, not automatically identified. CANARD kierunek/section names remain source text; road chainage is labelled separately from bearings.
+
+
+## Alert heading and physical aiming evidence — 2026-11-02
+
+Final local verification passes 351 Node tests (353 total, two unavailable private-firmware skips) and 231 browser tests (three opt-in live skips). The new PL/EN browser regression checks 100° scoped Mio alert heading, separate physical-aim unknown, a synthetic explicit-Najazd 280° road-axis estimate clearly labelled as not optical azimuth, differing mast/limit fields, selected heading arrow, unknown-mode suppression and save/reload without changed BIN records. A test-only incorrect `data-testid` selector was corrected to the existing `#changes` ID; no forced clicks or timeout increases were needed.
+
+All 811 real detail responses lack an unambiguous passenger approach/departure label and numeric physical azimuth. PP 91359960 retains limit-row MALEJACY and mast ROS separately; its qualified Mio alert heading is 100°, physical azimuth unknown, with no invented road-axis estimate. Input immutability and unchanged official BIN SHA-256 were verified. See [direction evidence](direction-interpretation.md).

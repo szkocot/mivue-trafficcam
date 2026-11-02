@@ -25,8 +25,13 @@ test('CANARD selected car limits disclose minimum-over-time/direction policy',()
 });
 test('metadata rows use named directions and keep road chainage separate from bearings',()=>{
  const t=key=>key,r={kind:'section',status:'unknown',direction:null,originalProperties:{canardDetail:{raw:{limity:[{typ:{kierunek:'Warszawa',kierunekPikietazu:'ROSNACY'}}],urzadzenie:{nazwaKierunku1:'Warszawa',nazwaKierunku2:'Katowice',masztKierunekPomiaru:'Pikietaz rosnacy'}}}}};
- const rows=m.metadataRows(r,t);assert.equal(rows.find(([key])=>key==='direction')[1],'Warszawa / Katowice');assert.equal(rows.find(([key])=>key==='roadChainage')[1],'Pikietaz rosnacy / ROSNACY');
+ const rows=m.metadataRows(r,t);assert.equal(rows.find(([key])=>key==='direction')[1],'Warszawa / Katowice');assert.equal(rows.find(([key])=>key==='roadChainage')[1],'ROSNACY');
  assert.equal(r.direction,null);
  const fallback=m.metadataRows({...r,originalProperties:{canardDetail:{raw:{urzadzenie:{masztKierunekPomiaru:'Pikietaz rosnacy'}}}}},t);
- assert.equal(fallback.find(([key])=>key==='direction')[1],'roadChainage: Pikietaz rosnacy');assert.equal(fallback.filter(([key])=>key==='roadChainage').length,0);
+ assert.equal(fallback.find(([key])=>key==='direction')[1],'mastDirection: Pikietaz rosnacy');assert.equal(fallback.filter(([key])=>key==='roadChainage').length,0);
+});
+test('vehicle alert direction and physical aim are separate and source conflicts remain visible',()=>{
+ const t=k=>k,r={originalProperties:{canardDetail:{raw:{limity:[{limitOsobowe:'50',typ:{kierunek:'Najazd',kierunekPikietazu:'MALEJACY'}}],urzadzenie:{masztKierunekPomiaru:'Pikietaz rosnacy'}}}}};
+ const rows=m.directionRows(r,t,[{id:'bin',typeRaw:1,rawBytes16To19:[50,50,0,1]}]);
+ assert.equal(rows.find(([k])=>k==='vehicleAlertHeading')[1],'100° · bin');assert.equal(rows.find(([k])=>k==='physicalCameraAim')[1],'physicalAimUnknown');assert.match(rows.find(([k])=>k==='roadAxisAim')[1],/280°/);assert.ok(rows.some(([k])=>k==='directionConflict'));
 });

@@ -1,3 +1,4 @@
+import {analyzeDirections} from '../src/direction-analysis.js';
 import {sourceDirectionLabel} from '../src/source-direction.js';
 import { hasPosition } from '../src/project-view.js';
 import { aggregatePoints } from '../src/view-filter.js';
@@ -22,7 +23,7 @@ export function createMap(element,{onSelect,onPick,onViewport,onTileError}){
   const buckets=new Map();for(const g of groups){const key=`${Math.floor(g.x/grid)}:${Math.floor(g.y/grid)}`;if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(g);}
   for(const bucket of buckets.values())if(bucket.length>1)bucket.forEach((g,i)=>{g.x+=(i-(bucket.length-1)/2)*34;});
   const legend=element.parentElement.querySelector('.legend');
-  if(legend)legend.textContent=translate('mapLegend',{bin:points.filter(p=>!p.reference&&!p.merged).length,merged:points.filter(p=>p.merged).length,references:points.filter(p=>p.reference).length})+' '+translate('links');
+  if(legend)legend.textContent=translate('mapLegend',{bin:points.filter(p=>!p.reference&&!p.merged).length,merged:points.filter(p=>p.merged).length,references:points.filter(p=>p.reference).length})+' '+translate('links')+' '+translate('directionArrowLegend');
   const lookup=new Map([...records,...references].map(r=>[r.id,r]));
   ctx.strokeStyle='#7351a2';ctx.lineWidth=2;ctx.setLineDash([3,5]);
   for(const r of references)if(r.geometry.type==='LineString'){
@@ -43,6 +44,13 @@ export function createMap(element,{onSelect,onPick,onViewport,onTileError}){
   for(const g of groups){const active=g.ids.includes(selectedId),radius=g.ids.length>1?15:5;ctx.beginPath();ctx.arc(g.x,g.y,radius,0,Math.PI*2);ctx.fillStyle=g.reference?'#7351a2':g.merged?'#365b9b':'#087f77';ctx.fill();ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
    if(active){ctx.beginPath();ctx.arc(g.x,g.y,radius+4,0,Math.PI*2);ctx.strokeStyle='#e59a13';ctx.lineWidth=3;ctx.stroke();}
    if(g.ids.length>1){ctx.fillStyle='white';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='11px system-ui';ctx.fillText(String(g.ids.length),g.x,g.y);}
+  }
+  const active=groups.find(g=>g.ids.includes(selectedId));
+  const heading=selected&&!selected.reference?analyzeDirections({}, {records:[selected]}).mioAlertBearings[0]?.bearingDegrees:null;
+  canvas.dataset.alertHeading=heading==null?'':String(heading);
+  if(active&&heading!=null){
+   const angle=(heading-90)*Math.PI/180,x=active.x+Math.cos(angle)*30,y=active.y+Math.sin(angle)*30;
+   ctx.strokeStyle='#185a8d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(active.x,active.y);ctx.lineTo(x,y);ctx.lineTo(x-Math.cos(angle-.5)*9,y-Math.sin(angle-.5)*9);ctx.moveTo(x,y);ctx.lineTo(x-Math.cos(angle+.5)*9,y-Math.sin(angle+.5)*9);ctx.stroke();
   }
   const labels=[];ctx.font='12px system-ui';
   if(display.showSpeedLimits||display.showMetadata)for(const g of groups){

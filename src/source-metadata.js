@@ -1,4 +1,5 @@
-import {sourceDirectionLabel,sourceChainageLabel} from './source-direction.js';
+import {analyzeDirections} from './direction-analysis.js';
+import {sourceDirectionLabel,sourceChainageLabel,sourceMastDirectionLabel} from './source-direction.js';
 const number=n=>String(Math.round(n*100)/100);
 export function speedLabel(references,t){
  const known=references.filter(r=>Number.isFinite(r.speedKmh));
@@ -8,14 +9,24 @@ export function speedLabel(references,t){
  return `${number(known[0].speedKmh)} km/h · ${[...new Set(known.map(r=>r.attribution))].join(', ')}${policy}`;
 }
 export function safeSourceUrl(value){try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)?u.href:null;}catch{return null;}}
-export function metadataRows(r,t){
- const unknown=t('valueUnknown'),direction=sourceDirectionLabel(r,t),chainage=sourceChainageLabel(r);
- return [['namespace',r.namespace],['sourceId',r.sourceId],['attribution',r.attribution],['sourceName',r.name??unknown],
+export function directionRows(reference,t,records=[]){
+ const analysis=analyzeDirections(reference,{records}),known=analysis.mioAlertBearings.filter(r=>r.bearingDegrees!==null);
+ const heading=known.length?known.map(r=>`${r.bearingDegrees}° · ${r.recordId}`).join(' / '):t('alertHeadingUnknown');
+ return [['vehicleAlertHeading',heading],['captureMode',t(`capture_${analysis.sourceCaptureMode}`)],['physicalCameraAim',t('physicalAimUnknown')],
+  ...(analysis.roadAxisAimEstimates.length?[['roadAxisAim',analysis.roadAxisAimEstimates.map(r=>`${r.bearingDegrees}° · ${r.recordId} · ${t('roadAxisDerived')}`).join(' / ')]]:[]),
+  ...(analysis.sourceChainage.conflict?[['directionConflict',t('directionConflictText')]]:[])].map(([key,value])=>[t(key),value]);
+}
+export function metadataRows(r,t,records=[]){
+ const unknown=t('valueUnknown'),direction=sourceDirectionLabel(r,t),chainage=sourceChainageLabel(r),mast=sourceMastDirectionLabel(r);
+ const rows=[['namespace',r.namespace],['sourceId',r.sourceId],['attribution',r.attribution],['sourceName',r.name??unknown],
  ['sourceKind',t(`kind_${r.kind}`)],['sourceStatusLabel',t(`status_${r.status}`)],['speedLimit',speedLabel([r],t)],
  ['originalSpeed',r.originalSpeed?`${r.originalSpeed.value} ${r.originalSpeed.unit}`:unknown],['direction',direction],
  ...(chainage&&direction!==`${t('roadChainage')}: ${chainage}`?[['roadChainage',chainage]]:[]),
+ ...(mast&&direction!==`${t('mastDirection')}: ${mast}`?[['mastDirection',mast]]:[]),
  ['retrievedAt',r.retrievedAt],['encodingStatus',t(`encoding_${r.encodingStatus}`)],...((r.recordIds?.length||r.recordId)?[['associatedRecords',(r.recordIds??[r.recordId]).join(', ')]]:[]),['originalProperties',JSON.stringify(r.originalProperties,null,2)]]
  .map(([key,value])=>[t(key),String(value??unknown)]);
+ if(r.originalProperties?.canardDetail)rows.splice(rows.length-1,0,...directionRows(r,t,records));
+ return rows;
 }
 export function placeLabels(items,measure){
  const placed=[];

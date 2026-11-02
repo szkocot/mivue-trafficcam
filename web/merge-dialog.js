@@ -1,4 +1,4 @@
-import {speedLabel} from '../src/source-metadata.js';
+import {directionRows,speedLabel} from '../src/source-metadata.js';
 import {sourceDirectionLabel} from '../src/source-direction.js';
 const same=(a,b)=>JSON.stringify([...a].sort())===JSON.stringify([...b].sort());
 export function createMergeDialog({client,getIdentity,getReferences,onApply,onBusy,onClose,t}){
@@ -23,6 +23,7 @@ export function createMergeDialog({client,getIdentity,getReferences,onApply,onBu
     const distances=c.endpointMetres??(Number.isFinite(c.metres)?[c.metres]:[]);
     const speed=(c.records??[]).map(r=>r.decodedSpeed?.speedKmh==null?`${t('speedUnknown')} (BIN ${r.rawSpeed})`:`${r.decodedSpeed.speedKmh} km/h`).join(' / ');
     label.append(input,document.createTextNode(`${c.recordIds.join(' + ')}${distances.length?' · '+distances.map(n=>n.toFixed(1)+' m').join(' / '):''}${speed?' · '+speed:''}${c.existing?' · '+t('mergeExisting'):''}`));
+    if(refs.get(row.id)?.originalProperties?.canardDetail)for(const[key,value]of directionRows(refs.get(row.id),t,c.records??[]))label.append(el('small',` · ${key}: ${value}`));
     input.onchange=()=>{if(input.checked)selected.get(row.id).add(c.key);else selected.get(row.id).delete(c.key);updateApply();};
     label.style.display='block';section.append(label);
    }

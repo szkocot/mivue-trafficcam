@@ -86,3 +86,8 @@ One source camera can attach to several compatible BIN records (for example, sep
 Applying the review is one undoable transaction. All associated BIN points/endpoints become blue and merged OPP connectors are blue dashed lines. Source direction names appear in details/review and optional map metadata labels. Road chainage is labelled separately and never converted to a guessed compass bearing; blank source direction does not imply both camera approaches. The car-speed minimum-over-time/direction policy remains unchanged.
 
 Merging changes source associations, not coordinates, raw speed/type bytes or links. Complete section bindings survive save/reopen/reimport, and manually owned coordinates/deletions stay protected. Source/reference exports retain every associated record ID. Country projections include a reference when any associated record is kept and disclose `selectedRecordIds`; actual linked OPP pairs remain whole. These associations do not create new device-format OPP records or encode source speed/direction into raw bytes.
+
+
+## Vehicle alert direction and physical camera aim
+
+Selected details distinguish qualified Mio vehicle-alert headings, passenger approach/departure wording, physical camera aim and any derived road-axis estimate. CANARD limit-row chainage and the mast claim remain separate. The selected BIN marker shows a qualified alert-heading arrow; the legend states that it is not the camera’s physical aim. Unknown modes and missing physical azimuths are not guessed. [Evidence, formulas and actual data limitations](direction-interpretation.md).
