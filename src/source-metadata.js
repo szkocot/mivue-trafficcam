@@ -12,9 +12,11 @@ export function safeSourceUrl(value){try{const u=new URL(value);return ['http:',
 export function directionRows(reference,t,records=[]){
  const analysis=analyzeDirections(reference,{records}),known=analysis.mioAlertBearings.filter(r=>r.bearingDegrees!==null);
  const heading=known.length?known.map(r=>`${r.bearingDegrees}° · ${r.recordId}`).join(' / '):t('alertHeadingUnknown');
- return [['vehicleAlertHeading',heading],['captureMode',t(`capture_${analysis.sourceCaptureMode}`)],['physicalCameraAim',t('physicalAimUnknown')],
+ const road=analysis.roadDirection;
+ const roadRows=road?[[t('roadDirectionStatus'),t(`roadDirection_${road.status}`)+(road.reason?` · ${road.reason}`:'')],...(road.travelBearings.length?[[t('roadDirectionTravel'),road.travelBearings.map(n=>`${number(n)}°`).join(' / ')]]:[]),...(road.excludedBearings.length?[[t('roadDirectionExcluded'),road.excludedBearings.map(n=>`${number(n)}°`).join(' / ')]]:[]),[t('roadDirectionConfidence'),t(`roadDirection_${road.confidence}`)],...road.claims.map(c=>[t(c.excluded?'roadDirectionExcluded':'roadDirectionDestination'),`${c.raw} → ${c.destination} · ${t(`roadDirection_${c.status}`)}${c.bearings.length?' · '+c.bearings.map(n=>`${number(n)}°`).join(' / '):''}`]),[t('roadDirectionEvidence'),`${road.source.attribution} · ${road.source.dataTimestamp} · ${t('roadDirectionEstimate')}${road.source.coverage?' · '+road.source.coverage:''}`]]:[];
+ return [...roadRows,...[['vehicleAlertHeading',heading],['captureMode',t(`capture_${analysis.sourceCaptureMode}`)],['physicalCameraAim',t('physicalAimUnknown')],
   ...(analysis.roadAxisAimEstimates.length?[['roadAxisAim',analysis.roadAxisAimEstimates.map(r=>`${r.bearingDegrees}° · ${r.recordId} · ${t('roadAxisDerived')}`).join(' / ')]]:[]),
-  ...(analysis.sourceChainage.conflict?[['directionConflict',t('directionConflictText')]]:[])].map(([key,value])=>[t(key),value]);
+  ...(analysis.sourceChainage.conflict?[['directionConflict',t('directionConflictText')]]:[])].map(([key,value])=>[t(key),value])];
 }
 export function metadataRows(r,t,records=[]){
  const unknown=t('valueUnknown'),direction=sourceDirectionLabel(r,t),chainage=sourceChainageLabel(r),mast=sourceMastDirectionLabel(r);

@@ -104,6 +104,8 @@ Use [the acceptance checklist](user-acceptance.md). Confirm model-specific insta
 - [x] Record versions, supported/tested environments, live endpoint behavior and limitations.
 - [ ] Actual Safari/phone downloads/share destinations, physical GPS accuracy and OS permission prompts: user testing remains separate.
 
+- [x] Named CANARD destinations: prepare pinned national road evidence; resolve 59 sections, retain ambiguous/unknown claims, compare complete OPP orientations and exclusions, preserve fingerprints/ODbL attribution, and verify the real 811-observation snapshot and byte-identical Mio round trips. Publication/deployment evidence is recorded in [direction interpretation](direction-interpretation.md).
+
 ## Remaining gates after programmatic implementation
 
 All currently specified, evidence-supported programmatic increments above are implemented. The unchecked items require upstream data/access or semantic evidence (PK, real OSM file, a named other provider, ambiguous cross-source identities, binary mappings/anomalous links), or the user's physical browser/device observations. These are retained as open verification gates, not claimed complete by synthetic tests. A lawful OSM file supplied locally can be tested with the implemented parser and round-trip workflow without new product code. New evidence can justify a further implementation increment; unknown values and build blockers remain until then.

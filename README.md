@@ -6,6 +6,7 @@ An independent browser editor and CLI for inspecting, editing and rebuilding Mio
 
 ## Features
 
+- CANARD destination directions resolved against pinned road data, with confidence, opposite/excluded-direction warnings and complete OPP orientation review ([direction evidence](docs/direction-interpretation.md)).
 - Polish/English map and record list, search, display filters and optional browser location.
 - Official Mio database download or local BIN/project import, local autosave and downloadable project backups.
 - Coordinate edits, clone/delete/restore, undo/redo and validated binary exports.

@@ -1,11 +1,12 @@
+import {applyRoadDirectionData} from '../../src/road-direction-data.js';
 import {decodeCanardPage,normalizeCanardLayers} from '../../src/canard-adapter.js';
 import {enrichCanardBatch} from '../../src/canard-details.js';
 import {prepareSnapshot,sha256} from '../../src/canard-snapshot.js';
 const requireGate=(ok,code)=>{if(!ok)throw Object.assign(new Error(code),{code});};
 /** Pure orchestration: no network, file writes or publication authority. */
-export async function prepareCanard({access,review,previous=null}){
+export async function prepareCanard({access,review,previous=null,roadData=null}){
  requireGate(review?.publicationApproved===true,'CANARD_PUBLICATION_DISABLED');
- const prepared=await inspectCanard({access,review,previous});
+ const prepared=await inspectCanard({access,review,previous,roadData});
  if(!previous)requireGate(review.reviewedCandidateSha256===prepared.manifest.sha256,'CANARD_INITIAL_REVIEW_REQUIRED');
  return prepared;
 }
@@ -20,11 +21,12 @@ export async function normalizeCanardAccess(access,review){
  const layers=decodeCanardPage(access.html,{review});
  return normalizeCanardLayers(layers,{review,retrievedAt:access.checkedAt});
 }
-export async function inspectCanard({access,review,previous=null}){
+export async function inspectCanard({access,review,previous=null,roadData=null}){
  let batch=await normalizeCanardAccess(access,review);
  if(review.details?.enabled){
   requireGate(access.details&&batch.observations.every(o=>Object.hasOwn(access.details,o.sourceId)),'CANARD_DETAILS_INCOMPLETE');
   batch=enrichCanardBatch(batch,access.details);
  }
+ if(roadData)batch=applyRoadDirectionData(batch,roadData);
  return prepareSnapshot({batch,notices:review.notices,previous,checkedAt:access.checkedAt,review});
 }

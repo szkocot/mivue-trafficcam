@@ -1,5 +1,7 @@
 import {hasPosition} from './project-view.js';
 import {decodeBinSpeed} from './bin-metadata.js';
+import {analyzeDirections} from './direction-analysis.js';
+import {getRoadDirection} from './road-direction-data.js';
 
 const R=6371008.8,RAD=Math.PI/180,RADIUS=100,LAT_RADIUS=RADIUS/(R*RAD);
 const recordId=r=>r.id??`source:${r.offset}`;
@@ -10,6 +12,47 @@ function distance(a,b){
  return 2*R*Math.asin(Math.min(1,Math.sqrt(x*x+Math.cos(a[1]*RAD)*Math.cos(b[1]*RAD)*y*y)));
 }
 const describe=r=>({id:recordId(r),latitude:r.latitude,longitude:r.longitude,rawType:r.typeRaw,typeRaw:r.typeRaw,rawBytes16To19:[...r.rawBytes16To19],rawSpeed:r.rawBytes16To19[0],decodedSpeed:decodeBinSpeed(r.rawBytes16To19[0])});
+
+const angleList=value=>Array.isArray(value)&&value.length<=1000&&value.every(n=>Number.isFinite(n)&&n>=0&&n<=360);
+const angleDelta=(a,b)=>Math.min(Math.abs(a-b)%360,360-Math.abs(a-b)%360);
+function directionComparison(reference,candidate){
+ const annotation=reference.originalProperties?.canardRoadDirection;
+ const result={status:'unknown',deltaDegrees:null,mioBearingDegrees:null,travelBearings:[],excludedBearings:[],basis:'road-derived',confidence:'none',reason:annotation?'unresolved-source':'no-road-evidence'};
+ const bearing=analyzeDirections({}, {records:[candidate.records[0]]}).mioAlertBearings[0]?.bearingDegrees;
+ result.mioBearingDegrees=bearing??null;
+ if(!annotation)return result;
+ let road;try{road=getRoadDirection(reference);}catch{result.reason='invalid-source-direction-evidence';return result;}
+ if(!road||!road.source.complete){result.reason='invalid-road-evidence';return result;}
+ result.confidence=road.confidence;
+ if(road.status!=='resolved'||road.confidence==='none')return result;
+ if(bearing==null){result.reason='mio-heading-unclassified';return result;}
+ result.mioBearingDegrees=bearing;
+ let allowed=road.travelBearings,excluded=road.excludedBearings;
+ if(reference.kind==='section'){
+  if(candidate.orientationUncertain){result.reason='section-orientation-uncertain';return result;}
+  const entry=candidate.orientation==='reversed'?1:0;
+  const resolved=road.claims.filter(c=>c?.status==='resolved'&&typeof c.excluded==='boolean'&&angleList(c.bearings)&&[0,1].includes(c.evidence?.entryEndpointIndex)&&angleList(c.evidence.endpointBearings)&&c.evidence.endpointBearings.length===2&&c.evidence.endpointOrientation===(c.evidence.entryEndpointIndex===0?'forward':'reverse'));
+  const relevant=resolved.filter(c=>c.evidence.entryEndpointIndex===entry);
+  allowed=relevant.filter(c=>!c.excluded).map(c=>c.evidence.endpointBearings[entry]);excluded=relevant.filter(c=>c.excluded).map(c=>c.evidence.endpointBearings[entry]);
+  if(!allowed.length&&!excluded.length){
+   if(resolved.some(c=>!c.excluded)){result.status='opposite';result.reason='section-entry-opposite';}
+   else result.reason='section-entry-unresolved';
+   return result;
+  }
+ }
+ result.travelBearings=[...allowed];result.excludedBearings=[...excluded];
+ const delta=allowed.length?Math.min(...allowed.map(n=>angleDelta(bearing,n))):null;
+ const excludedDelta=excluded.length?Math.min(...excluded.map(n=>angleDelta(bearing,n))):null;
+ result.deltaDegrees=delta;result.excludedDeltaDegrees=excludedDelta;
+ if(excludedDelta!==null&&excludedDelta<=60){result.status='excluded';result.reason='excluded-road-bearing';}
+ else if(delta!==null){result.status=delta<=60?'agree':'opposite';result.reason='qualified-road-bearing';}
+ else result.reason='no-allowed-road-bearing';
+ return result;
+}
+const eligibleCandidates=row=>{
+ const agreed=row.candidates.filter(c=>c.directionComparison.status==='agree');
+ return agreed.length?agreed:row.candidates.filter(c=>c.directionComparison.status==='unknown');
+};
 
 /** Pure geometric suggestions: callers must review identity and explicitly choose associations. */
 export function findImportMatches({records,references}){
@@ -52,18 +95,23 @@ export function findImportMatches({records,references}){
      orientationUncertain:Math.max(...direct)<=RADIUS&&Math.max(...reverse)<=RADIUS,spanDifferenceMetres,identityVerified:false,routeVerified:false});
    }
   }
-  row.candidates.sort((a,b)=>(a.metres??a.maxEndpointMetres)-(b.metres??b.maxEndpointMetres)||a.recordIds.join(',').localeCompare(b.recordIds.join(',')));
+  for(const c of row.candidates)c.directionComparison=directionComparison(reference,c);
+  const rank={agree:0,unknown:1,opposite:2,excluded:3};
+  row.candidates.sort((a,b)=>rank[a.directionComparison.status]-rank[b.directionComparison.status]||(a.metres??a.maxEndpointMetres)-(b.metres??b.maxEndpointMetres)||a.recordIds.join(',').localeCompare(b.recordIds.join(',')));
+  row.recommendedRecordIds=[];
   return row;
  });
  const owners=new Map(),key=(namespace,id)=>JSON.stringify([namespace,id]);
- for(const row of rows)for(const id of row.boundRecordIds.length?row.boundRecordIds:row.candidates.flatMap(c=>c.recordIds)){
+ for(const row of rows)for(const id of row.boundRecordIds.length?row.boundRecordIds:eligibleCandidates(row).flatMap(c=>c.recordIds)){
   const k=key(row.namespace,id);if(!owners.has(k))owners.set(k,new Set());owners.get(k).add(row.id);
  }
  const summary={total:rows.length,unique:0,ambiguous:0,unmatched:0,bound:0};
  for(const row of rows){
-  row.contestedRecordIds=[...new Set(row.candidates.flatMap(c=>c.recordIds).filter(id=>owners.get(key(row.namespace,id))?.size>1))].sort();
-  row.status=row.boundRecordIds.length?'bound':!row.candidates.length?'unmatched':row.candidates.length>1||row.contestedRecordIds.length||row.candidates[0].orientationUncertain?'ambiguous':'unique';
-  row.bulkSafe=row.status==='unique';summary[row.status]++;
+  const eligible=eligibleCandidates(row),roadAnnotated=Object.hasOwn(row.originalProperties,'canardRoadDirection');
+  row.contestedRecordIds=[...new Set(eligible.flatMap(c=>c.recordIds).filter(id=>owners.get(key(row.namespace,id))?.size>1))].sort();
+  const safe=eligible.length===1&&!row.contestedRecordIds.length&&!eligible[0].orientationUncertain&&(!roadAnnotated||eligible[0].directionComparison.status==='agree');
+  row.status=row.boundRecordIds.length?'bound':!row.candidates.length?'unmatched':safe?'unique':'ambiguous';
+  row.bulkSafe=row.status==='unique';if(row.bulkSafe)row.recommendedRecordIds=[...eligible[0].recordIds];summary[row.status]++;
  }
  return {rows,summary};
 }

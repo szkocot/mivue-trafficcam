@@ -23,6 +23,7 @@ test('comparison CLI validates both datasets, exports evidence, and never overwr
  assert.equal(result.importVerification.passed,true);assert.equal(result.importVerification.observations,3);
  const json=await readFile(join(f.output,'comparison.json'),'utf8');
  const report=JSON.parse(json);assert.equal(report.inputs.canard.sha256,f.prepared.manifest.sha256);
+ assert.equal(report.directionVerification.summary.total,3);assert.equal(report.directionVerification.rows.length,3);assert.ok(report.directionVerification.rows.every(r=>r.roadStatus==='unavailable'));
  assert.equal(JSON.parse(await readFile(join(f.output,'comparison.geojson'),'utf8')).features.filter(x=>x.properties.source==='CANARD').length,3);
  const evidence=await readFile(join(f.output,'comparison.geojson'),'utf8');const overlay=parseGeoJson(evidence,{namespace:'audit-evidence',attribution:'Local audit'},retrievedAt);assert.equal(overlay.observations.length,JSON.parse(evidence).features.length);assert.ok(overlay.observations.every(o=>o.status==='unknown'));
  assert.ok((await readFile(join(f.output,'comparison.csv'),'utf8')).startsWith('"sourceId","category"'));

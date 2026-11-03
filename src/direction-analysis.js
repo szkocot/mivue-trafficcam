@@ -1,4 +1,5 @@
 import {BIN_METADATA_SCOPE} from './bin-metadata.js';
+import {getRoadDirection} from './road-direction-data.js';
 
 const normalized=value=>typeof value==='string'?value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,' '):'';
 const chainage=value=>['ros','rosnacy','pikietaz rosnacy'].includes(normalized(value))?'increasing':['mal','malejacy','pikietaz malejacy'].includes(normalized(value))?'decreasing':'unknown';
@@ -41,6 +42,6 @@ export function analyzeDirections(reference={}, {records=[]}={}){
  if(sourceCaptureMode==='unknown')issues.push('CAR_CAPTURE_MODE_UNKNOWN');
  if(mioAlertBearings.some(row=>row.bearingDegrees===null))issues.push('MIO_ALERT_UNCLASSIFIED');
  if(roadAxisAimEstimates.length)issues.push('ROAD_AXIS_ESTIMATE_ONLY');
- return {sourceTravelDirections,sourceCaptureMode,sourceNamedDirections:[...new Set([device?.nazwaKierunku1,device?.nazwaKierunku2].filter(value=>typeof value==='string'&&value.trim()))],
+ return {roadDirection:getRoadDirection(reference),sourceTravelDirections,sourceCaptureMode,sourceNamedDirections:[...new Set([device?.nazwaKierunku1,device?.nazwaKierunku2].filter(value=>typeof value==='string'&&value.trim()))],
   sourceChainage:{mastRaw,mastDirection,limitDirections,conflict},mioAlertBearings,physicalAim:{status:'unknown',bearingDegrees:null},roadAxisAimEstimates,issues};
 }

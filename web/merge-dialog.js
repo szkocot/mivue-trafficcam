@@ -1,6 +1,7 @@
 import {directionRows,speedLabel} from '../src/source-metadata.js';
 import {sourceDirectionLabel} from '../src/source-direction.js';
 const same=(a,b)=>JSON.stringify([...a].sort())===JSON.stringify([...b].sort());
+const recommended=(row,c)=>row.bulkSafe&&same(c.recordIds,row.recommendedRecordIds??[]);
 export function createMergeDialog({client,getIdentity,getReferences,onApply,onBusy,onClose,t}){
  const dialog=document.createElement('dialog');dialog.className='merge-dialog';document.body.append(dialog);
  let preview=null,identity=null,page=0,rows=[],choices=new Map(),selected=new Map(),committing=false;
@@ -12,17 +13,24 @@ export function createMergeDialog({client,getIdentity,getReferences,onApply,onBu
  function render(){
   dialog.replaceChildren(el('h2',t('mergeSources')),el('p',t('mergeHelp')),el('p',t('mergeCounts',preview.summary)));
   const refs=new Map(getReferences().map(r=>[r.id,r]));
-  const selectUnique=el('button',t('mergeSelectUnique'));selectUnique.onclick=()=>{for(const row of rows)if(!row.boundRecordIds.length)selected.set(row.id,new Set(row.bulkSafe?[choices.get(row.id)[0].key]:[]));render();};dialog.append(selectUnique);
+  const selectUnique=el('button',t('mergeSelectUnique'));selectUnique.onclick=()=>{for(const row of rows)if(!row.boundRecordIds.length)selected.set(row.id,new Set(choices.get(row.id).filter(c=>recommended(row,c)).map(c=>c.key)));render();};dialog.append(selectUnique);
   const list=el('div');list.dataset.testid='merge-candidates';
   for(const row of rows.slice(page*50,(page+1)*50)){
    const section=el('fieldset');section.dataset.testid='merge-row';section.append(el('legend',row.sourceId),el('p',`${t(`kind_${row.kind}`)} · ${t(`merge_${row.status}`)} · ${sourceDirectionLabel(refs.get(row.id)??row,t)}`));
    section.append(el('p',`${t('speedLimit')}: ${speedLabel([refs.get(row.id)??{speedKmh:row.sourceSpeedKmh,attribution:''}],t)}`));
    if(!row.candidates.length&&!row.boundRecordIds.length)section.append(el('p',t('mergeNoCandidate')));
    for(const c of choices.get(row.id)){
-    const label=el('label'),input=el('input');input.type='checkbox';input.checked=selected.get(row.id).has(c.key);
+    const label=el('label'),input=el('input');label.dataset.testid='merge-candidate';input.type='checkbox';input.checked=selected.get(row.id).has(c.key);
     const distances=c.endpointMetres??(Number.isFinite(c.metres)?[c.metres]:[]);
     const speed=(c.records??[]).map(r=>r.decodedSpeed?.speedKmh==null?`${t('speedUnknown')} (BIN ${r.rawSpeed})`:`${r.decodedSpeed.speedKmh} km/h`).join(' / ');
     label.append(input,document.createTextNode(`${c.recordIds.join(' + ')}${distances.length?' · '+distances.map(n=>n.toFixed(1)+' m').join(' / '):''}${speed?' · '+speed:''}${c.existing?' · '+t('mergeExisting'):''}`));
+    if(c.directionComparison){
+     const d=c.directionComparison,unknown=t('valueUnknown'),format=n=>Number.isFinite(n)?`${Math.round(n*10)/10}°`:unknown;
+     const status=el('small',t(`mergeDirection_${d.status}`));status.style.display='block';label.append(status);
+     const evidence=el('small',t('mergeDirectionEvidence',{mio:format(d.mioBearingDegrees),road:d.travelBearings?.length?d.travelBearings.map(format).join(' / '):unknown,
+      excluded:d.excludedBearings?.length?d.excludedBearings.map(format).join(' / '):unknown,delta:format(d.deltaDegrees),confidence:t(`mergeDirectionConfidence_${d.confidence??'none'}`)}));evidence.style.display='block';label.append(evidence);
+     if(d.reason==='section-entry-opposite')label.append(el('small',t('mergeDirectionEntryOpposite')));
+    }
     if(refs.get(row.id)?.originalProperties?.canardDetail)for(const[key,value]of directionRows(refs.get(row.id),t,c.records??[]))label.append(el('small',` · ${key}: ${value}`));
     input.onchange=()=>{if(input.checked)selected.get(row.id).add(c.key);else selected.get(row.id).delete(c.key);updateApply();};
     label.style.display='block';section.append(label);
@@ -46,7 +54,7 @@ export function createMergeDialog({client,getIdentity,getReferences,onApply,onBu
   for(const row of rows){
    const candidates=row.candidates.map(c=>({...c,key:c.recordIds.join('\0')})),covered=new Set(candidates.flatMap(c=>c.recordIds)),missing=row.boundRecordIds.filter(id=>!covered.has(id));
    if(missing.length)candidates.push({recordIds:[...row.boundRecordIds],key:'existing',existing:true});
-   choices.set(row.id,candidates);selected.set(row.id,new Set(candidates.filter(c=>missing.length?c.existing:c.recordIds.every(id=>row.boundRecordIds.includes(id))||row.bulkSafe).map(c=>c.key)));
+   choices.set(row.id,candidates);selected.set(row.id,new Set(candidates.filter(c=>missing.length?c.existing:c.recordIds.every(id=>row.boundRecordIds.includes(id))||recommended(row,c)).map(c=>c.key)));
   }
   render();dialog.showModal();
  },invalidate(){if(dialog.open)close();}};

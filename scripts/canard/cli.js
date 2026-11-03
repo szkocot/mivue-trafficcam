@@ -1,3 +1,5 @@
+import {readRoadData} from '../roads/files.js';
+import {fileURLToPath} from 'node:url';
 import {readFile,writeFile,appendFile,mkdir} from 'node:fs/promises';
 import {dirname} from 'node:path';
 import {readDataset,writeDataset,fail} from './files.js';
@@ -13,11 +15,12 @@ if(command==='resolve'&&!args.length){
 }else if(['prepare','candidate'].includes(command)&&args.length===3){
  const [destination,previousDir,cacheFile]=args,previous=previousDir==='-'?null:await readDataset(previousDir);
  let previousAccess=null;try{previousAccess=JSON.parse(await readFile(cacheFile));}catch(error){if(error.code!=='ENOENT'&&!(error instanceof SyntaxError))throw error;}
+ const roadData=await readRoadData(fileURLToPath(new URL('../../',import.meta.url)),{optional:true});
  let access,prepared;
- if(command==='candidate'){access=await fetchCanardInput({review,previousAccess});prepared=await inspectCanard({access,review,previous});}
+ if(command==='candidate'){access=await fetchCanardInput({review,previousAccess});prepared=await inspectCanard({access,review,previous,roadData});}
  else{
   if(process.env.CANARD_PUBLICATION_ENABLED!=='true')fail('CANARD_PUBLICATION_DISABLED');
-  ({access,prepared}=await prepareUpdate({review,previous,previousAccess}));
+  ({access,prepared}=await prepareUpdate({review,previous,previousAccess,roadData}));
  }
  await writeDataset(destination,prepared);await mkdir(dirname(cacheFile),{recursive:true});await writeFile(cacheFile,JSON.stringify(access),{mode:0o600});
  console.log(`Candidate ${prepared.manifest.sha256}; ${prepared.manifest.total} observations. Not published.`);

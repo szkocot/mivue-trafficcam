@@ -23,7 +23,7 @@ export function createMap(element,{onSelect,onPick,onViewport,onTileError}){
   const buckets=new Map();for(const g of groups){const key=`${Math.floor(g.x/grid)}:${Math.floor(g.y/grid)}`;if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(g);}
   for(const bucket of buckets.values())if(bucket.length>1)bucket.forEach((g,i)=>{g.x+=(i-(bucket.length-1)/2)*34;});
   const legend=element.parentElement.querySelector('.legend');
-  if(legend)legend.textContent=translate('mapLegend',{bin:points.filter(p=>!p.reference&&!p.merged).length,merged:points.filter(p=>p.merged).length,references:points.filter(p=>p.reference).length})+' '+translate('links')+' '+translate('directionArrowLegend');
+  if(legend)legend.textContent=translate('mapLegend',{bin:points.filter(p=>!p.reference&&!p.merged).length,merged:points.filter(p=>p.merged).length,references:points.filter(p=>p.reference).length})+' '+translate('links')+' '+translate('directionArrowLegend')+' '+translate('roadDirectionArrowLegend');
   const lookup=new Map([...records,...references].map(r=>[r.id,r]));
   ctx.strokeStyle='#7351a2';ctx.lineWidth=2;ctx.setLineDash([3,5]);
   for(const r of references)if(r.geometry.type==='LineString'){
@@ -52,6 +52,9 @@ export function createMap(element,{onSelect,onPick,onViewport,onTileError}){
    const angle=(heading-90)*Math.PI/180,x=active.x+Math.cos(angle)*30,y=active.y+Math.sin(angle)*30;
    ctx.strokeStyle='#185a8d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(active.x,active.y);ctx.lineTo(x,y);ctx.lineTo(x-Math.cos(angle-.5)*9,y-Math.sin(angle-.5)*9);ctx.moveTo(x,y);ctx.lineTo(x-Math.cos(angle+.5)*9,y-Math.sin(angle+.5)*9);ctx.stroke();
   }
+  const road=selected?.reference?analyzeDirections(selected).roadDirection:null;
+  const travel=road?.status==='resolved'?road.travelBearings:[];canvas.dataset.roadTravelBearings=JSON.stringify(travel);
+  if(active)for(const bearing of travel){const angle=(bearing-90)*Math.PI/180,x=active.x+Math.cos(angle)*34,y=active.y+Math.sin(angle)*34;ctx.strokeStyle='#7351a2';ctx.lineWidth=2;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(active.x,active.y);ctx.lineTo(x,y);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(x-Math.cos(angle-.5)*9,y-Math.sin(angle-.5)*9);ctx.lineTo(x,y);ctx.lineTo(x-Math.cos(angle+.5)*9,y-Math.sin(angle+.5)*9);ctx.stroke();}
   const labels=[];ctx.font='12px system-ui';
   if(display.showSpeedLimits||display.showMetadata)for(const g of groups){
    if(g.ids.length!==1)continue;const r=lookup.get(g.ids[0]),refs=r.reference?[r]:r.sourceObservations??[],parts=[];

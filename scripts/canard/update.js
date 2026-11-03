@@ -12,9 +12,9 @@ export async function fetchCanardInput({review,previousAccess=null,fetchPage=fet
  return access;
 }
 /** Failure returns no candidate and never mutates the accepted dataset. */
-export async function prepareUpdate({review,previous=null,previousAccess=null,fetchPage=fetchCanardPage,fetchDetails=fetchCanardDetails}){
+export async function prepareUpdate({review,previous=null,previousAccess=null,roadData=null,fetchPage=fetchCanardPage,fetchDetails=fetchCanardDetails}){
  if(previous?.manifest.state==='disabled')fail('CANARD_SOURCE_WITHDRAWN');
  if(review?.publicationApproved!==true)fail('CANARD_PUBLICATION_DISABLED');
  const access=await fetchCanardInput({review,previousAccess,fetchPage,fetchDetails});
- const prepared=await prepareCanard({access,review,previous});return {access,prepared};
+ const prepared=await prepareCanard({access,review,previous,roadData});return {access,prepared};
 }

@@ -17,6 +17,8 @@ This is an unofficial browser editor and Node CLI for Mio MiVue camera databases
 - `src/import-*.js`, `reconcile.js`, `source-metadata.js`: attributed observations, identity, ownership, imports and exports.
 - `src/canard-adapter.js`, `canard-details.js`, `canard-snapshot.js`: CANARD map/detail normalization and snapshot validation.
 - `scripts/canard/`: bounded upstream acquisition, private cache, preparation and separately gated publication.
+- `src/road-directions.js`, `road-direction-data.js`, `scripts/roads/`: offline directed-road resolution, fingerprint/schema validation and compact CANARD lookup. National OSM PBF/graphs stay in `.cache/roads/`; only the compact attributed lookup belongs in `data/roads/`.
+- Road-derived travel estimates remain distinct from raw Mio headings and physical aim. Keep explicit no-measurement directions negative; compare OPPs using actual 964 entry endpoint plus local bearings at both source endpoints. Never use a straight city bearing or silently reuse stale direction evidence.
 - `src/bin-metadata.js`: finite, read-only interpretation backed by the documented firmware trace.
 - `web/`: PL/EN UI, worker protocol, storage, map and source synchronization.
 - `scripts/compare-sources.mjs`, `scripts/verification/`: private CANARD–Mio coverage/range/speed audit.

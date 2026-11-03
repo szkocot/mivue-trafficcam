@@ -2,6 +2,8 @@
 import {readFile,lstat,mkdir,writeFile,realpath} from 'node:fs/promises';
 import {resolve,basename,join,dirname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {findImportMatches} from '../src/import-matches.js';
+import {getRoadDirection,ROAD_DIRECTION_NOTICE} from '../src/road-direction-data.js';
 import {readDataset} from './canard/files.js';
 import {validateSnapshot,sha256,CANARD_NAMESPACE,canonical} from '../src/canard-snapshot.js';
 import {createProject,loadProject,validateProject} from '../src/project.js';
@@ -34,7 +36,9 @@ try{
  const report=compareCanardMio({database:{...baseline,records:view.records},batch:hosted.batch,classifier,countryId:poland.id});
  report.inputs={mio:{name:basename(input),sha256:project.source.sha256,byteLength:bytes.length,recordCount:baseline.summary.recordCount,retrievedAt:null,retrievalNote:'Upstream retrieval time is not encoded in a local BIN/project; hash and header identify this input.',version:baseline.header.versionCandidate,cellDimensions:baseline.header.cellDimensions},
   projectFileSha256:await sha256(file),canard:prepared.manifest,boundaries:{release:countryManifest.release,sha256:countryManifest.sha256}};
- report.sourceNotices=[hosted.notices];report.boundaryNotice=countries.notice;
+ const directionRows=findImportMatches({records:view.records,references:hosted.batch.observations.map(o=>({...o,namespace:hosted.batch.source.namespace,attribution:hosted.batch.source.attribution}))});
+ report.directionVerification={policy:'Geometric candidates with independent road-derived direction evidence; agreement is not identity proof.',summary:directionRows.summary,rows:directionRows.rows.map(row=>({sourceId:row.sourceId,kind:row.kind,roadStatus:getRoadDirection(row)?.status??'unavailable',bulkSafe:row.bulkSafe,recommendedRecordIds:row.recommendedRecordIds,candidates:row.candidates.map(c=>({recordIds:c.recordIds,orientation:c.orientation,directionComparison:c.directionComparison}))}))};
+ report.sourceNotices=[hosted.notices,...(hosted.batch.observations.some(getRoadDirection)?[ROAD_DIRECTION_NOTICE]:[])];report.boundaryNotice=countries.notice;
  report.importVerification=await verifyHostedImport(bytes,prepared);
  const observations=new Map(hosted.batch.observations.map(o=>[o.sourceId,o])),records=new Map(view.records.map(r=>[r.id,r]));
  const ownership=new Map(project.ingestion.ownership.map(o=>[o.recordId,o.coordinates]));
